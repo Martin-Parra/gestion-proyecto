@@ -1,0 +1,14 @@
+const express = require('express');
+const router = express.Router();
+const proyectosController = require('../controllers/proyectosController');
+
+// Obtener todos los jefes de proyecto
+router.get('/jefes', proyectosController.obtenerJefesProyecto);
+
+// Rutas CRUD para proyectos
+router.post('/', proyectosController.crearProyecto);
+router.get('/', proyectosController.obtenerProyectos);
+router.get('/:id', proyectosController.obtenerProyecto);
+router.delete('/:id', proyectosController.eliminarProyecto);
+
+module.exports = router;

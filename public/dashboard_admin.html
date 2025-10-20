@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/dashboard_admin.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script src="/js/tareas.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-laugh-wink"></i> ADMIN</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#usuarios"><i class="fas fa-users"></i> Usuarios</a></li>
+            <li><a href="#proyectos"><i class="fas fa-project-diagram"></i> Gestión de Proyectos</a></li>
+            <li><a href="#revicion_proyectos"><i class="fas fa-clipboard-check"></i> Revicion de proyectos</a></li>
+            <li><a href="#asignacion"><i class="fas fa-user-plus"></i> Asignar Miembros</a></li>
+            <li><a href="#visualizacion"><i class="fas fa-chart-bar"></i> Miembros Asignados</a></li>
+            <li><a href="/login/logout"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    <main class="main-content">
+        <section id="usuarios" class="dashboard-section">
+            <h2>Gestión de Usuarios</h2>
+            
+            <!-- Formulario de Creación de Usuario -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h3>
+                </div>
+                <div class="card-body">
+                    <form id="formCrearUsuario">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="nombre">Nombre Completo</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="password">Contraseña</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="rol">Rol</label>
+                                <select class="form-control" id="rol" name="rol" required>
+                                    <option value="">Seleccione un rol...</option>
+                                    <option value="administrador">Administrador</option>
+                                    <option value="jefe_proyecto">Jefe de Proyecto</option>
+                                    <option value="miembro">Miembro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Crear Usuario
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Lista de Usuarios -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-table"></i> Lista de Usuarios</h3>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div class="col" style="flex: 1;">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="busquedaUsuario" class="form-control" placeholder="Buscar por nombre, email o rol...">
+                            </div>
+                        </div>
+                        
+                        <div class="col" style="display: flex; justify-content: flex-end; align-items: center;">
+                            <label style="margin-right: 10px; margin-bottom: 0;">Mostrar</label>
+                            <select id="cantidadRegistros" class="form-control" style="width: auto;">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <label style="margin-left: 10px; margin-bottom: 0;">registros</label>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="tablaUsuarios" class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Usuarios se cargan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                        <div class="col" style="flex: 1;">
+                            <span id="infoRegistros">Mostrando 0 de 0 registros</span>
+                        </div>
+                        <div class="col" style="display: flex; justify-content: flex-end;">
+                            <div class="pagination">
+                                <button id="btnAnterior" class="btn btn-sm btn-outline-primary" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+                                <span id="paginaActual" style="margin: 0 10px; line-height: 31px;">Página 1</span>
+                                <button id="btnSiguiente" class="btn btn-sm btn-outline-primary" disabled>Siguiente <i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="proyectos" class="dashboard-section">
+            <h2>Gestión de Proyectos</h2>
+
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-plus-circle"></i> Crear Nuevo Proyecto</h3>
+                </div>
+                <form id="formCrearProyecto">
+                    <div class="form-group">
+                        <label for="nombreProyecto">Nombre del Proyecto:</label>
+                        <input type="text" id="nombreProyecto" name="nombreProyecto" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fechaInicio">Fecha de inicio:</label>
+                        <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fechaTermino">Fecha de finalización:</label>
+                        <input type="date" id="fechaTermino" name="fechaTermino" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="buscadorJefe">Jefe de Proyecto:</label>
+                        <div class="buscador-jefe">
+                            <div class="input-group">
+                                <input type="text" id="buscadorJefe" class="form-control" placeholder="Buscar jefe de proyecto...">
+                                <span id="limpiarJefeBtn" style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #e74a3b; z-index: 10; font-size: 16px; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; padding: 2px 5px;">
+                                <i class="fas fa-times"></i>
+                            </span>
+                            </div>
+                            <div id="resultadosJefe" class="resultados-jefe"></div>
+                            <input type="hidden" id="jefeProyectoId" name="jefeProyectoId">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Crear Proyecto</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Lista de Proyectos</h3>
+                </div>
+                <div class="table-responsive">
+                    <table id="tablaProyectos" class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Fecha de inicio</th>
+                                <th>Fecha de finalización</th>
+                                <th>Jefe de Proyecto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Proyectos se cargan aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nueva sección: Revicion de proyectos -->
+        <section id="revicion_proyectos" class="dashboard-section">
+            <h2>Revicion de proyectos</h2>
+
+            <!-- Formulario de Asignación de Tareas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-tasks"></i> Asignación de Tareas</h3>
+                </div>
+                <div class="card-body">
+                    <form id="formAsignarTarea">
+                        <div class="form-group">
+                            <label for="proyectoTarea">Proyecto:</label>
+                            <select id="proyectoTarea" name="proyectoTarea" class="form-control" required>
+                                <option value="">Seleccione un proyecto...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tituloTarea">Título de la Tarea:</label>
+                            <input type="text" id="tituloTarea" name="tituloTarea" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcionTarea">Descripción:</label>
+                            <textarea id="descripcionTarea" name="descripcionTarea" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Tarea
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Grid de Proyectos -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-layer-group"></i> Proyectos</h3>
+                </div>
+                <div class="card-body">
+                    <div id="proyectosGrid" class="projects-grid"></div>
+                </div>
+            </div>
+
+            <!-- Detalle de Proyecto -->
+            <div class="card" id="proyectoDetalleCard" style="display:none;">
+                <div class="card-header">
+                    <h3 id="proyectoDetalleTitulo"><i class="fas fa-tasks"></i> Tareas del Proyecto</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Información del proyecto -->
+                    <div id="proyectoInfo" class="project-info">
+                        <div class="project-lead"><strong>Líder de Proyecto:</strong> <span id="proyectoInfoLider">—</span></div>
+                    </div>
+                    <!-- Tabla de tareas del proyecto (PRIMERO) -->
+                    <div id="proyectoTasks" class="project-tasks">
+                        <h4><i class="fas fa-list-check"></i> Tareas del Proyecto</h4>
+                        <table id="tablaTareasProyecto" class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" class="text-center">—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Tabla de miembros del proyecto -->
+                    <div id="proyectoTeam" class="project-team">
+                        <h4><i class="fas fa-users"></i> Miembros del Proyecto</h4>
+                        <table id="tablaMiembrosProyecto" class="team-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" class="text-center">—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="asignacion" class="dashboard-section">
+            <h2>Asignar Miembros</h2>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-plus"></i> Asignar Miembro a Proyecto</h3>
+                </div>
+                <div class="card-body">
+                    <form id="formAsignarMiembro">
+                        <div class="form-group">
+                            <label for="proyectoAsignacion">Proyecto:</label>
+                            <select id="proyectoAsignacion" name="proyectoAsignacion" class="form-control" required>
+                                <option value="">Seleccione un proyecto...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="miembroAsignacion">Miembro:</label>
+                            <select id="miembroAsignacion" name="miembroAsignacion" class="form-control" required>
+                                <option value="">Seleccione un miembro...</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Asignar Miembro
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+        
+        <section id="visualizacion" class="dashboard-section">
+            <h2>Miembros Asignados</h2>
+            
+            <div class="stat-cards">
+                <div class="stat-card primary">
+                    <h3><i class="fas fa-project-diagram"></i> Proyectos</h3>
+                    <h2 id="totalProyectos">0</h2>
+                </div>
+                
+                <div class="stat-card success">
+                    <h3><i class="fas fa-users"></i> Miembros</h3>
+                    <h2 id="totalMiembros">0</h2>
+                </div>
+                
+                <div class="stat-card info">
+                    <h3><i class="fas fa-tasks"></i> Asignaciones</h3>
+                    <h2 id="totalAsignaciones">0</h2>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clipboard-list"></i> Lista de Asignaciones</h3>
+                </div>
+                <div class="table-responsive">
+                    <table id="tablaTrabajadoresAsignados" class="table">
+                        <thead>
+                            <tr>
+                                <th>Proyecto</th>
+                                <th>Miembro</th>
+                                <th>Fecha de asignación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Asignaciones se cargan aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Modal Editar Usuario -->
+    <div id="modalEditarUsuario" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-user-edit"></i> Editar Usuario</h3>
+                <span class="close" id="closeEditarUsuario">&times;</span>
+            </div>
+            <form id="formEditarUsuario">
+                <input type="hidden" id="editarUsuarioId">
+                
+                <div class="form-group">
+                    <label for="editarNombre">Nombre:</label>
+                    <input type="text" id="editarNombre" name="editarNombre" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarEmail">Email:</label>
+                    <input type="email" id="editarEmail" name="editarEmail" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarPassword">Contraseña:</label>
+                    <div class="password-container" style="position: relative;">
+                        <input type="password" id="editarPassword" name="editarPassword" class="form-control" placeholder="Dejar en blanco para mantener la actual">
+                        <i class="fas fa-eye toggle-password" style="position: absolute; right: 10px; top: 10px; cursor: pointer;"></i>
+                    </div>
+                    <small class="form-text text-muted">Dejar en blanco si no desea cambiar la contraseña.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarRol">Rol:</label>
+                    <select id="editarRol" name="editarRol" class="form-control">
+                        <option value="administrador">Administrador</option>
+                        <option value="jefe_proyecto">Jefe de Proyecto</option>
+                        <option value="miembro">Miembro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarEstado">Estado:</label>
+                    <select id="editarEstado" name="editarEstado" class="form-control">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Proyecto -->
+    <div id="modalEditarProyecto" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-edit"></i> Editar Proyecto</h3>
+                <span class="close" id="closeEditarProyecto">&times;</span>
+            </div>
+            <form id="formEditarProyecto">
+                <input type="hidden" id="editarProyectoId">
+                
+                <div class="form-group">
+                    <label for="editarNombreProyecto">Nombre del Proyecto:</label>
+                    <input type="text" id="editarNombreProyecto" name="editarNombreProyecto" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarFechaInicio">Fecha de inicio:</label>
+                    <input type="date" id="editarFechaInicio" name="editarFechaInicio" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarFechaTermino">Fecha de finalización:</label>
+                    <input type="date" id="editarFechaTermino" name="editarFechaTermino" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarBuscadorJefe">Jefe de Proyecto:</label>
+                    <div class="buscador-jefe">
+                        <div class="input-group">
+                            <input type="text" id="editarBuscadorJefe" class="form-control" placeholder="Buscar jefe de proyecto...">
+                            <span id="editarLimpiarJefeBtn" style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #e74a3b; z-index: 10; font-size: 16px; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; padding: 2px 5px;">
+                                <i class="fas fa-times"></i>
+                            </span>
+                        </div>
+                        <div id="editarResultadosJefe" class="resultados-jefe"></div>
+                        <input type="hidden" id="editarJefeProyectoId" name="editarJefeProyectoId">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Eliminar Usuario -->
+    <div id="modalEliminarUsuario" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-trash-alt"></i> Eliminar Usuario</h3>
+                <span class="close" id="closeEliminarUsuario">&times;</span>
+            </div>
+            <div class="form-group" style="text-align: center; margin: 20px 0;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74a3b; margin-bottom: 15px;"></i>
+                <p>¿Estás seguro de que deseas eliminar este usuario?</p>
+                <p style="font-size: 0.9rem; color: #858796;">Esta acción no se puede deshacer.</p>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button id="confirmarEliminarUsuario" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('modalEliminarUsuario').style.display='none'"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Eliminar Proyecto -->
+    <div id="modalEliminarProyecto" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-trash-alt"></i> Eliminar Proyecto</h3>
+                <span class="close" id="closeEliminarProyecto">&times;</span>
+            </div>
+            <div class="form-group" style="text-align: center; margin: 20px 0;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #e74a3b; margin-bottom: 15px;"></i>
+                <p>¿Estás seguro de que deseas eliminar este proyecto?</p>
+                <p style="font-size: 0.9rem; color: #858796;">Esta acción no se puede deshacer y eliminará todas las asignaciones asociadas.</p>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button id="confirmarEliminarProyecto" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('modalEliminarProyecto').style.display='none'"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Tarea -->
+    <div id="modalEditarTarea" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-edit"></i> Editar Tarea</h3>
+                <span class="close" id="closeEditarTarea">&times;</span>
+            </div>
+            <form id="formEditarTarea">
+                <input type="hidden" id="editarTareaId">
+                <input type="hidden" id="editarTareaProyectoId">
+                
+                <div class="form-group">
+                    <label for="editarTareaTitulo">Título:</label>
+                    <input type="text" id="editarTareaTitulo" name="editarTareaTitulo" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarTareaDescripcion">Descripción:</label>
+                    <textarea id="editarTareaDescripcion" name="editarTareaDescripcion" class="form-control" rows="4"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/dashboard_admin.js"></script>
+</body>
+</html>

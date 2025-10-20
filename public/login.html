@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gestión de Proyectos</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Iniciar Sesión</h2>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Usuario" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button type="submit">Ingresar</button>
+        </form>
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <script>
+        // Verificar si hay mensajes de error en la URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (error === 'inactive') {
+                errorMessage.textContent = 'Su cuenta ha sido desactivada. Contacte al administrador.';
+                errorMessage.style.display = 'block';
+            } else if (error === 'auth') {
+                errorMessage.textContent = 'Usuario o contraseña incorrectos.';
+                errorMessage.style.display = 'block';
+            } else if (error === 'access') {
+                errorMessage.textContent = 'No tiene permisos para acceder a esta sección.';
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

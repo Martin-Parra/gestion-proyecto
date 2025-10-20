@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Trabajador</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/dashboard_trabajador.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-user-hard-hat"></i> TRABAJADOR</h2>
+            <div id="userInfo" class="user-info">
+                <div class="user-name">
+                    <i class="fas fa-user"></i>
+                    <span id="userName">Cargando...</span>
+                </div>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#mi-proyecto" data-section="mi-proyecto" class="active"><i class="fas fa-project-diagram"></i> Mi Proyecto</a></li>
+            <li><a href="#mis-tareas" data-section="mis-tareas"><i class="fas fa-tasks"></i> Mis Tareas</a></li>
+            <li><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    
+    <main class="main-content">
+        <!-- Sección Mi Proyecto -->
+        <section id="mi-proyecto" class="dashboard-section">
+            <h2>Mi Proyecto Asignado</h2>
+            
+            <!-- Tarjetas de Estadísticas -->
+            <div class="stat-cards">
+                <div class="stat-card primary">
+                    <h3><i class="fas fa-project-diagram"></i> Mi Proyecto</h3>
+                    <h2 id="miProyecto">0</h2>
+                </div>
+                
+                <div class="stat-card success">
+                    <h3><i class="fas fa-tasks"></i> Mis Tareas</h3>
+                    <h2 id="misTareas">0</h2>
+                </div>
+                
+                <div class="stat-card info">
+                    <h3><i class="fas fa-check-circle"></i> Completadas</h3>
+                    <h2 id="tareasCompletadas">0</h2>
+                </div>
+            </div>
+            
+            <!-- Tarjeta del Proyecto Asignado -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-project-diagram"></i> Mi Proyecto</h3>
+                </div>
+                <div class="card-body">
+                    <div id="proyectoGrid" class="projects-grid">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando proyecto asignado...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles del Proyecto (inicialmente oculto) -->
+            <div id="proyectoDetalleCard" class="card" style="display: none;">
+                <div class="card-header">
+                    <h3 id="proyectoDetalleTitulo"><i class="fas fa-tasks"></i> Tareas del Proyecto</h3>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btnCerrarDetalle">
+                        <i class="fas fa-times"></i> Cerrar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Información del Proyecto -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Líder del Proyecto:</strong>
+                            <span id="proyectoInfoLider">Cargando...</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Tareas -->
+                    <div class="table-responsive">
+                        <table id="tablaTareasProyecto" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Estado</th>
+                                    <th>Prioridad</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="text-center">Cargando tareas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Mis Tareas -->
+        <section id="mis-tareas" class="dashboard-section" style="display: none;">
+            <h2>Mis Tareas</h2>
+            
+            <!-- Filtros de Tareas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> Filtros</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <button class="btn btn-primary filter-btn active" data-filter="todas">Todas</button>
+                        <button class="btn btn-secondary filter-btn" data-filter="pendiente">Pendientes</button>
+                        <button class="btn btn-warning filter-btn" data-filter="en_progreso">En Progreso</button>
+                        <button class="btn btn-success filter-btn" data-filter="completada">Completadas</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="filtroEstado">Estado</label>
+                            <select class="form-control" id="filtroEstado">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_progreso">En Progreso</option>
+                                <option value="completada">Completada</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="filtroPrioridad">Prioridad</label>
+                            <select class="form-control" id="filtroPrioridad">
+                                <option value="">Todas las prioridades</option>
+                                <option value="baja">Baja</option>
+                                <option value="media">Media</option>
+                                <option value="alta">Alta</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="busquedaTarea">Buscar</label>
+                            <input type="text" class="form-control" id="busquedaTarea" placeholder="Buscar por título o descripción...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Tareas -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Lista de Tareas</h3>
+                </div>
+                <div class="card-body">
+                    <div id="tasksContainer">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando tareas...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Detalles de Tarea -->
+    <div class="modal fade" id="modalDetalleTarea" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle"></i> Detalles de la Tarea
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formActualizarTarea">
+                        <input type="hidden" id="tareaId" name="tareaId">
+                        
+                        <div class="form-group">
+                            <label for="tareaTitulo">Título</label>
+                            <input type="text" class="form-control" id="tareaTitulo" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="tareaDescripcion">Descripción</label>
+                            <textarea class="form-control" id="tareaDescripcion" rows="4" readonly></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="tareaPrioridad">Prioridad</label>
+                                <input type="text" class="form-control" id="tareaPrioridad" readonly>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="tareaEstado">Estado</label>
+                                <select class="form-control" id="tareaEstado" name="estado">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en_progreso">En Progreso</option>
+                                    <option value="completada">Completada</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="tareaFechaInicio">Fecha de Inicio</label>
+                                <input type="date" class="form-control" id="tareaFechaInicio" readonly>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="tareaFechaFin">Fecha de Fin</label>
+                                <input type="date" class="form-control" id="tareaFechaFin" readonly>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btnActualizarTarea">
+                        <i class="fas fa-save"></i> Actualizar Estado
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/dashboard_trabajador.js"></script>
+</body>
+</html>
