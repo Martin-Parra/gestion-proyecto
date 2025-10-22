@@ -308,6 +308,6 @@ Este proyecto está bajo la Licencia MIT.
 
 Para reportar problemas o solicitar nuevas funcionalidades, crear un issue en el repositorio del proyecto.
 
----
+--- Caca
 =======
 # gestion-proyecto b8178bd7e5b303ae6482224180f9e06595a7b5e0
