@@ -77,6 +77,25 @@ app.get('/dashboard/trabajador', isAuthenticated, checkUserStatus, (req, res) =>
     res.sendFile(path.join(__dirname, '../public/dashboard_trabajador.html'));
 });
 
+app.get('/proyecto-detalle', isAuthenticated, checkUserStatus, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/proyecto_detalle.html'));
+});
+
+// Página: detalle de proyecto para admin
+app.get('/admin/proyecto/:id', isAuthenticated, checkUserStatus, isAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/proyecto_admin_detalle.html'));
+});
+
+// Página: crear nuevo usuario
+app.get('/admin/usuarios/nuevo', isAuthenticated, checkUserStatus, isAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/usuarios_nuevo.html'));
+});
+
+// Página: crear nuevo proyecto
+app.get('/admin/proyectos/nuevo', isAuthenticated, checkUserStatus, isAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/proyectos_nuevo.html'));
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Servidor iniciado en http://localhost:${PORT}`);

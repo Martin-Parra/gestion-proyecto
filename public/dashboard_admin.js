@@ -880,6 +880,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Configurar el toggle de contraseña
                 setupPasswordToggle();
+                
+                // Configurar logout con confirmación
+                setupLogout();
             } else {
                 console.error('Error al cargar información del usuario:', data.message);
                 window.location.href = '/login';
@@ -1324,71 +1327,77 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Manejar el formulario de creación de usuarios y se ha mejorado la lógica de paginación para evitar errores al eliminar usuarios
-document.getElementById('formCrearUsuario').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = {
-        nombre: document.getElementById('nombre').value,
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
-        rol: document.getElementById('rol').value
-    };
-    
-    fetch('/api/usuarios', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Usuario creado exitosamente',
-                showConfirmButton: false,
-                timer: 1500
-            });
-            
-            // Limpiar el formulario
-            document.getElementById('formCrearUsuario').reset();
-            
-            // Recargar la lista de usuarios
-            cargarUsuarios();
-        } else {
+const formCrearUsuario = document.getElementById('formCrearUsuario');
+if (formCrearUsuario) {
+    formCrearUsuario.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            nombre: document.getElementById('nombre').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            rol: document.getElementById('rol').value
+        };
+        
+        fetch('/api/usuarios', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Usuario creado exitosamente',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                
+                // Limpiar el formulario
+                formCrearUsuario.reset();
+                
+                // Recargar la lista de usuarios
+                cargarUsuarios();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Error al crear usuario'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: data.message || 'Error al crear usuario'
+                text: 'Error de conexión'
             });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error de conexión'
         });
     });
-});
+}
 
 // Toggle de visibilidad de contraseña
-document.getElementById('togglePassword').addEventListener('click', function() {
-    const passwordInput = document.getElementById('password');
-    const icon = this.querySelector('i');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-});
+const togglePasswordBtn = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
+if (togglePasswordBtn && passwordInput) {
+    togglePasswordBtn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+}
 
 // Función modificada para mostrar usuarios en la tabla
 function mostrarUsuariosEnTabla() {
@@ -1484,7 +1493,7 @@ window.cargarProyectosTarjetas = function() {
                         <span>${porcentaje}%</span>
                     </div>
                 `;
-                card.addEventListener('click', () => abrirProyectoDetalle(p.id, p.nombre));
+                card.addEventListener('click', () => { window.location.href = '/admin/proyecto/' + p.id; });
                 grid.appendChild(card);
             });
         })
@@ -1691,7 +1700,75 @@ function abrirProyectoDetalle(proyectoId, nombreProyecto) {
 // Exponer funciones al ámbito global para su uso desde otros scripts
 window.abrirProyectoDetalle = abrirProyectoDetalle;
 
-// ----- Asignación de Miembros a Proyecto -----
+// --- Modal de Asignación de Tareas ---
+document.addEventListener('DOMContentLoaded', () => {
+    const btnAbrirAsignacion = document.getElementById('btnAbrirAsignacionTareas');
+    const modalAsignacion = document.getElementById('modalAsignacionTareas');
+    const cerrarAsignacionBtn = document.getElementById('closeModalAsignacionTareas');
+    const cancelarAsignacionBtn = document.getElementById('cancelarModalAsignacion');
+
+    if (btnAbrirAsignacion && modalAsignacion) {
+        btnAbrirAsignacion.addEventListener('click', () => {
+            modalAsignacion.style.display = 'block';
+            try {
+                if (typeof cargarProyectosParaTareas === 'function') {
+                    cargarProyectosParaTareas();
+                }
+            } catch (err) {
+                console.warn('No se pudo cargar proyectos en el modal:', err);
+            }
+        });
+    }
+
+    const cerrarModalAsignacion = () => {
+        if (modalAsignacion) modalAsignacion.style.display = 'none';
+    };
+
+    if (cerrarAsignacionBtn) {
+        cerrarAsignacionBtn.addEventListener('click', cerrarModalAsignacion);
+    }
+    if (cancelarAsignacionBtn) {
+        cancelarAsignacionBtn.addEventListener('click', cerrarModalAsignacion);
+    }
+    window.addEventListener('click', (event) => {
+        if (event.target === modalAsignacion) cerrarModalAsignacion();
+    });
+});
+
+// Configuración de cierre de sesión con confirmación
+function setupLogout(){
+    const btn = document.getElementById('logoutBtn');
+    if(!btn) return;
+    btn.addEventListener('click', function(e){
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Cerrar sesión?',
+            text: '¿Deseas cerrar sesión ahora?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#4e73df',
+            cancelButtonColor: '#6c757d'
+        }).then(result => {
+            if(result.isConfirmed){
+                fetch('/api/auth/logout', { method: 'POST' })
+                    .then(() => { window.location.href = '/login'; })
+                    .catch(() => { window.location.href = '/login'; });
+            } else {
+                // Al cancelar, navegar a la sección Usuarios dentro del panel
+                const usuariosLink = document.querySelector('.sidebar-menu a[href="#usuarios"]');
+                if (usuariosLink) {
+                    usuariosLink.click();
+                } else {
+                    window.location.href = '/dashboard/admin#usuarios';
+                }
+            }
+        });
+    });
+}
+
+    // ----- Asignación de Miembros a Proyecto -----
 // Cargar opciones de proyectos y miembros para el formulario de asignación
 window.cargarOpcionesAsignacion = function() {
     const selProyecto = document.getElementById('proyectoAsignacion');

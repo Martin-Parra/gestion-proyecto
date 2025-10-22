@@ -747,3 +747,12 @@ label {
         margin: 0.5rem;
     }
 }
+/* Ubicar cierre de sesión al fondo del menú */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-menu li.logout {
+    margin-top: auto;
+    margin-bottom: 12px;
+}

@@ -161,7 +161,10 @@ async function loadProjectInfo() {
                     <span>${porcentaje}%</span>
                 </div>
             `;
-            card.addEventListener('click', () => abrirProyectoDetalle(data.proyecto.id, data.proyecto.nombre));
+            card.addEventListener('click', () => {
+                // Redirigir a la nueva página de detalle del proyecto
+                window.location.href = '/proyecto-detalle';
+            });
             grid.appendChild(card);
         } else {
             // No tiene proyecto asignado
@@ -502,7 +505,9 @@ function logout() {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = '/login/logout';
+            fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => { window.location.href = '/login'; })
+                .catch(() => { window.location.href = '/login'; });
         }
     });
 }

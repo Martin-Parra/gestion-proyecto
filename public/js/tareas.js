@@ -72,6 +72,11 @@ async function crearTarea(evento) {
         
         // Limpiar el formulario
         document.getElementById('formAsignarTarea').reset();
+        // Cerrar el modal si está abierto
+        const modalAsignacion = document.getElementById('modalAsignacionTareas');
+        if (modalAsignacion) {
+            modalAsignacion.style.display = 'none';
+        }
         
         // Actualizar la vista de proyectos
         if (typeof window.cargarProyectosTarjetas === 'function') {

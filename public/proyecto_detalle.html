@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Proyecto - Trabajador</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/proyecto_detalle.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-user-hard-hat"></i> TRABAJADOR</h2>
+            <div id="userInfo" class="user-info">
+                <div class="user-name">
+                    <i class="fas fa-user"></i>
+                    <span id="userName">Cargando...</span>
+                </div>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/dashboard/trabajador"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a></li>
+            <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    
+    <main class="main-content">
+        <!-- Header del Proyecto -->
+        <div class="project-header">
+            <div class="project-info">
+                <h1 id="projectName">Cargando proyecto...</h1>
+                <p id="projectDescription">Descripción del proyecto</p>
+                <div class="project-meta">
+                    <span class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="projectDates">Fechas del proyecto</span>
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-user-tie"></i>
+                        <span id="projectManager">Jefe de proyecto</span>
+                    </span>
+                </div>
+            </div>
+            <div class="project-progress">
+                <div class="progress-circle">
+                    <div class="progress-text">
+                        <span id="progressPercentage">0%</span>
+                        <small>Completado</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas del Proyecto -->
+        <div class="stats-container">
+            <div class="stat-card total">
+                <div class="stat-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalTasks">0</h3>
+                    <p>Total Tareas</p>
+                </div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="pendingTasks">0</h3>
+                    <p>Por Hacer</p>
+                </div>
+            </div>
+            <div class="stat-card progress">
+                <div class="stat-icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="inProgressTasks">0</h3>
+                    <p>En Progreso</p>
+                </div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="completedTasks">0</h3>
+                    <p>Completadas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Compañeros de Trabajo -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Compañeros de Trabajo</h2>
+            </div>
+            <div class="teammates-container" id="teammatesContainer">
+                <div class="loading-message">Cargando compañeros...</div>
+            </div>
+        </div>
+
+        <!-- Sección de Tareas -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-list-check"></i> Mis Tareas del Proyecto</h2>
+                <div class="task-filters">
+                    <button class="filter-btn active" data-filter="all">Todas</button>
+                    <button class="filter-btn" data-filter="pendiente">Por Hacer</button>
+                    <button class="filter-btn" data-filter="en_progreso">En Progreso</button>
+                    <button class="filter-btn" data-filter="completada">Completadas</button>
+                </div>
+            </div>
+            <div class="tasks-container" id="tasksContainer">
+                <div class="loading-message">Cargando tareas...</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/proyecto_detalle.js"></script>
+</body>
+</html>

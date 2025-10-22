@@ -64,16 +64,13 @@ exports.obtenerTareasAsignadas = (req, res) => {
             t.titulo as nombre,
             t.descripcion,
             t.estado,
-            t.fecha_inicio,
-            t.fecha_fin,
             t.created_at,
             p.nombre as proyecto_nombre
         FROM tareas t
         INNER JOIN proyectos p ON t.proyecto_id = p.id
         INNER JOIN asignaciones a ON p.id = a.proyecto_id
         WHERE a.usuario_id = ?
-        ORDER BY 
-            t.created_at DESC
+        ORDER BY t.created_at DESC
     `;
     
     pool.query(query, [userId], (err, results) => {
@@ -218,19 +215,15 @@ exports.obtenerDetalleProyecto = (req, res) => {
                 });
             }
             
-            // Obtener tareas del proyecto
+            // Obtener tareas del proyecto (compatibles con esquema actual)
             const tareasQuery = `
                 SELECT 
                     t.id,
                     t.titulo,
                     t.descripcion,
                     t.estado,
-                    t.prioridad,
-                    t.fecha_vencimiento,
-                    t.created_at,
-                    u.nombre as asignado_nombre
+                    t.created_at
                 FROM tareas t
-                LEFT JOIN usuarios u ON t.asignado_id = u.id
                 WHERE t.proyecto_id = ?
                 ORDER BY t.created_at DESC
             `;

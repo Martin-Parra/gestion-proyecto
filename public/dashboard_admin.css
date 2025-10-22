@@ -234,6 +234,7 @@ section h2:after {
     border-radius: 0.35rem;
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -246,6 +247,7 @@ section h2:after {
     color: #fff;
     background-color: #2e59d9;
     border-color: #2653d4;
+    text-decoration: none;
 }
 
 .btn-success {
@@ -1050,4 +1052,272 @@ section h2:after {
 
 .tasks-table tbody tr:hover {
     background: #f9fbff;
+}
+
+/* --- Toolbar Usuarios --- */
+.user-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-container {
+    position: relative;
+    flex: 1 1 480px;
+    max-width: 600px;
+}
+
+.search-input {
+    padding-left: 2rem; /* espacio para el ícono */
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6e707e;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.records-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.records-select {
+    min-width: 80px;
+}
+
+@media (max-width: 768px) {
+    .user-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .toolbar-right {
+        justify-content: flex-start;
+        width: 100%;
+    }
+    .records-control {
+        margin-bottom: 0.5rem;
+    }
+}
+
+.jefe-seleccionado {
+    margin-top: 5px;
+    padding: 8px 12px;
+    background-color: #fffbe6;
+    border: 1px solid #ffe066;
+    border-radius: 6px;
+    display: none;
+}
+
+.jefe-seleccionado span {
+    font-weight: bold;
+}
+
+.jefe-seleccionado button {
+    background: none;
+    border: none;
+    color: #d4af37;
+    cursor: pointer;
+    float: right;
+    font-size: 1.1em;
+}
+
+/* ---- Tarjetas de proyectos y progreso ---- */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.project-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    padding: 16px;
+    cursor: pointer;
+    transition: transform .1s ease, box-shadow .1s ease;
+    border-left: 0.25rem solid #4e73df;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.project-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #4e73df;
+}
+
+.project-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #4e73df;
+}
+
+.tasks-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.task-left { display: flex; flex-direction: column; }
+.task-title { font-weight: 600; }
+.task-desc { font-size: 12px; color: #6c757d; }
+
+.task-actions { display: flex; gap: 8px; align-items: center; }
+.status-select { padding: 6px; }
+.btn-update-status { padding: 6px 10px; }
+/* --- Proyecto: Información del equipo --- */
+.project-info {
+    background: #f8f9fc;
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.project-info .project-lead {
+    margin-bottom: 8px;
+}
+
+.team-list {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0 0;
+}
+
+.team-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-bottom: 1px dashed #e3e6f0;
+}
+
+.team-list li:last-child {
+    border-bottom: none;
+}
+
+.team-badge {
+    background: #4e73df;
+    color: #fff;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+}
+
+/* ---- Tabla de miembros del proyecto ---- */
+#proyectoTeam {
+    margin-top: 12px;
+}
+
+.team-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    background: #fff;
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.team-table thead th {
+    background: #f8f9fc;
+    color: #4e73df;
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.team-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f2f7;
+}
+
+.team-table tbody tr:hover {
+    background: #f9fbff;
+}
+
+/* ---- Tabla de tareas del proyecto ---- */
+#proyectoTasks {
+    margin-top: 12px;
+}
+
+.tasks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    background: #fff;
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tasks-table thead th {
+    background: #f8f9fc;
+    color: #4e73df;
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.tasks-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f2f7;
+}
+
+.tasks-table tbody tr:hover {
+    background: #f9fbff;
+}
+
+/* Ubicar cierre de sesión al fondo del menú */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.sidebar-menu li.logout {
+    margin-top: auto;
+    margin-bottom: 20px;
 }

@@ -23,86 +23,41 @@
             <li><a href="#revicion_proyectos"><i class="fas fa-clipboard-check"></i> Revicion de proyectos</a></li>
             <li><a href="#asignacion"><i class="fas fa-user-plus"></i> Asignar Miembros</a></li>
             <li><a href="#visualizacion"><i class="fas fa-chart-bar"></i> Miembros Asignados</a></li>
-            <li><a href="/login/logout"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+            <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
         </ul>
     </nav>
     <main class="main-content">
         <section id="usuarios" class="dashboard-section">
             <h2>Gestión de Usuarios</h2>
             
-            <!-- Formulario de Creación de Usuario -->
-            <div class="card mb-4">
+            <!-- Sección SOLO de lista de usuarios -->
+            <div id="seccionListaUsuarios">
+              <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h3>
-                </div>
-                <div class="card-body">
-                    <form id="formCrearUsuario">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="nombre">Nombre Completo</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" required>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="email">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="password">Contraseña</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="rol">Rol</label>
-                                <select class="form-control" id="rol" name="rol" required>
-                                    <option value="">Seleccione un rol...</option>
-                                    <option value="administrador">Administrador</option>
-                                    <option value="jefe_proyecto">Jefe de Proyecto</option>
-                                    <option value="miembro">Miembro</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Crear Usuario
-                        </button>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Lista de Usuarios -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-table"></i> Lista de Usuarios</h3>
+                    <h3 class="mb-0"><i class="fas fa-table"></i> Lista de Usuarios</h3>
                 </div>
                 
                 <div class="card-body">
-                    <div class="row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div class="col" style="flex: 1;">
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                </div>
-                                <input type="text" id="busquedaUsuario" class="form-control" placeholder="Buscar por nombre, email o rol...">
-                            </div>
+                    <div class="user-toolbar">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="busquedaUsuario" class="form-control search-input" placeholder="Buscar por nombre, email o rol...">
                         </div>
-                        
-                        <div class="col" style="display: flex; justify-content: flex-end; align-items: center;">
-                            <label style="margin-right: 10px; margin-bottom: 0;">Mostrar</label>
-                            <select id="cantidadRegistros" class="form-control" style="width: auto;">
-                                <option value="5">5</option>
-                                <option value="10" selected>10</option>
-                                <option value="30">30</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                            <label style="margin-left: 10px; margin-bottom: 0;">registros</label>
+                        <div class="toolbar-right">
+                            <div class="records-control">
+                                <label for="cantidadRegistros">Mostrar</label>
+                                <select id="cantidadRegistros" class="form-control form-control-sm records-select">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="30">30</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <label>registros</label>
+                            </div>
+                            <a href="/admin/usuarios/nuevo" class="btn btn-primary btn-sm" id="btnIrCrearUsuario">
+                              <i class="fas fa-user-plus"></i> Agregar usuario
+                            </a>
                         </div>
                     </div>
                     
@@ -144,47 +99,18 @@
             <h2>Gestión de Proyectos</h2>
 
             
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-plus-circle"></i> Crear Nuevo Proyecto</h3>
-                </div>
-                <form id="formCrearProyecto">
-                    <div class="form-group">
-                        <label for="nombreProyecto">Nombre del Proyecto:</label>
-                        <input type="text" id="nombreProyecto" name="nombreProyecto" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="fechaInicio">Fecha de inicio:</label>
-                        <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="fechaTermino">Fecha de finalización:</label>
-                        <input type="date" id="fechaTermino" name="fechaTermino" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="buscadorJefe">Jefe de Proyecto:</label>
-                        <div class="buscador-jefe">
-                            <div class="input-group">
-                                <input type="text" id="buscadorJefe" class="form-control" placeholder="Buscar jefe de proyecto...">
-                                <span id="limpiarJefeBtn" style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #e74a3b; z-index: 10; font-size: 16px; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; padding: 2px 5px;">
-                                <i class="fas fa-times"></i>
-                            </span>
-                            </div>
-                            <div id="resultadosJefe" class="resultados-jefe"></div>
-                            <input type="hidden" id="jefeProyectoId" name="jefeProyectoId">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Crear Proyecto</button>
-                </form>
-            </div>
+            <!-- Formulario de crear proyecto movido a página independiente: /admin/proyectos/nuevo -->
             
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-list"></i> Lista de Proyectos</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0"><i class="fas fa-list"></i> Lista de Proyectos</h3>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                        <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm" id="btnIrCrearProyecto">
+                            <i class="fas fa-plus-circle"></i> Crear Proyecto
+                        </a>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table id="tablaProyectos" class="table">
@@ -210,38 +136,15 @@
         <section id="revicion_proyectos" class="dashboard-section">
             <h2>Revicion de proyectos</h2>
 
-            <!-- Formulario de Asignación de Tareas -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3><i class="fas fa-tasks"></i> Asignación de Tareas</h3>
-                </div>
-                <div class="card-body">
-                    <form id="formAsignarTarea">
-                        <div class="form-group">
-                            <label for="proyectoTarea">Proyecto:</label>
-                            <select id="proyectoTarea" name="proyectoTarea" class="form-control" required>
-                                <option value="">Seleccione un proyecto...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="tituloTarea">Título de la Tarea:</label>
-                            <input type="text" id="tituloTarea" name="tituloTarea" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="descripcionTarea">Descripción:</label>
-                            <textarea id="descripcionTarea" name="descripcionTarea" class="form-control" rows="3" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Crear Tarea
-                        </button>
-                    </form>
-                </div>
-            </div>
-
             <!-- Grid de Proyectos -->
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-layer-group"></i> Proyectos</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3><i class="fas fa-layer-group"></i> Proyectos</h3>
+                        <button class="btn btn-primary btn-sm" id="btnAbrirAsignacionTareas">
+                            <i class="fas fa-tasks"></i> Asignación de Tareas
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div id="proyectosGrid" class="projects-grid"></div>
@@ -524,6 +427,38 @@
                 </div>
                 
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Asignación de Tareas -->
+    <div id="modalAsignacionTareas" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-tasks"></i> Asignación de Tareas</h3>
+                <span class="close" id="closeModalAsignacionTareas">&times;</span>
+            </div>
+            <form id="formAsignarTarea">
+                <div class="form-group">
+                    <label for="proyectoTarea">Proyecto:</label>
+                    <select id="proyectoTarea" name="proyectoTarea" class="form-control" required>
+                        <option value="">Seleccione un proyecto...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tituloTarea">Título de la Tarea:</label>
+                    <input type="text" id="tituloTarea" name="tituloTarea" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="descripcionTarea">Descripción:</label>
+                    <textarea id="descripcionTarea" name="descripcionTarea" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarModalAsignacion">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Tarea
+                    </button>
+                </div>
             </form>
         </div>
     </div>

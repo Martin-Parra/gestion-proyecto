@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crear Proyecto</title>
+  <link rel="stylesheet" href="/dashboard_admin.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-plus-circle"></i> Crear Proyecto</h2>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard/admin#proyectos"><i class="fas fa-arrow-left"></i> Volver a Proyectos</a></li>
+      <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <section class="dashboard-section active">
+      <h2>Nuevo Proyecto</h2>
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-plus-circle"></i> Crear Nuevo Proyecto</h3>
+        </div>
+        <div class="card-body">
+          <form id="formCrearProyecto" autocomplete="off">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="nombreProyecto">Nombre del Proyecto</label>
+                <input type="text" class="form-control" id="nombreProyecto" required />
+              </div>
+              <div class="form-group col-md-3">
+                <label for="fechaInicio">Fecha de inicio</label>
+                <input type="date" class="form-control" id="fechaInicio" required />
+              </div>
+              <div class="form-group col-md-3">
+                <label for="fechaTermino">Fecha de finalización</label>
+                <input type="date" class="form-control" id="fechaTermino" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="buscadorJefe">Jefe de Proyecto</label>
+                <div class="input-group" style="position: relative;">
+                  <input type="text" id="buscadorJefe" class="form-control" placeholder="Buscar jefe de proyecto..." />
+                  <span id="limpiarJefeBtn" style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #e74a3b; z-index: 10; font-size: 16px; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; padding: 2px 5px;">
+                    <i class="fas fa-times"></i>
+                  </span>
+                </div>
+                <div id="resultadosJefe" class="resultados-jefe"></div>
+                <input type="hidden" id="jefeProyectoId" />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Crear Proyecto
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/proyectos_nuevo.js"></script>
+</body>
+</html>
