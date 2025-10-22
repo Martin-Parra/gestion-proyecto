@@ -211,7 +211,7 @@ node scripts/create_trabajador_user.js
 ### Dashboard de Trabajador
 - **Mi Proyecto**: Ver información del proyecto asignado
 - **Mis Tareas**: Ver y actualizar el estado de tareas asignadas
-
+prueba
 ## 🗄️ Base de Datos
 
 ### Tablas Principales
