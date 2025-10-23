@@ -29,79 +29,30 @@
     </nav>
     
     <main class="main-content">
-        <!-- Header del Proyecto -->
-        <div class="project-header">
-            <div class="project-info">
-                <h1 id="projectName">Cargando proyecto...</h1>
-                <p id="projectDescription">Descripción del proyecto</p>
-                <div class="project-meta">
-                    <span class="meta-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span id="projectDates">Fechas del proyecto</span>
-                    </span>
-                    <span class="meta-item">
-                        <i class="fas fa-user-tie"></i>
-                        <span id="projectManager">Jefe de proyecto</span>
-                    </span>
-                </div>
-            </div>
-            <div class="project-progress">
-                <div class="progress-circle">
-                    <div class="progress-text">
-                        <span id="progressPercentage">0%</span>
-                        <small>Completado</small>
+        <header class="page-header">
+            <h1 id="pageTitle"><i class="fas fa-diagram-project"></i> Detalle del Proyecto</h1>
+        </header>
+
+        <!-- Información del Proyecto -->
+        <div class="section-card">
+            <div class="project-header">
+                <div class="project-info">
+                    <div class="project-avatar" id="projectAvatar">PR</div>
+                    <div>
+                        <h2 id="projectName">Cargando...</h2>
+                        <p id="projectDescription">Cargando descripción...</p>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Estadísticas del Proyecto -->
-        <div class="stats-container">
-            <div class="stat-card total">
-                <div class="stat-icon">
-                    <i class="fas fa-tasks"></i>
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Líder del Proyecto</span>
+                        <span class="meta-value" id="projectLeader">—</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Estado</span>
+                        <span class="meta-value" id="projectStatus">—</span>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3 id="totalTasks">0</h3>
-                    <p>Total Tareas</p>
-                </div>
-            </div>
-            <div class="stat-card pending">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="pendingTasks">0</h3>
-                    <p>Por Hacer</p>
-                </div>
-            </div>
-            <div class="stat-card progress">
-                <div class="stat-icon">
-                    <i class="fas fa-spinner"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="inProgressTasks">0</h3>
-                    <p>En Progreso</p>
-                </div>
-            </div>
-            <div class="stat-card completed">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="completedTasks">0</h3>
-                    <p>Completadas</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sección de Compañeros de Trabajo -->
-        <div class="section-card">
-            <div class="section-header">
-                <h2><i class="fas fa-users"></i> Compañeros de Trabajo</h2>
-            </div>
-            <div class="teammates-container" id="teammatesContainer">
-                <div class="loading-message">Cargando compañeros...</div>
             </div>
         </div>
 
@@ -118,6 +69,65 @@
             </div>
             <div class="tasks-container" id="tasksContainer">
                 <div class="loading-message">Cargando tareas...</div>
+            </div>
+        </div>
+
+        <!-- Sección de Documentos del Proyecto -->
+        <div class="section-card" id="documentosSection">
+            <div class="section-header">
+                <h2><i class="fas fa-folder-open"></i> Documentos del Proyecto</h2>
+                <button id="btnAbrirDocumentoModal" class="btn btn-primary add-doc-btn"><i class="fas fa-file-circle-plus"></i> Añadir documento</button>
+            </div>
+            <div class="section-body">
+                <div class="docs-table-wrapper">
+                    <table id="tablaDocumentos" class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Subido por</th>
+                                <th>Fecha subida</th>
+                                <th>Vencimiento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" class="text-center">Sin documentos</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Añadir Documento -->
+        <div id="documentoModal" class="modal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title"><i class="fas fa-file-circle-plus"></i> Añadir documento</h3>
+                        <button type="button" class="close" id="closeDocumentoModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formSubirDocumento" enctype="multipart/form-data" autocomplete="off">
+                            <div class="form-group">
+                                <label for="nombreDocumento"><i class="fas fa-tag"></i> Nombre del documento</label>
+                                <input type="text" id="nombreDocumento" name="nombre" class="form-control" placeholder="Ej.: Propuesta comercial" />
+                                <small class="form-hint">Si lo dejas vacío usaremos el nombre del archivo.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="archivoDocumento"><i class="fas fa-file-arrow-up"></i> Archivo</label>
+                                <input type="file" id="archivoDocumento" name="archivo" class="form-control" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaVencimiento"><i class="fas fa-hourglass-half"></i> Fecha de vencimiento (opcional)</label>
+                                <input type="date" id="fechaVencimiento" name="fecha_vencimiento" class="form-control" />
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cancelarDocumentoModal">Cancelar</button>
+                        <button type="submit" form="formSubirDocumento" class="btn btn-success"><i class="fas fa-upload"></i> Subir</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

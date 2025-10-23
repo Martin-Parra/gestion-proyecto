@@ -706,6 +706,38 @@ label {
         background-color: #17a2b8;
     }
 
+/* Badges de vencimiento de documentos */
+.due-badge {
+    display: inline-block;
+    padding: 0.25em 0.55em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.35rem;
+    color: #fff;
+}
+.due-ok { background-color: #28a745; }
+.due-soon { background-color: #f6c23e; color: #212529; }
+.due-overdue { background-color: #e74a3b; }
+
+    .badge-danger {
+        color: #fff;
+        background-color: #dc3545;
+    }
+
+    .badge-warning {
+        color: #212529;
+        background-color: #ffc107;
+    }
+
+    .badge-info {
+        color: #fff;
+        background-color: #17a2b8;
+    }
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .sidebar {

@@ -23,6 +23,8 @@ body {
     top: 0;
     z-index: 1000;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-header {
@@ -55,10 +57,19 @@ body {
 .sidebar-menu {
     list-style: none;
     padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .sidebar-menu li {
     margin: 5px 0;
+}
+
+/* Ubicar cierre de sesión al fondo del menú */
+.sidebar-menu li.logout {
+    margin-top: auto;
+    margin-bottom: 12px;
 }
 
 .sidebar-menu a {
@@ -529,3 +540,137 @@ body {
     background: #6c757d !important;
     border-radius: 8px;
 }
+
+/* Badges de vencimiento de documentos */
+.due-badge {
+    display: inline-block;
+    padding: 0.25em 0.55em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.35rem;
+    color: #fff;
+}
+.due-ok { background-color: #28a745; }
+.due-soon { background-color: #f6c23e; color: #212529; }
+.due-overdue { background-color: #e74a3b; }
+
+/* --- Documentos: estilos específicos para trabajadores --- */
+.docs-form {
+  display: grid;
+  grid-template-columns: 1fr 220px auto;
+  gap: 12px 16px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.docs-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.docs-form .form-actions {
+  display: flex;
+  align-items: center;
+}
+
+.docs-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #6e707e;
+  background: #fff;
+}
+
+.docs-table th,
+.docs-table td {
+  padding: 0.75rem;
+  border-top: 1px solid #e3e6f0;
+}
+
+.docs-table thead th {
+  background-color: #f8f9fc;
+  color: #4e73df;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.docs-table tbody tr:hover {
+  background-color: rgba(78, 115, 223, 0.05);
+}
+
+/* Botones en tabla de documentos */
+.docs-table .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .docs-form {
+    grid-template-columns: 1fr;
+  }
+  .docs-form .form-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Modal básico para esta página */
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,.4); }
+.modal.show { display:block; }
+.modal-dialog { position:relative; width:auto; margin:1.75rem auto; max-width:520px; }
+.modal-content { background:#fff; border:1px solid rgba(0,0,0,.2); border-radius:.3rem; box-shadow:0 0.25rem 0.5rem rgba(0,0,0,.3); overflow:hidden; }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:1rem; border-bottom:1px solid #e3e6f0; }
+.modal-title { margin:0; font-weight:600; color:#5a5c69; }
+.modal-body { padding:1rem; }
+.modal-footer { display:flex; justify-content:flex-end; gap:.5rem; padding:1rem; border-top:1px solid #e3e6f0; }
+.close { background:transparent; border:0; font-size:1.5rem; cursor:pointer; opacity:.6; }
+.close:hover { opacity:.9; }
+
+/* Ajustes de inputs en el modal */
+#documentoModal .form-group { margin-bottom: .75rem; }
+#documentoModal label { font-weight:600; color:#5a5c69; margin-bottom:.25rem; }
+#documentoModal .form-control { width:100%; padding:.5rem .75rem; border:1px solid #d1d3e2; border-radius:.35rem; }
+#documentoModal .form-hint { display:block; margin-top:.25rem; color:#6b7280; font-size:.82rem; }
+
+/* Botones genéricos para esta página */
+.btn { display:inline-flex; align-items:center; gap:.5rem; padding:.55rem 1rem; border:none; border-radius:.5rem; font-weight:600; cursor:pointer; transition: all .15s ease-in-out; line-height:1; }
+.btn i { font-size:.95rem; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+.btn:active { transform: translateY(0); box-shadow:none; }
+.btn-sm { padding:.35rem .65rem; font-size:.9rem; border-radius:.4rem; }
+
+.btn-primary { color:#fff; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); box-shadow: 0 6px 16px rgba(37,99,235,.25); }
+.btn-primary:hover { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); }
+
+.btn-success { color:#fff; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); box-shadow: 0 6px 16px rgba(34,197,94,.25); }
+.btn-success:hover { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
+
+.btn-secondary { color:#111827; background: #e5e7eb; box-shadow: 0 3px 8px rgba(0,0,0,.08); }
+.btn-secondary:hover { background:#d1d5db; }
+
+.btn-danger { color:#fff; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 6px 16px rgba(239,68,68,.25); }
+.btn-danger:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+
+/* Botón de añadir documento en el header */
+.section-header .add-doc-btn { padding:.6rem 1rem; border-radius:.55rem; }
+
+/* Mejoras para input file */
+#documentoModal input[type="file"] { padding:.35rem .5rem; }
+#documentoModal input[type="file"]::file-selector-button { 
+  margin-right:.75rem; border:0; border-radius:.45rem; padding:.5rem .9rem; 
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:#fff; 
+  font-weight:600; cursor:pointer; transition: all .15s ease-in-out;
+}
+#documentoModal input[type="file"]::file-selector-button:hover { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); transform: translateY(-1px); }
+
+/* Footer del modal */
+.modal-footer .btn i { margin-right:.25rem; }

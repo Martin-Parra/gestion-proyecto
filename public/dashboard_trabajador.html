@@ -24,6 +24,7 @@
         </div>
         <ul class="sidebar-menu">
             <li><a href="#mi-proyecto" data-section="mi-proyecto" class="active"><i class="fas fa-project-diagram"></i> Mi Proyecto</a></li>
+            <li><a href="/correo"><i class="fas fa-envelope"></i> Correo</a></li>
             <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
         </ul>
     </nav>
@@ -100,6 +101,48 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Documentos del Proyecto -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-folder-open"></i> Documentos del Proyecto</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="formSubirDocumento" class="form-row" enctype="multipart/form-data">
+                                <div class="form-group col-md-6">
+                                    <label for="docArchivo">Archivo</label>
+                                    <input type="file" class="form-control" id="docArchivo" name="archivo" required>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="docVencimiento">Fecha de vencimiento (opcional)</label>
+                                    <input type="date" class="form-control" id="docVencimiento" name="fecha_vencimiento">
+                                </div>
+                                <div class="form-group col-md-2" style="display:flex; align-items:flex-end;">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-upload"></i> Subir
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="table-responsive" style="margin-top:12px;">
+                                <table id="tablaDocumentos" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Subido por</th>
+                                            <th>Fecha subida</th>
+                                            <th>Vencimiento</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="5" class="text-center">Sin documentos</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -129,23 +172,13 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="tareaDescripcion">Descripción</label>
-                            <textarea class="form-control" id="tareaDescripcion" rows="4" readonly></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="tareaPrioridad">Prioridad</label>
-                                <input type="text" class="form-control" id="tareaPrioridad" readonly>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="tareaEstado">Estado</label>
-                                <select class="form-control" id="tareaEstado" name="estado">
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="en_progreso">En Progreso</option>
-                                    <option value="completada">Completada</option>
-                                </select>
-                            </div>
+                            <label for="tareaEstado">Estado</label>
+                            <select id="tareaEstado" class="form-control">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_progreso">En Progreso</option>
+                                <option value="completada">Completada</option>
+                                <option value="revisando">Revisando</option>
+                            </select>
                         </div>
                         
                         <div class="form-row">
