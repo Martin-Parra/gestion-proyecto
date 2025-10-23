@@ -11,6 +11,7 @@ $(document).ready(function() {
         loadUserInfo();
         loadProjectDetails();
         setupEventListeners();
+        setupDocumentoModalHandlers();
     }
 
     function setupEventListeners() {
@@ -34,6 +35,22 @@ $(document).ready(function() {
             const currentStatus = $(this).data('current-status');
             showStatusChangeModal(taskId, currentStatus);
         });
+    }
+
+    function setupDocumentoModalHandlers(){
+        $(document).on('click', '#btnAbrirDocumentoModal', function(){
+            $('#documentoModal').addClass('show').css('display','block');
+        });
+        const cerrar = () => { $('#documentoModal').removeClass('show').css('display','none'); };
+        $(document).on('click', '#closeDocumentoModal', cerrar);
+        $(document).on('click', '#cancelarDocumentoModal', cerrar);
+        // cerrar al click fuera del contenido
+        $(window).on('click', function(e){
+            const modal = document.getElementById('documentoModal');
+            if (e.target === modal) { cerrar(); }
+        });
+        // Cerrar modal tras subida exitosa: hookeamos evento custom
+        document.addEventListener('documento:subido', cerrar);
     }
 
     function loadUserInfo() {
@@ -77,6 +94,10 @@ $(document).ready(function() {
                 loadTeammates(currentProject.id);
                 displayTasks(currentTasks);
                 updateTaskStats();
+
+                // Documentos: preparar formulario y cargar lista
+                setupDocumentosForm();
+                loadDocumentos();
             } else {
                 showError('Error al cargar los detalles del proyecto');
             }
@@ -319,6 +340,141 @@ $(document).ready(function() {
             .map(word => word.charAt(0).toUpperCase())
             .slice(0, 2)
             .join('');
+    }
+
+    // ===== Documentos: UI y acciones =====
+    function setupDocumentosForm(){
+        const $form = $('#formSubirDocumento');
+        if (!$form.length) return;
+        $form.off('submit').on('submit', async function(e){
+            e.preventDefault();
+            if (!currentProject || !currentProject.id){
+                showError('Proyecto no identificado');
+                return;
+            }
+            const fileInput = document.getElementById('archivoDocumento');
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0){
+                showError('Selecciona un archivo');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('archivo', fileInput.files[0]);
+            const nombre = document.getElementById('nombreDocumento')?.value?.trim();
+            if (nombre) formData.append('nombre', nombre);
+            const venc = document.getElementById('fechaVencimiento')?.value;
+            if (venc) formData.append('fecha_vencimiento', venc);
+            try {
+                const res = await fetch(`/api/proyectos/${currentProject.id}/documentos`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.success){
+                    showSuccess('Documento subido');
+                    // limpiar
+                    $form[0].reset();
+                    loadDocumentos();
+                    document.dispatchEvent(new Event('documento:subido'));
+                } else {
+                    throw new Error(data.message || 'No se pudo subir el documento');
+                }
+            } catch(err){
+                console.error(err);
+                showError(err.message || 'Error al subir documento');
+            }
+        });
+    }
+
+    async function loadDocumentos(){
+        const tbody = document.querySelector('#tablaDocumentos tbody');
+        if (!tbody || !currentProject) return;
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
+        try {
+            const res = await fetch(`/api/proyectos/${currentProject.id}/documentos`);
+            const data = await res.json();
+            if (res.ok && data.success){
+                renderDocumentos(data.documentos || []);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No se pudieron cargar los documentos</td></tr>';
+            }
+        } catch(err){
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error al cargar documentos</td></tr>';
+        }
+    }
+
+    function renderDocumentos(docs){
+        const tbody = document.querySelector('#tablaDocumentos tbody');
+        if (!tbody) return;
+        if (!docs || docs.length === 0){
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin documentos</td></tr>';
+            return;
+        }
+        const rows = docs.map(doc => {
+            const fechaSub = doc.fecha_subida ? new Date(doc.fecha_subida).toLocaleString('es-ES') : '—';
+            const venc = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento) : null;
+            const vencHtml = venc ? getDueBadgeHtml(venc) : '<span class="badge">—</span>';
+            const nombre = doc.nombre_archivo || 'archivo';
+            return `
+                <tr>
+                    <td>${nombre}</td>
+                    <td>${doc.subido_por || '—'}</td>
+                    <td>${fechaSub}</td>
+                    <td>${vencHtml}</td>
+                    <td>
+                        <a class="btn btn-success btn-sm" href="/api/documentos/${doc.id}/download" title="Descargar"><i class="fas fa-download"></i></a>
+                        <button class="btn btn-danger btn-sm" data-doc-id="${doc.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        tbody.innerHTML = rows;
+        // bind delete
+        $('#tablaDocumentos button[data-doc-id]').off('click').on('click', function(){
+            const id = this.getAttribute('data-doc-id');
+            confirmarEliminarDocumento(id);
+        });
+    }
+
+    function confirmarEliminarDocumento(id){
+        Swal.fire({
+            title: 'Eliminar documento',
+            text: 'Esta acción eliminará el archivo definitivamente. ¿Continuar?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar'
+        }).then(async (r)=>{
+            if (!r.isConfirmed) return;
+            try{
+                const res = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (res.ok && data.success){
+                    showSuccess('Documento eliminado');
+                    loadDocumentos();
+                } else {
+                    throw new Error(data.message || 'No se pudo eliminar');
+                }
+            } catch(err){
+                console.error(err);
+                showError(err.message || 'Error al eliminar');
+            }
+        });
+    }
+
+    function getDueBadgeHtml(dateObj){
+        const today = new Date();
+        const diffMs = dateObj.setHours(0,0,0,0) - today.setHours(0,0,0,0);
+        const diffDays = Math.ceil(diffMs / (1000*60*60*24));
+        let cls = 'due-ok';
+        let label = dateObj.toLocaleDateString('es-ES');
+        if (diffDays < 0){
+            cls = 'due-overdue';
+        } else if (diffDays <= 7){
+            cls = 'due-soon';
+        }
+        return `<span class="due-badge ${cls}">${label}</span>`;
     }
 
     function logout() {

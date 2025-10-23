@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Correo Interno</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/correo.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-envelope"></i> Correo</h2>
+      <div id="userInfo" class="user-info">
+        <div class="user-name"><i class="fas fa-user"></i> <span id="userName">Cargando...</span></div>
+      </div>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a href="#" id="backLink"><i class="fas fa-arrow-left"></i> Volver</a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="page-header">
+      <h1><i class="fas fa-inbox"></i> Correo interno</h1>
+      <div class="actions">
+        <div class="search">
+          <i class="fas fa-search"></i>
+          <input id="buscarInput" type="text" placeholder="Buscar en correo" />
+        </div>
+        <button id="btnRedactar" class="btn btn-primary"><i class="fas fa-pen"></i> Redactar</button>
+      </div>
+    </header>
+
+    <div class="mail-layout">
+      <aside class="folders">
+        <button data-box="inbox" class="folder active"><i class="fas fa-inbox"></i> Bandeja de entrada</button>
+        <button data-box="sent" class="folder"><i class="fas fa-paper-plane"></i> Enviados</button>
+      </aside>
+      <section class="mail-list">
+        <table class="list-table">
+          <thead>
+            <tr><th>De / Para</th><th>Asunto</th><th>Fecha</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="listaCorreos">
+            <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="mail-view" id="visor">
+        <div class="empty">Selecciona un mensaje para verlo</div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal redactar correo -->
+  <div id="modalRedactar" class="modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title"><i class="fas fa-pen"></i> Nuevo mensaje</h3>
+          <button type="button" class="close" id="closeRedactar">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="formRedactar" autocomplete="off">
+            <div class="form-row">
+              <label for="toEmails">Para:</label>
+              <input id="toEmails" name="to_emails" type="text" class="form-control" placeholder="correo1@dominio.com, correo2@dominio.com" list="usuariosData" />
+            </div>
+            <div class="form-row small">
+              <a href="#" id="toggleCc">cc</a> | <a href="#" id="toggleBcc">bcc</a>
+            </div>
+            <div id="ccRow" class="form-row hidden">
+              <label for="ccEmails">CC:</label>
+              <input id="ccEmails" name="cc_emails" type="text" class="form-control" placeholder="" list="usuariosData" />
+            </div>
+            <div id="bccRow" class="form-row hidden">
+              <label for="bccEmails">BCC:</label>
+              <input id="bccEmails" name="bcc_emails" type="text" class="form-control" placeholder="" list="usuariosData" />
+            </div>
+            <div class="form-row">
+              <label for="asunto">Asunto:</label>
+              <input id="asunto" name="asunto" type="text" class="form-control" required />
+            </div>
+            <div class="form-row">
+              <textarea id="cuerpo" name="cuerpo" class="form-control" rows="8" placeholder="Escribe tu mensaje..."></textarea>
+            </div>
+            <div class="form-row">
+              <label for="adjuntos">Adjuntos:</label>
+              <input id="adjuntos" name="adjuntos" type="file" class="form-control" multiple />
+            </div>
+            <div id="adjuntosLista" class="attachments-list hidden"></div>
+            <datalist id="usuariosData"></datalist>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelarRedactar">Cancelar</button>
+          <button type="submit" form="formRedactar" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/correo.js"></script>
+</body>
+</html>

@@ -8,6 +8,8 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // Añadir soporte para JSON
 app.use(express.static(path.join(__dirname, '../public')));
+// Servir archivos subidos de forma segura bajo /uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(session({
     secret: 'gestion_secret',
     resave: false,
@@ -25,6 +27,8 @@ const proyectosRouter = require('./routes/proyectos'); // Importar rutas de proy
 const tareasRouter = require('./routes/tareas'); // Importar rutas de tareas
 const asignacionesRouter = require('./routes/asignaciones'); // Importar rutas de asignaciones
 const trabajadorRouter = require('./routes/trabajador'); // Importar rutas de trabajador
+const documentosRouter = require('./routes/documentos'); // Rutas de documentos
+const correosRouter = require('./routes/correos'); // Rutas de correo
 
 app.use('/login', loginRouter);
 app.use('/api/usuarios', usuariosRouter); // Añadir rutas de usuarios
@@ -33,6 +37,8 @@ app.use('/api/proyectos', proyectosRouter); // Añadir rutas de proyectos
 app.use('/api/tareas', tareasRouter); // Añadir rutas de tareas
 app.use('/api/asignaciones', asignacionesRouter); // Añadir rutas de asignaciones
 app.use('/api/trabajador', trabajadorRouter); // Añadir rutas de trabajador
+app.use('/api', documentosRouter); // Añadir rutas de documentos
+app.use('/api/correos', correosRouter); // Añadir rutas de correo
 
 // Endpoint para obtener información del usuario autenticado
 app.get('/api/auth/me', isAuthenticated, checkUserStatus, (req, res) => {
@@ -79,6 +85,10 @@ app.get('/dashboard/trabajador', isAuthenticated, checkUserStatus, (req, res) =>
 
 app.get('/proyecto-detalle', isAuthenticated, checkUserStatus, (req, res) => {
     res.sendFile(path.join(__dirname, '../public/proyecto_detalle.html'));
+});
+// Página única de correo (para cualquier rol autenticado)
+app.get('/correo', isAuthenticated, checkUserStatus, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/correo.html'));
 });
 
 // Página: detalle de proyecto para admin
