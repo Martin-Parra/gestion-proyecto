@@ -22,6 +22,7 @@ router.use(requireTrabajador);
 
 // Rutas del trabajador
 router.get('/proyecto', trabajadorController.obtenerProyectoAsignado);
+router.get('/proyectos', trabajadorController.obtenerProyectosAsignados);
 router.get('/proyecto/:id', trabajadorController.obtenerDetalleProyecto);
 router.get('/tareas', trabajadorController.obtenerTareasAsignadas);
 router.put('/tareas/:id/estado', trabajadorController.actualizarEstadoTarea);

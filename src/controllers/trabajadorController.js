@@ -11,6 +11,7 @@ exports.obtenerProyectoAsignado = (req, res) => {
             p.descripcion,
             p.fecha_inicio,
             p.fecha_fin,
+            p.estado,
             p.created_at,
             u.nombre as jefe_nombre,
             COALESCE(
@@ -26,7 +27,7 @@ exports.obtenerProyectoAsignado = (req, res) => {
         INNER JOIN asignaciones a ON p.id = a.proyecto_id
         LEFT JOIN tareas t ON p.id = t.proyecto_id
         WHERE a.usuario_id = ?
-        GROUP BY p.id, p.nombre, p.descripcion, p.fecha_inicio, p.fecha_fin, p.created_at, u.nombre
+        GROUP BY p.id, p.nombre, p.descripcion, p.fecha_inicio, p.fecha_fin, p.estado, p.created_at, u.nombre
         LIMIT 1
     `;
     
@@ -50,6 +51,53 @@ exports.obtenerProyectoAsignado = (req, res) => {
         res.json({
             success: true,
             proyecto: results[0]
+        });
+    });
+};
+
+// Obtener todos los proyectos asignados al trabajador
+exports.obtenerProyectosAsignados = (req, res) => {
+    const userId = req.session.user.id;
+
+    const query = `
+        SELECT 
+            p.id,
+            p.nombre,
+            p.descripcion,
+            p.fecha_inicio,
+            p.fecha_fin,
+            p.estado,
+            p.created_at,
+            u.nombre as jefe_nombre,
+            COALESCE(
+                ROUND(
+                    (COUNT(CASE WHEN t.estado = 'completada' THEN 1 END) * 100.0) / 
+                    NULLIF(COUNT(t.id), 0), 
+                    2
+                ), 
+                0
+            ) as porcentaje_avance
+        FROM proyectos p
+        LEFT JOIN usuarios u ON p.responsable_id = u.id
+        INNER JOIN asignaciones a ON p.id = a.proyecto_id
+        LEFT JOIN tareas t ON p.id = t.proyecto_id
+        WHERE a.usuario_id = ?
+        GROUP BY p.id, p.nombre, p.descripcion, p.fecha_inicio, p.fecha_fin, p.estado, p.created_at, u.nombre
+        ORDER BY p.created_at DESC
+    `;
+
+    pool.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Error al obtener proyectos asignados:', err);
+            return res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+
+        return res.json({
+            success: true,
+            proyectos: results
         });
     });
 };
@@ -191,12 +239,23 @@ exports.obtenerDetalleProyecto = (req, res) => {
                 p.descripcion,
                 p.fecha_inicio,
                 p.fecha_fin,
+                p.estado,
                 p.created_at,
                 u.nombre as jefe_nombre,
-                u.email as jefe_email
+                u.email as jefe_email,
+                COALESCE(
+                    ROUND(
+                        (COUNT(CASE WHEN t.estado = 'completada' THEN 1 END) * 100.0) / 
+                        NULLIF(COUNT(t.id), 0), 
+                        2
+                    ), 
+                    0
+                ) as porcentaje_avance
             FROM proyectos p
             LEFT JOIN usuarios u ON p.responsable_id = u.id
+            LEFT JOIN tareas t ON p.id = t.proyecto_id
             WHERE p.id = ?
+            GROUP BY p.id, p.nombre, p.descripcion, p.fecha_inicio, p.fecha_fin, p.estado, p.created_at, u.nombre, u.email
         `;
         
         pool.query(proyectoQuery, [proyectoId], (err, proyectoResults) => {

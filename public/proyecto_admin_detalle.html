@@ -7,6 +7,7 @@
     <title>Detalle del Proyecto - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/dashboard_admin.css">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
@@ -32,6 +33,19 @@
             <div class="card-body">
                 <div id="proyectoInfo" class="project-info">
                     <div class="project-lead"><strong>Líder de Proyecto:</strong> <span id="proyectoInfoLider">—</span></div>
+                </div>
+
+                <div id="proyectoRevision" class="project-review" style="margin-top:18px;">
+                    <h4><i class="fas fa-clipboard-check"></i> Revisión del Proyecto</h4>
+                    <div class="form-group" style="display:flex; gap:12px; align-items:center;">
+                        <label for="selectEstadoProyecto" style="min-width:120px;">Estado</label>
+                        <select id="selectEstadoProyecto" class="form-control" style="max-width:220px;">
+                            <option>En ejecución</option>
+                            <option>En pausa</option>
+                            <option>Finalizado</option>
+                        </select>
+                        <button id="btnGuardarEstadoProyecto" class="btn btn-primary"><i class="fas fa-save"></i> Guardar estado</button>
+                    </div>
                 </div>
 
                 <div id="proyectoTasks" class="project-tasks">

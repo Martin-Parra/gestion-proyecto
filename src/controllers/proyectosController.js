@@ -12,6 +12,7 @@ exports.obtenerProyectos = async (req, res) => {
                 p.fecha_fin,
                 p.responsable_id,
                 p.created_at,
+                p.estado,
                 u.nombre AS jefe_nombre,
                 (SELECT COUNT(*) FROM tareas t WHERE t.proyecto_id = p.id) AS total_tareas,
                 (SELECT COUNT(*) FROM tareas t WHERE t.proyecto_id = p.id AND t.estado = 'completada') AS tareas_completadas
@@ -108,7 +109,7 @@ exports.crearProyecto = async (req, res) => {
             }
         }
         
-        // Insertar el proyecto
+        // Insertar el proyecto (estado por defecto lo define la DB)
         const [result] = await pool.promise().query(
             'INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_fin, responsable_id) VALUES (?, ?, ?, ?, ?)',
             [nombre_proyecto, descripcion_proyecto, fecha_inicio, fecha_fin, responsable]
@@ -208,5 +209,34 @@ exports.obtenerProyecto = async (req, res) => {
             success: false,
             error: 'Error al obtener el proyecto'
         });
+    }
+};
+
+// Actualizar estado de un proyecto
+exports.actualizarEstadoProyecto = async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    const estadosValidos = ['en_ejecucion', 'en_pausa', 'finalizado'];
+    if (!estadosValidos.includes(estado)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Estado no válido'
+        });
+    }
+
+    try {
+        const [existsRows] = await pool.promise().query('SELECT id FROM proyectos WHERE id = ?', [id]);
+        if (!existsRows || existsRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Proyecto no encontrado' });
+        }
+        const [result] = await pool.promise().query('UPDATE proyectos SET estado = ? WHERE id = ?', [estado, id]);
+        if (result.affectedRows === 0) {
+            return res.status(500).json({ success: false, message: 'No se pudo actualizar el estado' });
+        }
+        res.json({ success: true, message: 'Estado del proyecto actualizado' });
+    } catch (error) {
+        console.error('Error al actualizar estado del proyecto:', error);
+        res.status(500).json({ success: false, message: 'Error interno al actualizar estado' });
     }
 };

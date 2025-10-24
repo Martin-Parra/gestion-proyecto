@@ -4,26 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gestión de Proyectos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="login.css">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 </head>
-<body>
-    <div class="login-container">
-        <h2>Iniciar Sesión</h2>
-        <form action="/login" method="POST">
-            <input type="text" name="username" placeholder="Usuario" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
-            <button type="submit">Ingresar</button>
-        </form>
-        <div id="error-message" class="error-message"></div>
+<body class="login-body">
+    <div class="login-wrapper">
+        <!-- Panel izquierdo: mensaje y branding -->
+        <section class="login-hero" aria-label="Bienvenida">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">Bienvenido de nuevo</h1>
+                <p class="hero-subtitle">
+                    Gestiona tus proyectos y tareas de forma sencilla en un
+                    único panel. Mantén al equipo alineado y el trabajo bajo control.
+                </p>
+                <!-- Íconos de redes sociales eliminados -->
+            </div>
+        </section>
+
+        <!-- Panel derecho: formulario -->
+        <section class="login-card" aria-label="Iniciar sesión">
+            <h2 class="card-title">Iniciar sesión</h2>
+            <form action="/login" method="POST" class="login-form" novalidate>
+                <div class="form-group floating-label">
+                    <input type="text" name="username" id="username" required autocomplete="off" placeholder=" " />
+                    <label for="username">Correo electrónico o usuario</label>
+                </div>
+                <div class="form-group floating-label">
+                    <!-- wrapper para icono mostrar/ocultar -->
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="password" required autocomplete="off" placeholder=" " />
+                        <label for="password">Contraseña</label>
+                        <button type="button" class="toggle-password" aria-label="Mostrar u ocultar contraseña">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-extras">
+                    <label class="remember">
+                        <input type="checkbox" name="remember" />
+                        Recordarme
+                    </label>
+                    <a class="forgot" href="#" id="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button type="submit" class="btn-submit">Iniciar sesión</button>
+                <p class="terms">
+                    Al hacer clic en “Iniciar sesión” aceptas los
+                    <a href="#">Términos de servicio</a> y la
+                    <a href="#">Política de privacidad</a>.
+                </p>
+                <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
+            </form>
+        </section>
+    </div>
+
+    <!-- Modal: Olvidaste tu contraseña -->
+    <div id="forgot-modal" class="modal" aria-hidden="true" aria-labelledby="forgot-title" role="dialog">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="forgot-title" class="modal-title">Restablecer contraseña</h3>
+            <p class="modal-subtitle">Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.</p>
+            <form id="forgot-form" class="modal-form" novalidate>
+                <div class="form-group floating-label">
+                    <input type="email" id="forgot-email" name="email" required placeholder=" " autocomplete="off" />
+                    <label for="forgot-email">Correo electrónico</label>
+                </div>
+                <button type="submit" class="btn-submit">Enviar enlace</button>
+                <div id="forgot-feedback" class="feedback" role="status" aria-live="polite"></div>
+            </form>
+        </div>
     </div>
 
     <script>
-        // Verificar si hay mensajes de error en la URL
+        // Mantener la lógica de mensajes de error existente
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const error = urlParams.get('error');
             const errorMessage = document.getElementById('error-message');
-            
             if (error === 'inactive') {
                 errorMessage.textContent = 'Su cuenta ha sido desactivada. Contacte al administrador.';
                 errorMessage.style.display = 'block';
@@ -34,6 +95,53 @@
                 errorMessage.textContent = 'No tiene permisos para acceder a esta sección.';
                 errorMessage.style.display = 'block';
             }
+
+            // Mostrar/ocultar contraseña
+            const toggleBtn = document.querySelector('.toggle-password');
+            const pwdInput = document.getElementById('password');
+            toggleBtn.addEventListener('click', () => {
+                const isPwd = pwdInput.getAttribute('type') === 'password';
+                pwdInput.setAttribute('type', isPwd ? 'text' : 'password');
+                toggleBtn.innerHTML = isPwd ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+            });
+
+            // Modal olvidaste tu contraseña
+            const forgotLink = document.getElementById('forgot-link');
+            const modal = document.getElementById('forgot-modal');
+            const closeBtn = document.querySelector('.modal-close');
+            const backdrop = document.querySelector('.modal-backdrop');
+            const forgotForm = document.getElementById('forgot-form');
+            const feedback = document.getElementById('forgot-feedback');
+
+            const openModal = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+            const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); feedback.textContent=''; };
+            forgotLink.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+            closeBtn.addEventListener('click', closeModal);
+            backdrop.addEventListener('click', closeModal);
+
+            forgotForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                feedback.textContent = '';
+                feedback.classList.remove('success');
+                const email = document.getElementById('forgot-email').value.trim();
+                if (!email) { feedback.textContent = 'Por favor, ingresa tu correo.'; return; }
+                try {
+                    const res = await fetch('/api/password/forgot', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data.success) {
+                        feedback.classList.add('success');
+                        feedback.textContent = '¡Correo enviado correctamente! Revisa tu bandeja y spam.';
+                    } else {
+                        feedback.textContent = data.message || 'No pudimos procesar la solicitud. Inténtalo más tarde.';
+                    }
+                } catch (err) {
+                    feedback.textContent = 'Error de red. Inténtalo nuevamente.';
+                }
+            });
         });
     </script>
 </body>

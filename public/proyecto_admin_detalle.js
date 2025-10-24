@@ -13,6 +13,18 @@
     'completada': 'Hecho'
   };
 
+  // Estados de proyecto (UI <-> DB)
+  const proyectoEstadoUiToDb = {
+    'En ejecución': 'en_ejecucion',
+    'En pausa': 'en_pausa',
+    'Finalizado': 'finalizado'
+  };
+  const proyectoEstadoDbToUi = {
+    'en_ejecucion': 'En ejecución',
+    'en_pausa': 'En pausa',
+    'finalizado': 'Finalizado'
+  };
+
   function getProjectIdFromPath(){
     const m = window.location.pathname.match(/\/admin\/proyecto\/(\d+)/);
     return m ? parseInt(m[1], 10) : null;
@@ -32,6 +44,13 @@
     if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> Tareas del Proyecto: ${data.nombre}`;
     if (pageTitleEl) pageTitleEl.innerHTML = `<i class="fas fa-diagram-project"></i> Detalle del Proyecto: ${data.nombre}`;
     if (liderEl) liderEl.textContent = data.jefe_nombre || '—';
+  }
+
+  function renderEstadoProyecto(estadoDb){
+    const sel = document.getElementById('selectEstadoProyecto');
+    if (!sel) return;
+    const uiValue = proyectoEstadoDbToUi[estadoDb] || 'En ejecución';
+    sel.value = uiValue;
   }
 
   function renderMiembrosTabla(miembros){
@@ -291,6 +310,7 @@
       .then(data => {
         if (data && data.success && data.proyecto){
           renderProyectoInfo(data.proyecto);
+          renderEstadoProyecto(data.proyecto.estado);
           renderMiembrosTabla(data.proyecto.miembros || []);
         } else {
           const msg = (data && (data.error || data.message)) || 'Proyecto no encontrado';
@@ -343,9 +363,40 @@
     });
   }
 
+  function setupEstadoProyecto(){
+    const btn = document.getElementById('btnGuardarEstadoProyecto');
+    const sel = document.getElementById('selectEstadoProyecto');
+    if (!btn || !sel) return;
+    btn.addEventListener('click', () => {
+      if (!currentProjectId) return;
+      const uiValue = sel.value;
+      const dbValue = proyectoEstadoUiToDb[uiValue] || 'en_ejecucion';
+      fetch(`/api/proyectos/${currentProjectId}/estado`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: dbValue })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success){
+          Swal.fire('Actualizado', 'Estado del proyecto actualizado', 'success');
+          cargarProyecto();
+        } else {
+          const msg = (data && (data.error || data.message)) || 'No se pudo actualizar';
+          Swal.fire('Error', msg, 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Error actualizando estado del proyecto:', err);
+        Swal.fire('Error', 'Ocurrió un problema al actualizar', 'error');
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     currentProjectId = getProjectIdFromPath();
     setupLogout();
+    setupEstadoProyecto();
     if (!currentProjectId){
       Swal.fire('Sin proyecto', 'No se ha especificado un proyecto válido', 'warning');
       return;

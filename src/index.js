@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -7,9 +8,6 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // Añadir soporte para JSON
-app.use(express.static(path.join(__dirname, '../public')));
-// Servir archivos subidos de forma segura bajo /uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(session({
     secret: 'gestion_secret',
     resave: false,
@@ -29,7 +27,9 @@ const asignacionesRouter = require('./routes/asignaciones'); // Importar rutas d
 const trabajadorRouter = require('./routes/trabajador'); // Importar rutas de trabajador
 const documentosRouter = require('./routes/documentos'); // Rutas de documentos
 const correosRouter = require('./routes/correos'); // Rutas de correo
+const passwordRouter = require('./routes/password'); // Recuperación de contraseña
 
+// IMPORTANTE: Las rutas de API deben ir ANTES de los archivos estáticos
 app.use('/login', loginRouter);
 app.use('/api/usuarios', usuariosRouter); // Añadir rutas de usuarios
 app.use('/api/usuario', usuarioRouter); // Añadir rutas de usuario actual
@@ -37,8 +37,15 @@ app.use('/api/proyectos', proyectosRouter); // Añadir rutas de proyectos
 app.use('/api/tareas', tareasRouter); // Añadir rutas de tareas
 app.use('/api/asignaciones', asignacionesRouter); // Añadir rutas de asignaciones
 app.use('/api/trabajador', trabajadorRouter); // Añadir rutas de trabajador
-app.use('/api', documentosRouter); // Añadir rutas de documentos
 app.use('/api/correos', correosRouter); // Añadir rutas de correo
+app.use('/api/password', passwordRouter); // Rutas de recuperación
+// Montar el router genérico de documentos AL FINAL para no interceptar otras rutas de /api
+app.use('/api', documentosRouter); // Añadir rutas de documentos
+
+// Archivos estáticos DESPUÉS de las rutas de API
+app.use(express.static(path.join(__dirname, '../public')));
+// Servir archivos subidos de forma segura bajo /uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Endpoint para obtener información del usuario autenticado
 app.get('/api/auth/me', isAuthenticated, checkUserStatus, (req, res) => {
@@ -104,6 +111,11 @@ app.get('/admin/usuarios/nuevo', isAuthenticated, checkUserStatus, isAdmin, (req
 // Página: crear nuevo proyecto
 app.get('/admin/proyectos/nuevo', isAuthenticated, checkUserStatus, isAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, '../public/proyectos_nuevo.html'));
+});
+
+// Página pública de restablecimiento de contraseña
+app.get('/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/reset_password.html'));
 });
 
 const PORT = 3000;

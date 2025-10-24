@@ -7,6 +7,7 @@
     <title>Detalle del Proyecto - Trabajador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/proyecto_detalle.css">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
@@ -36,6 +37,12 @@
         <!-- Información del Proyecto -->
         <div class="section-card">
             <div class="project-header">
+                <div class="progress-circle">
+                    <div class="progress-text">
+                        <span id="progressPercentage">0%</span>
+                        <small>Avance</small>
+                    </div>
+                </div>
                 <div class="project-info">
                     <div class="project-avatar" id="projectAvatar">PR</div>
                     <div>
@@ -44,13 +51,72 @@
                     </div>
                 </div>
                 <div class="project-meta">
-                    <div class="meta-item">
-                        <span class="meta-label">Líder del Proyecto</span>
-                        <span class="meta-value" id="projectLeader">—</span>
+                    <div class="meta-group">
+                        <span class="meta-badge leader">
+                            <span class="badge-label">Líder</span>
+                            <span class="badge-content"><i class="fas fa-user-tie"></i><span id="projectLeader">—</span></span>
+                        </span>
+                        <span class="meta-badge status" id="projectStatusBadge">
+                            <span class="badge-label">Estado</span>
+                            <span class="badge-content"><i class="fas fa-flag"></i><span id="projectStatus">—</span></span>
+                        </span>
+                        <span class="meta-badge dates">
+                            <span class="badge-label">Fechas</span>
+                            <span class="badge-content">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span class="date-item"><strong>Inicio:</strong> <span id="projectStartDate">—</span></span>
+                                <span class="date-item"><strong>Término:</strong> <span id="projectEndDate">—</span></span>
+                            </span>
+                        </span>
                     </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Estado</span>
-                        <span class="meta-value" id="projectStatus">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Colaboradores -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Colaboradores</h2>
+            </div>
+            <div class="teammates-container" id="teammatesContainer">
+                <div class="loading-message">Cargando colaboradores...</div>
+            </div>
+        </div>
+
+        <!-- Resumen de Tareas -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-bar"></i> Resumen de Tareas</h2>
+            </div>
+            <div class="chart-card">
+                <div class="task-chart" id="taskChart">
+                    <div class="bar-group" data-status="all">
+                        <div class="bar" id="barAll" style="height:0%"></div>
+                        <div class="bar-info">
+                            <span class="bar-count" id="countAll">0</span>
+                            <span class="bar-label">Todas</span>
+                        </div>
+                    </div>
+                    <div class="bar-group" data-status="pendiente">
+                        <div class="bar" id="barPending" style="height:0%"></div>
+                        <div class="bar-info">
+                            <span class="bar-count" id="countPending">0</span>
+                            <span class="bar-label">Por Hacer</span>
+                        </div>
+                    </div>
+                    <div class="bar-group" data-status="en_progreso">
+                        <div class="bar" id="barProgress" style="height:0%"></div>
+                        <div class="bar-info">
+                            <span class="bar-count" id="countProgress">0</span>
+                            <span class="bar-label">En Progreso</span>
+                        </div>
+                    </div>
+                    <div class="bar-group" data-status="completada">
+                        <div class="bar" id="barCompleted" style="height:0%"></div>
+                        <div class="bar-info">
+                            <span class="bar-count" id="countCompleted">0</span>
+                            <span class="bar-label">Completadas</span>
+                        </div>
                     </div>
                 </div>
             </div>

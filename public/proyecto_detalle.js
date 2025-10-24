@@ -67,22 +67,29 @@ $(document).ready(function() {
 
     async function loadProjectDetails() {
         try {
-            // Primero obtener el proyecto asignado al trabajador
-            const projectResponse = await $.get('/api/trabajador/proyecto');
-            
-            if (!projectResponse.success || !projectResponse.proyecto) {
-                showError('No tienes un proyecto asignado');
-                return;
+            // Permitir abrir la página con ?id=PROYECTO_ID
+            const params = new URLSearchParams(window.location.search);
+            const paramId = params.get('id');
+            let proyectoId = paramId ? parseInt(paramId, 10) : null;
+
+            // Si no viene ID, usar el proyecto asignado por defecto
+            if (!proyectoId || Number.isNaN(proyectoId)) {
+                const projectResponse = await $.get('/api/trabajador/proyecto');
+                if (!projectResponse.success || !projectResponse.proyecto) {
+                    showError('No tienes un proyecto asignado');
+                    return;
+                }
+                currentProject = projectResponse.proyecto;
+                proyectoId = currentProject.id;
             }
             
-            currentProject = projectResponse.proyecto;
-            
-            // Ahora obtener los detalles completos del proyecto
-            const detailResponse = await $.get(`/api/trabajador/proyecto/${currentProject.id}`);
+            // Obtener los detalles completos del proyecto seleccionado
+            const detailResponse = await $.get(`/api/trabajador/proyecto/${proyectoId}`);
             
             if (detailResponse.success) {
                 // Combinar la información
-                currentProject = { ...currentProject, ...detailResponse.proyecto };
+                currentProject = { ...(currentProject || {}), ...detailResponse.proyecto };
+                currentProject.id = proyectoId;
                 currentProject.equipo = detailResponse.equipo;
                 currentProject.tareas = detailResponse.tareas || [];
                 
@@ -109,19 +116,47 @@ $(document).ready(function() {
 
     function displayProjectInfo(proyecto) {
         $('#projectName').text(proyecto.nombre);
-        $('#projectDescription').text(proyecto.descripcion || 'Sin descripción');
+        const desc = (proyecto.descripcion || '').trim();
+        if (desc) {
+            $('#projectDescription').text(desc).show();
+        } else {
+            $('#projectDescription').text('').hide();
+        }
         
-        // Formatear fechas
-        const fechaInicio = new Date(proyecto.fecha_inicio).toLocaleDateString('es-ES');
-        const fechaFin = new Date(proyecto.fecha_fin).toLocaleDateString('es-ES');
-        $('#projectDates').text(`${fechaInicio} - ${fechaFin}`);
+        // Avatar con iniciales del proyecto
+        const initials = getInitials(proyecto.nombre || 'PR');
+        $('#projectAvatar').text(initials);
         
-        $('#projectManager').text(proyecto.jefe_nombre || 'Sin asignar');
+        // Fechas del proyecto
+        const fechaInicio = proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toLocaleDateString('es-ES') : '—';
+        const fechaFin = proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toLocaleDateString('es-ES') : '—';
+        $('#projectStartDate').text(fechaInicio);
+        $('#projectEndDate').text(fechaFin);
         
-        // Actualizar progreso
-        const progress = (proyecto.porcentaje_avance !== undefined && proyecto.porcentaje_avance !== null)
+        // Líder y estado del proyecto
+        $('#projectLeader').text(proyecto.jefe_nombre || 'Sin asignar');
+        $('#projectStatus').text(formatProjectStatus(proyecto.estado));
+        // Variantes de estado para badge
+        const statusClassMap = {
+            'en_ejecucion': 'status-en_ejecucion',
+            'en_pausa': 'status-en_pausa',
+            'finalizado': 'status-finalizado'
+        };
+        const $statusBadge = $('#projectStatusBadge');
+        $statusBadge.removeClass('status-en_ejecucion status-en_pausa status-finalizado');
+        if (proyecto.estado && statusClassMap[proyecto.estado]) {
+            $statusBadge.addClass(statusClassMap[proyecto.estado]);
+        }
+        
+        // Progreso del proyecto (con respaldo si el backend no lo envía)
+        let progress = (proyecto.porcentaje_avance !== undefined && proyecto.porcentaje_avance !== null)
             ? Number(proyecto.porcentaje_avance)
             : 0;
+        if ((!Number.isFinite(progress) || progress === 0) && Array.isArray((currentProject && currentProject.tareas)) && currentProject.tareas.length > 0) {
+            const total = currentProject.tareas.length;
+            const completadas = currentProject.tareas.filter(t => t.estado === 'completada').length;
+            progress = Math.round((completadas / total) * 100);
+        }
         $('#progressPercentage').text(`${progress}%`);
         updateProgressCircle(progress);
     }
@@ -187,8 +222,20 @@ $(document).ready(function() {
             return;
         }
 
+        // Ordenar: primero por estado (pendiente, en_progreso, completada), luego por prioridad (alta, media, baja)
+        const statusOrder = { 'pendiente': 0, 'en_progreso': 1, 'completada': 2 };
+        const priorityOrder = { 'alta': 0, 'media': 1, 'baja': 2 };
+        const sorted = [...tasks].sort((a, b) => {
+            const sA = statusOrder[a.estado] ?? 999;
+            const sB = statusOrder[b.estado] ?? 999;
+            if (sA !== sB) return sA - sB;
+            const pA = priorityOrder[(a.prioridad || 'media')] ?? 1;
+            const pB = priorityOrder[(b.prioridad || 'media')] ?? 1;
+            return pA - pB;
+        });
+
         let html = '';
-        tasks.forEach(task => {
+        sorted.forEach(task => {
             const statusText = getStatusText(task.estado);
             const priority = task.prioridad || 'media';
             const priorityText = getPriorityText(priority);
@@ -217,23 +264,67 @@ $(document).ready(function() {
     }
 
     function updateTaskStats() {
-        if (!currentTasks || currentTasks.length === 0) {
-            $('#totalTasks').text(0);
-            $('#pendingTasks').text(0);
-            $('#inProgressTasks').text(0);
-            $('#completedTasks').text(0);
+        const tasks = Array.isArray(currentTasks) ? currentTasks : [];
+
+        const updateCounters = (total, pending, inProgress, completed) => {
+            $('#totalTasks').text(total);
+            $('#pendingTasks').text(pending);
+            $('#inProgressTasks').text(inProgress);
+            $('#completedTasks').text(completed);
+        };
+
+        if (!tasks.length) {
+            updateCounters(0, 0, 0, 0);
+            // Actualizar mini chart si existe
+            const ids = [
+                ['barAll','countAll',0],
+                ['barPending','countPending',0],
+                ['barProgress','countProgress',0],
+                ['barCompleted','countCompleted',0]
+            ];
+            ids.forEach(([barId, countId, value]) => {
+                const bar = document.getElementById(barId);
+                const count = document.getElementById(countId);
+                if (bar) {
+                    bar.style.setProperty('--target-height', '0%');
+                    bar.style.animation = 'none';
+                    void bar.offsetHeight; // reflow
+                    bar.style.animation = '';
+                    bar.style.height = '0%';
+                }
+                if (count) count.textContent = value;
+            });
             return;
         }
         
-        const total = currentTasks.length;
-        const pending = currentTasks.filter(t => t.estado === 'pendiente').length;
-        const inProgress = currentTasks.filter(t => t.estado === 'en_progreso').length;
-        const completed = currentTasks.filter(t => t.estado === 'completada').length;
+        const total = tasks.length;
+        const pending = tasks.filter(t => t.estado === 'pendiente').length;
+        const inProgress = tasks.filter(t => t.estado === 'en_progreso').length;
+        const completed = tasks.filter(t => t.estado === 'completada').length;
 
-        $('#totalTasks').text(total);
-        $('#pendingTasks').text(pending);
-        $('#inProgressTasks').text(inProgress);
-        $('#completedTasks').text(completed);
+        updateCounters(total, pending, inProgress, completed);
+
+        // Actualizar mini chart de barras
+        const maxValue = Math.max(total, pending, inProgress, completed, 1);
+        const toPercent = v => Math.round((v / maxValue) * 100);
+        const setBar = (id, value, countId) => {
+            const bar = document.getElementById(id);
+            const count = document.getElementById(countId);
+            if (!bar) return;
+            const pct = toPercent(value);
+            bar.style.setProperty('--target-height', pct + '%');
+            // Reiniciar animación
+            bar.style.animation = 'none';
+            void bar.offsetHeight; // reflow
+            bar.style.animation = '';
+            bar.style.height = pct + '%';
+            if (count) count.textContent = value;
+        };
+
+        setBar('barAll', total, 'countAll');
+        setBar('barPending', pending, 'countPending');
+        setBar('barProgress', inProgress, 'countProgress');
+        setBar('barCompleted', completed, 'countCompleted');
     }
 
     function filterTasks() {
@@ -333,6 +424,15 @@ $(document).ready(function() {
             'baja': 'Baja'
         };
         return priorityMap[priority] || priority;
+    }
+
+    function formatProjectStatus(status) {
+        const map = {
+            'en_ejecucion': 'En ejecución',
+            'en_pausa': 'En pausa',
+            'finalizado': 'Finalizado'
+        };
+        return map[status] || (status || '—');
     }
 
     function getInitials(name) {

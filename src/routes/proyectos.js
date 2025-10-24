@@ -9,6 +9,7 @@ router.get('/jefes', proyectosController.obtenerJefesProyecto);
 router.post('/', proyectosController.crearProyecto);
 router.get('/', proyectosController.obtenerProyectos);
 router.get('/:id', proyectosController.obtenerProyecto);
+router.put('/:id/estado', proyectosController.actualizarEstadoProyecto);
 router.delete('/:id', proyectosController.eliminarProyecto);
 
 module.exports = router;
