@@ -1,12 +1,13 @@
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
 // Configuración de la conexión a la base de datos
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'Martin125',
-    database: 'gestion_proyectos'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'gestion_proyectos'
 });
 
 // Conectar a la base de datos
