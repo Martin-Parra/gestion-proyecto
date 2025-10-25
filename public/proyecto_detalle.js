@@ -35,6 +35,32 @@ $(document).ready(function() {
             const currentStatus = $(this).data('current-status');
             showStatusChangeModal(taskId, currentStatus);
         });
+
+        // Toggle del menú en el topbar (similar al dashboard del trabajador)
+        const topbar = document.querySelector('.topbar');
+        const toggleBtn = document.querySelector('.topbar .menu-toggle');
+        const topbarMenuLinks = document.querySelectorAll('.topbar .sidebar-menu a');
+
+        if (toggleBtn && topbar) {
+            toggleBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                topbar.classList.toggle('open');
+            });
+
+            // Cerrar si se hace click fuera
+            document.addEventListener('click', function (e) {
+                if (!topbar.contains(e.target)) {
+                    topbar.classList.remove('open');
+                }
+            });
+
+            // Cerrar al navegar por alguna opción
+            topbarMenuLinks.forEach((link) => {
+                link.addEventListener('click', () => {
+                    topbar.classList.remove('open');
+                });
+            });
+        }
     }
 
     function setupDocumentoModalHandlers(){

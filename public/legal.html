@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Términos de servicio y Política de privacidad</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="legal.css" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="legal-body">
+  <header class="legal-header">
+    <h1 class="legal-title">Información legal</h1>
+    <p class="legal-subtitle">Transparencia y protección de tus datos.</p>
+    <nav class="legal-nav">
+      <a href="#terms" class="nav-link"><i class="fa-solid fa-scale-balanced"></i> Términos de servicio</a>
+      <a href="#privacy" class="nav-link"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+    </nav>
+  </header>
+
+  <main class="legal-main">
+    <section id="terms" class="legal-card" aria-label="Términos de servicio">
+      <h2>Términos de servicio</h2>
+      <p>
+        Estos términos regulan el uso de la plataforma de gestión de proyectos. Al registrarte o iniciar sesión aceptas estas condiciones.
+      </p>
+      <ul>
+        <li>Uso responsable de la cuenta y credenciales.</li>
+        <li>Respeto por la propiedad intelectual y los contenidos.</li>
+        <li>Cumplimiento de las políticas internas de la empresa.</li>
+        <li>Prohibición de uso malicioso o no autorizado de la plataforma.</li>
+      </ul>
+      <p>
+        La plataforma puede actualizar estos términos para mejorar el servicio. Te notificaremos cambios relevantes a través de los canales habituales.
+      </p>
+    </section>
+
+    <section id="privacy" class="legal-card" aria-label="Política de privacidad">
+      <h2>Política de privacidad</h2>
+      <p>
+        Nos comprometemos a proteger tu información personal y solo la utilizamos para operar y mejorar el sistema.
+      </p>
+      <ul>
+        <li>Datos recopilados: nombre, correo, rol y actividad en la plataforma.</li>
+        <li>Finalidades: autenticación, gestión de proyectos, comunicación y seguridad.</li>
+        <li>Conservación: almacenamos los datos el tiempo necesario para prestar el servicio.</li>
+        <li>Derechos: acceso, rectificación, eliminación y portabilidad de tus datos.</li>
+      </ul>
+      <p>
+        Si tienes dudas o quieres ejercer tus derechos, contáctanos mediante el canal de soporte de la organización.
+      </p>
+    </section>
+
+    <section class="legal-card note">
+      <h2>Contacto y vigencia</h2>
+      <p>
+        Fecha de última actualización: <strong><span id="last-update"></span></strong>.
+        Esta información tiene fines orientativos y puede ajustarse a las políticas formales de tu organización.
+      </p>
+    </section>
+  </main>
+
+  <footer class="legal-footer">
+    <a class="back-link" href="/login.html"><i class="fa-solid fa-arrow-left"></i> Volver al inicio de sesión</a>
+  </footer>
+
+  <script>
+    // Actualiza fecha de actualización al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('last-update');
+      const now = new Date();
+      const fmt = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+      el.textContent = fmt.format(now);
+    });
+  </script>
+</body>
+</html>

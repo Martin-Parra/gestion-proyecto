@@ -42,18 +42,14 @@
                     </div>
                 </div>
                 <div class="form-extras">
-                    <label class="remember">
-                        <input type="checkbox" name="remember" />
-                        Recordarme
+                    <label class="accept">
+                        <input type="checkbox" id="accept-terms" name="accept_terms" />
+                        <span class="accept-text">He leído y acepto los <a href="legal.html#terms" target="_blank" class="inline-link">Términos de servicio</a> y la <a href="legal.html#privacy" target="_blank" class="inline-link">Política de privacidad</a>.</span>
                     </label>
                     <a class="forgot" href="#" id="forgot-link">¿Olvidaste tu contraseña?</a>
                 </div>
-                <button type="submit" class="btn-submit">Iniciar sesión</button>
-                <p class="terms">
-                    Al hacer clic en “Iniciar sesión” aceptas los
-                    <a href="#">Términos de servicio</a> y la
-                    <a href="#">Política de privacidad</a>.
-                </p>
+                <button type="submit" class="btn-submit" id="login-submit" disabled>Iniciar sesión</button>
+
                 <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
             </form>
         </section>
@@ -104,6 +100,15 @@
                 pwdInput.setAttribute('type', isPwd ? 'text' : 'password');
                 toggleBtn.innerHTML = isPwd ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
             });
+
+            // Aceptación de términos: habilita el botón solo si está marcado
+            const acceptCheckbox = document.getElementById('accept-terms');
+            const submitBtn = document.getElementById('login-submit');
+            const updateSubmitState = () => {
+                submitBtn.disabled = !acceptCheckbox.checked;
+            };
+            acceptCheckbox.addEventListener('change', updateSubmitState);
+            updateSubmitState();
 
             // Modal olvidaste tu contraseña
             const forgotLink = document.getElementById('forgot-link');

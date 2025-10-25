@@ -883,6 +883,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Configurar logout con confirmación
                 setupLogout();
+
+                // --- Toggle del menú en el topbar ---
+                const topbar = document.querySelector('.topbar');
+                const toggleBtn = document.querySelector('.menu-toggle');
+                if (topbar && toggleBtn) {
+                    toggleBtn.addEventListener('click', function(){
+                        topbar.classList.toggle('open');
+                    });
+                }
+                // Cerrar menú y animar contenido al seleccionar una sección
+                const main = document.querySelector('.main-content');
+                document.querySelectorAll('.sidebar-menu a[href^="#"]').forEach(a => {
+                    a.addEventListener('click', () => {
+                        if (topbar) topbar.classList.remove('open');
+                        if (main) {
+                            main.classList.add('content-enter');
+                            setTimeout(() => main.classList.remove('content-enter'), 300);
+                        }
+                    });
+                });
             } else {
                 console.error('Error al cargar información del usuario:', data.message);
                 window.location.href = '/login';

@@ -8,6 +8,43 @@ let currentFilter = 'todas';
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     setupEventListeners();
+
+    // --- Toggle del menú en el topbar ---
+    const topbar = document.querySelector('.topbar');
+    const toggleBtn = document.querySelector('.menu-toggle');
+    console.log('Topbar:', topbar);
+    console.log('Toggle button:', toggleBtn);
+    
+    if (topbar && toggleBtn) {
+        toggleBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Menu button clicked!');
+            topbar.classList.toggle('open');
+            console.log('Topbar classes:', topbar.className);
+        });
+    } else {
+        console.error('No se encontraron los elementos topbar o menu-toggle');
+    }
+    
+    // Cerrar menú y animar contenido al seleccionar una sección
+    const main = document.querySelector('.main-content');
+    document.querySelectorAll('.sidebar-menu a[href^="#"], .sidebar-menu a[href^="/"]').forEach(a => {
+        a.addEventListener('click', () => {
+            if (topbar) topbar.classList.remove('open');
+            if (main) {
+                main.classList.add('content-enter');
+                setTimeout(() => main.classList.remove('content-enter'), 300);
+            }
+        });
+    });
+
+    // Cerrar menú al hacer click fuera
+    document.addEventListener('click', function(e) {
+        if (topbar && !topbar.contains(e.target)) {
+            topbar.classList.remove('open');
+        }
+    });
 });
 
 // Configurar event listeners
