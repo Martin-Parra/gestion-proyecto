@@ -11,7 +11,11 @@ app.use(bodyParser.json()); // Añadir soporte para JSON
 app.use(session({
     secret: 'gestion_secret',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    // Solicitud del usuario: desactivar HttpOnly para poder acceder a la cookie desde el cliente
+    cookie: {
+        httpOnly: false
+    }
 }));
 
 // Importar middleware de autenticación
