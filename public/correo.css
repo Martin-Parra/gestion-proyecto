@@ -39,7 +39,7 @@ body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;color:var(--text);bac
 
 /* Modal */
 .modal{display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:1000}
-.modal.show{display:flex}
+.modal.open{display:flex}
 .modal-dialog{width:760px;max-width:95vw}
 .modal-content{background:#fff;border-radius:10px;box-shadow:0 15px 40px rgba(0,0,0,.18);overflow:hidden}
 .modal-header{display:flex;align-items:center;justify-content:space-between;background:var(--primary);color:#fff;padding:12px 14px}
