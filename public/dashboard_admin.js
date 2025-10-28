@@ -220,17 +220,24 @@ window.cargarJefesProyecto = function() {
         .then(data => {
             if (data.success && data.jefes) {
                 jefesProyecto = data.jefes.sort((a, b) => a.nombre.localeCompare(b.nombre));
-                window.configurarBuscadorJefes();
+                const hasCrear = document.getElementById('buscadorJefe');
+                const hasEditar = document.getElementById('buscadorJefeEditar');
+                if (hasCrear) { window.configurarBuscadorJefes(); }
+                if (hasEditar) { window.configurarBuscadorJefesEditar(); }
             } else {
                 console.error('Error al cargar jefes de proyecto:', data.message || 'No se recibieron datos');
                 jefesProyecto = [];
-                window.configurarBuscadorJefes();
+                // Configurar buscadores solo si existen en el DOM
+                if (document.getElementById('buscadorJefe')) { window.configurarBuscadorJefes(); }
+                if (document.getElementById('buscadorJefeEditar')) { window.configurarBuscadorJefesEditar(); }
             }
         })
         .catch(error => {
             console.error('Error de conexión:', error);
             jefesProyecto = [];
-            window.configurarBuscadorJefes();
+            // Configurar buscadores solo si existen en el DOM
+            if (document.getElementById('buscadorJefe')) { window.configurarBuscadorJefes(); }
+            if (document.getElementById('buscadorJefeEditar')) { window.configurarBuscadorJefesEditar(); }
         });
 };
 
@@ -239,10 +246,7 @@ window.configurarBuscadorJefes = function() {
     const buscadorJefe = document.getElementById('buscadorJefe');
     const resultadosJefe = document.getElementById('resultadosJefe');
     
-    if (!buscadorJefe || !resultadosJefe) {
-        console.error('No se encontraron los elementos del buscador de jefes');
-        return;
-    }
+    if (!buscadorJefe || !resultadosJefe) { return; }
     
     // Eliminar eventos anteriores para evitar duplicados
     const nuevoInputBuscador = buscadorJefe.cloneNode(true);
@@ -887,16 +891,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 // --- Toggle del menú en el topbar ---
                 const topbar = document.querySelector('.topbar');
                 const toggleBtn = document.querySelector('.menu-toggle');
+                const menu = topbar ? topbar.querySelector('.sidebar-menu') : null;
                 if (topbar && toggleBtn) {
-                    toggleBtn.addEventListener('click', function(){
-                        topbar.classList.toggle('open');
+                    const hasAnime = typeof window !== 'undefined' && window.anime;
+
+                    const openMenu = () => {
+                        topbar.classList.add('open');
+                        const icon = toggleBtn.querySelector('i');
+                        if (icon) { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up'); }
+                        if (hasAnime && menu) {
+                            window.anime({
+                                targets: menu,
+                                opacity: [0, 1],
+                                translateY: [-12, 0],
+                                duration: 250,
+                                easing: 'easeOutQuad'
+                            });
+                        }
+                    };
+
+                    const closeMenu = () => {
+                        const icon = toggleBtn.querySelector('i');
+                        if (hasAnime && menu) {
+                            window.anime({
+                                targets: menu,
+                                opacity: [1, 0],
+                                translateY: [0, -12],
+                                duration: 200,
+                                easing: 'easeInQuad',
+                                complete: () => {
+                                    topbar.classList.remove('open');
+                                    if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                                }
+                            });
+                        } else {
+                            topbar.classList.remove('open');
+                            if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                        }
+                    };
+
+                    toggleBtn.addEventListener('click', function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (topbar.classList.contains('open')) { closeMenu(); } else { openMenu(); }
+                    });
+
+                    // Cerrar al hacer click fuera
+                    document.addEventListener('click', function(e){
+                        if (topbar && !topbar.contains(e.target)) { closeMenu(); }
                     });
                 }
                 // Cerrar menú y animar contenido al seleccionar una sección
                 const main = document.querySelector('.main-content');
                 document.querySelectorAll('.sidebar-menu a[href^="#"]').forEach(a => {
                     a.addEventListener('click', () => {
-                        if (topbar) topbar.classList.remove('open');
+                        if (topbar && topbar.classList.contains('open')) {
+                            // usa el mismo cierre animado
+                            const icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+                            const menu = topbar.querySelector('.sidebar-menu');
+                            const hasAnime = typeof window !== 'undefined' && window.anime;
+                            if (hasAnime && menu) {
+                                window.anime({
+                                    targets: menu,
+                                    opacity: [1, 0],
+                                    translateY: [0, -12],
+                                    duration: 200,
+                                    easing: 'easeInQuad',
+                                    complete: () => {
+                                        topbar.classList.remove('open');
+                                        if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                                    }
+                                });
+                            } else {
+                                topbar.classList.remove('open');
+                                if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                            }
+                        }
                         if (main) {
                             main.classList.add('content-enter');
                             setTimeout(() => main.classList.remove('content-enter'), 300);
@@ -1770,11 +1840,12 @@ function setupLogout(){
             cancelButtonText: 'Cancelar',
             confirmButtonColor: '#4e73df',
             cancelButtonColor: '#6c757d'
-        }).then(result => {
+        }).then(async (result) => {
             if(result.isConfirmed){
-                fetch('/api/auth/logout', { method: 'POST' })
-                    .then(() => { window.location.href = '/login'; })
-                    .catch(() => { window.location.href = '/login'; });
+                try {
+                    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true });
+                } catch (_) {}
+                window.location.href = '/login';
             } else {
                 // Al cancelar, navegar a la sección Usuarios dentro del panel
                 const usuariosLink = document.querySelector('.sidebar-menu a[href="#usuarios"]');

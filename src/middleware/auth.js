@@ -57,5 +57,17 @@ const checkUserStatus = (req, res, next) => {
 module.exports = {
     isAuthenticated,
     isAdmin,
-    checkUserStatus
+    checkUserStatus,
+    // Nuevo: verificar si el usuario es líder de proyecto
+    isLeader: (req, res, next) => {
+        if (req.session.user && req.session.user.rol === 'jefe_proyecto') {
+            return next();
+        }
+
+        if (req.originalUrl && req.originalUrl.startsWith('/api/')) {
+            return res.status(403).json({ error: 'Acceso denegado - Se requieren permisos de líder de proyecto' });
+        }
+
+        return res.redirect('/login?error=access');
+    }
 };

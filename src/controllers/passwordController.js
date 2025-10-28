@@ -44,7 +44,9 @@ async function createTransport() {
       host: SMTP_HOST,
       port: Number(SMTP_PORT || 587),
       secure: SMTP_SECURE === 'true',
-      auth: { user: SMTP_USER, pass: SMTP_PASS }
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      logger: true,
+      debug: true
     });
   }
   // Crear cuenta de prueba en Ethereal y usarla
@@ -96,7 +98,7 @@ exports.requestReset = async (req, res) => {
     const transport = await createTransport();
     
     const mailOptions = {
-      from: process.env.SMTP_FROM || 'no-reply@proyectos.local',
+      from: process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@proyectos.local',
       to: user.email,
       subject: 'Restablece tu contraseña',
       html: `

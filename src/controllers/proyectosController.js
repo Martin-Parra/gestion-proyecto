@@ -42,6 +42,49 @@ exports.obtenerProyectos = async (req, res) => {
     }
 };
 
+// Obtener proyectos del líder autenticado
+exports.obtenerProyectosDelLiderActual = async (req, res) => {
+    try {
+        const userId = req.session?.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, error: 'No autenticado' });
+        }
+
+        const [rows] = await pool.promise().query(
+            `SELECT 
+                p.id,
+                p.nombre,
+                p.descripcion,
+                p.fecha_inicio,
+                p.fecha_fin,
+                p.responsable_id,
+                p.created_at,
+                p.estado,
+                u.nombre AS jefe_nombre,
+                (SELECT COUNT(*) FROM tareas t WHERE t.proyecto_id = p.id) AS total_tareas,
+                (SELECT COUNT(*) FROM tareas t WHERE t.proyecto_id = p.id AND t.estado = 'completada') AS tareas_completadas
+             FROM proyectos p 
+             LEFT JOIN usuarios u ON p.responsable_id = u.id 
+             WHERE p.responsable_id = ?
+             ORDER BY p.created_at DESC`,
+            [userId]
+        );
+
+        const proyectos = rows.map(p => {
+            const total = p.total_tareas || 0;
+            const completadas = p.tareas_completadas || 0;
+            const porcentaje_avance = total > 0 ? Math.round((completadas / total) * 100) : 0;
+            const { total_tareas, tareas_completadas, ...rest } = p;
+            return { ...rest, porcentaje_avance };
+        });
+
+        res.json({ success: true, proyectos });
+    } catch (error) {
+        console.error('Error al obtener proyectos del líder:', error);
+        res.status(500).json({ success: false, error: 'Error al obtener los proyectos del líder' });
+    }
+};
+
 // Obtener todos los jefes de proyecto
 exports.obtenerJefesProyecto = async (req, res) => {
     try {
@@ -238,5 +281,72 @@ exports.actualizarEstadoProyecto = async (req, res) => {
     } catch (error) {
         console.error('Error al actualizar estado del proyecto:', error);
         res.status(500).json({ success: false, message: 'Error interno al actualizar estado' });
+    }
+};
+
+// Actualizar datos generales de un proyecto
+exports.actualizarProyecto = async (req, res) => {
+    const { id } = req.params;
+    const { nombre_proyecto, descripcion_proyecto, fecha_inicio, fecha_fin, responsable_id } = req.body;
+
+    // Validaciones básicas
+    if (!nombre_proyecto || !fecha_inicio || !fecha_fin) {
+        return res.status(400).json({
+            success: false,
+            message: 'Nombre, fecha de inicio y fecha de fin son requeridos'
+        });
+    }
+
+    try {
+        const inicio = new Date(fecha_inicio);
+        const fin = new Date(fecha_fin);
+        if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
+            return res.status(400).json({ success: false, message: 'Formato de fecha inválido' });
+        }
+        if (fin <= inicio) {
+            return res.status(400).json({ success: false, message: 'La fecha fin debe ser posterior a la fecha inicio' });
+        }
+    } catch (_) {
+        return res.status(400).json({ success: false, message: 'Formato de fecha inválido' });
+    }
+
+    // Si se proporciona responsable_id, validar que exista y sea jefe de proyecto activo
+    try {
+        if (responsable_id) {
+            const [rows] = await pool.promise().query(
+                "SELECT id FROM usuarios WHERE id = ? AND rol = 'jefe_proyecto' AND activo = 1",
+                [responsable_id]
+            );
+            if (rows.length === 0) {
+                return res.status(400).json({ success: false, message: 'Responsable inválido o inactivo' });
+            }
+        }
+
+        // Verificar que el proyecto exista
+        const [exists] = await pool.promise().query('SELECT id FROM proyectos WHERE id = ?', [id]);
+        if (exists.length === 0) {
+            return res.status(404).json({ success: false, message: 'Proyecto no encontrado' });
+        }
+
+        const [result] = await pool.promise().query(
+            'UPDATE proyectos SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?, responsable_id = ? WHERE id = ?',
+            [
+                nombre_proyecto,
+                descripcion_proyecto || '',
+                fecha_inicio,
+                fecha_fin,
+                responsable_id || null,
+                id
+            ]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(500).json({ success: false, message: 'No se pudo actualizar el proyecto' });
+        }
+
+        res.json({ success: true, message: 'Proyecto actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar proyecto:', error);
+        res.status(500).json({ success: false, message: 'Error interno al actualizar proyecto' });
     }
 };

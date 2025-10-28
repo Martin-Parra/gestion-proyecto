@@ -42,7 +42,7 @@
     const liderEl = document.getElementById('proyectoInfoLider');
     const pageTitleEl = document.getElementById('pageTitle');
     if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> Tareas del Proyecto: ${data.nombre}`;
-    if (pageTitleEl) pageTitleEl.innerHTML = `<i class="fas fa-diagram-project"></i> Detalle del Proyecto: ${data.nombre}`;
+    if (pageTitleEl) pageTitleEl.textContent = `Detalle del Proyecto: ${data.nombre}`;
     if (liderEl) liderEl.textContent = data.jefe_nombre || '—';
   }
 

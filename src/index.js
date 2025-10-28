@@ -19,7 +19,7 @@ app.use(session({
 }));
 
 // Importar middleware de autenticación
-const { isAuthenticated, isAdmin, checkUserStatus } = require('./middleware/auth');
+const { isAuthenticated, isAdmin, checkUserStatus, isLeader } = require('./middleware/auth');
 
 // Rutas
 const loginRouter = require('./routes/login');
@@ -29,6 +29,7 @@ const proyectosRouter = require('./routes/proyectos'); // Importar rutas de proy
 const tareasRouter = require('./routes/tareas'); // Importar rutas de tareas
 const asignacionesRouter = require('./routes/asignaciones'); // Importar rutas de asignaciones
 const trabajadorRouter = require('./routes/trabajador'); // Importar rutas de trabajador
+const areasRouter = require('./routes/areas'); // Rutas de áreas
 const documentosRouter = require('./routes/documentos'); // Rutas de documentos
 const correosRouter = require('./routes/correos'); // Rutas de correo
 const passwordRouter = require('./routes/password'); // Recuperación de contraseña
@@ -41,6 +42,7 @@ app.use('/api/proyectos', proyectosRouter); // Añadir rutas de proyectos
 app.use('/api/tareas', tareasRouter); // Añadir rutas de tareas
 app.use('/api/asignaciones', asignacionesRouter); // Añadir rutas de asignaciones
 app.use('/api/trabajador', trabajadorRouter); // Añadir rutas de trabajador
+app.use('/api/areas', areasRouter); // Añadir rutas de áreas
 app.use('/api/correos', correosRouter); // Añadir rutas de correo
 app.use('/api/password', passwordRouter); // Rutas de recuperación
 // Montar el router genérico de documentos AL FINAL para no interceptar otras rutas de /api
@@ -100,6 +102,26 @@ app.get('/proyecto-detalle', isAuthenticated, checkUserStatus, (req, res) => {
 // Página única de correo (para cualquier rol autenticado)
 app.get('/correo', isAuthenticated, checkUserStatus, (req, res) => {
     res.sendFile(path.join(__dirname, '../public/correo.html'));
+});
+
+// Página: dashboard del líder de proyecto
+// Redirigir a la página principal de líder (mis proyectos)
+app.get('/dashboard/lider', isAuthenticated, checkUserStatus, isLeader, (req, res) => {
+    res.redirect('/dashboard/lider/misproyectos');
+});
+
+// Páginas seccionadas para líder de proyecto
+app.get('/dashboard/lider/misproyectos', isAuthenticated, checkUserStatus, isLeader, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/lider_proyectos.html'));
+});
+app.get('/dashboard/lider/asignacion', isAuthenticated, checkUserStatus, isLeader, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/lider_asignacion.html'));
+});
+app.get('/dashboard/lider/areas', isAuthenticated, checkUserStatus, isLeader, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/lider_areas.html'));
+});
+app.get('/dashboard/lider/documentos', isAuthenticated, checkUserStatus, isLeader, (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/lider_documentos.html'));
 });
 
 // Página: detalle de proyecto para admin

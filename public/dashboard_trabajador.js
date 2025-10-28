@@ -12,17 +12,75 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Toggle del menú en el topbar ---
     const topbar = document.querySelector('.topbar');
     const toggleBtn = document.querySelector('.menu-toggle');
+    const menu = topbar ? topbar.querySelector('.sidebar-menu') : null;
     console.log('Topbar:', topbar);
     console.log('Toggle button:', toggleBtn);
     
     if (topbar && toggleBtn) {
+        const hasAnime = typeof window !== 'undefined' && window.anime;
+
+        const openMenu = () => {
+            console.log('Abrir menú');
+            topbar.classList.add('open');
+            const icon = toggleBtn.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+            if (hasAnime && menu) {
+                window.anime({
+                    targets: menu,
+                    opacity: [0, 1],
+                    translateY: [-12, 0],
+                    duration: 250,
+                    easing: 'easeOutQuad'
+                });
+            }
+        };
+
+        const closeMenu = () => {
+            console.log('Cerrar menú');
+            if (hasAnime && menu) {
+                window.anime({
+                    targets: menu,
+                    opacity: [1, 0],
+                    translateY: [0, -12],
+                    duration: 200,
+                    easing: 'easeInQuad',
+                    complete: () => {
+                        topbar.classList.remove('open');
+                        const icon = toggleBtn.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-chevron-up');
+                            icon.classList.add('fa-chevron-down');
+                        }
+                    }
+                });
+            } else {
+                topbar.classList.remove('open');
+                const icon = toggleBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            }
+        };
+
         toggleBtn.addEventListener('click', function(e){
             e.preventDefault();
             e.stopPropagation();
             console.log('Menu button clicked!');
-            topbar.classList.toggle('open');
+            if (topbar.classList.contains('open')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
             console.log('Topbar classes:', topbar.className);
         });
+
+        // Exponer funciones para que otros manejadores las usen
+        topbar.__openMenu = openMenu;
+        topbar.__closeMenu = closeMenu;
     } else {
         console.error('No se encontraron los elementos topbar o menu-toggle');
     }
@@ -31,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const main = document.querySelector('.main-content');
     document.querySelectorAll('.sidebar-menu a[href^="#"], .sidebar-menu a[href^="/"]').forEach(a => {
         a.addEventListener('click', () => {
-            if (topbar) topbar.classList.remove('open');
+            if (topbar && topbar.__closeMenu) topbar.__closeMenu();
             if (main) {
                 main.classList.add('content-enter');
                 setTimeout(() => main.classList.remove('content-enter'), 300);
@@ -42,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cerrar menú al hacer click fuera
     document.addEventListener('click', function(e) {
         if (topbar && !topbar.contains(e.target)) {
-            topbar.classList.remove('open');
+            if (topbar.__closeMenu) topbar.__closeMenu();
         }
     });
 });
@@ -292,6 +350,31 @@ function abrirProyectoDetalle(proyectoId, nombreProyecto) {
         });
 }
 
+// Función para cerrar detalles del proyecto
+function cerrarProyectoDetalle() {
+    const card = document.getElementById('proyectoDetalleCard');
+    const tareasTable = document.getElementById('tablaTareasProyecto');
+    const tareasTBody = tareasTable ? tareasTable.querySelector('tbody') : null;
+    const titulo = document.getElementById('proyectoDetalleTitulo');
+    const liderEl = document.getElementById('proyectoInfoLider');
+
+    if (card) {
+        card.style.display = 'none';
+    }
+    if (tareasTBody) {
+        tareasTBody.innerHTML = '';
+    }
+    if (titulo) {
+        titulo.innerHTML = '<i class="fas fa-tasks"></i> Tareas del Proyecto';
+    }
+    if (liderEl) {
+        liderEl.textContent = '';
+    }
+}
+
+// Exponer globalmente por si se invoca desde HTML/otros scripts
+window.cerrarProyectoDetalle = cerrarProyectoDetalle;
+
 // Cargar tareas del usuario
 async function loadTasks() {
     try {
@@ -367,8 +450,8 @@ async function verDetalleTarea(tareaId) {
 }
 
 // Logout
-function logout() {
-    Swal.fire({
+async function logout() {
+    const result = await Swal.fire({
         title: '¿Estás seguro?',
         text: '¿Deseas cerrar sesión?',
         icon: 'question',
@@ -377,13 +460,14 @@ function logout() {
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, cerrar sesión',
         cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-                .then(() => { window.location.href = '/login'; })
-                .catch(() => { window.location.href = '/login'; });
-        }
     });
+    if (!result.isConfirmed) return;
+    try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true });
+    } catch (e) {
+        console.warn('Logout request error (continuo con redirección):', e);
+    }
+    window.location.href = '/login';
 }
 
 // Actualizar estado de una tarea
@@ -664,25 +748,7 @@ async function updateTaskStatus() {
     }
 }
 
-// Logout
-function logout() {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: '¿Deseas cerrar sesión?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, cerrar sesión',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch('/api/auth/logout', { method: 'POST' })
-                .then(() => { window.location.href = '/login'; })
-                .catch(() => { window.location.href = '/login'; });
-        }
-    });
-}
+// (Eliminado duplicado) Logout consolidado se declara más arriba
 
 // Formatear fecha
 function formatDate(dateString) {

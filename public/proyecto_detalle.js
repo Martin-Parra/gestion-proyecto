@@ -42,23 +42,57 @@ $(document).ready(function() {
         const topbarMenuLinks = document.querySelectorAll('.topbar .sidebar-menu a');
 
         if (toggleBtn && topbar) {
+            const menu = topbar.querySelector('.sidebar-menu');
+            const hasAnime = typeof window !== 'undefined' && window.anime;
+
+            const openMenu = () => {
+                topbar.classList.add('open');
+                const icon = toggleBtn.querySelector('i');
+                if (icon) { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up'); }
+                if (hasAnime && menu) {
+                    window.anime({
+                        targets: menu,
+                        opacity: [0, 1],
+                        translateY: [-12, 0],
+                        duration: 250,
+                        easing: 'easeOutQuad'
+                    });
+                }
+            };
+
+            const closeMenu = () => {
+                const icon = toggleBtn.querySelector('i');
+                if (hasAnime && menu) {
+                    window.anime({
+                        targets: menu,
+                        opacity: [1, 0],
+                        translateY: [0, -12],
+                        duration: 200,
+                        easing: 'easeInQuad',
+                        complete: () => {
+                            topbar.classList.remove('open');
+                            if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                        }
+                    });
+                } else {
+                    topbar.classList.remove('open');
+                    if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                }
+            };
+
             toggleBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                topbar.classList.toggle('open');
+                if (topbar.classList.contains('open')) { closeMenu(); } else { openMenu(); }
             });
 
             // Cerrar si se hace click fuera
             document.addEventListener('click', function (e) {
-                if (!topbar.contains(e.target)) {
-                    topbar.classList.remove('open');
-                }
+                if (!topbar.contains(e.target)) { closeMenu(); }
             });
 
             // Cerrar al navegar por alguna opción
             topbarMenuLinks.forEach((link) => {
-                link.addEventListener('click', () => {
-                    topbar.classList.remove('open');
-                });
+                link.addEventListener('click', () => { closeMenu(); });
             });
         }
     }
@@ -187,11 +221,131 @@ $(document).ready(function() {
         updateProgressCircle(progress);
     }
 
+    // Estado para animación del donut
+    let progressAnimState = { deg: 0 };
+
     function updateProgressCircle(percentage) {
-        const degrees = (percentage / 100) * 360;
-        $('.progress-circle').css('background', 
-            `conic-gradient(#4CAF50 ${degrees}deg, #e9ecef ${degrees}deg)`
-        );
+        const $circle = $('.progress-circle');
+        const $text = $('#progressPercentage');
+        const toDeg = (percentage / 100) * 360;
+        const hasAnime = typeof window !== 'undefined' && window.anime;
+
+        if (!$circle.length) return;
+
+        // Crear/asegurar capa de brillo rotatorio
+        let $glow = $circle.find('.glow-sweep');
+        if (!$glow.length) {
+            $circle.append('<div class="glow-sweep"></div>');
+            $glow = $circle.find('.glow-sweep');
+        }
+        // Crear segundo barrido más notorio
+        let $glow2 = $circle.find('.glow-sweep2');
+        if (!$glow2.length) {
+            $circle.append('<div class="glow-sweep2"></div>');
+            $glow2 = $circle.find('.glow-sweep2');
+        }
+        // Crear halo exterior
+        let $halo = $circle.find('.halo-ring');
+        if (!$halo.length) {
+            $circle.append('<div class="halo-ring"></div>');
+            $halo = $circle.find('.halo-ring');
+        }
+
+        if (!hasAnime) {
+            // Fallback sin Anime.js
+            $circle.css('background', `conic-gradient(#4CAF50 ${toDeg}deg, #e9ecef ${toDeg}deg)`);
+            if ($text.length) $text.text(`${Math.round(percentage)}%`);
+            return;
+        }
+
+        // Animar el barrido del donut desde el estado actual hasta el objetivo
+        window.anime({
+            targets: progressAnimState,
+            deg: toDeg,
+            duration: 1200,
+            easing: 'easeInOutCubic',
+            update: () => {
+                const v = Math.max(0, Math.min(360, progressAnimState.deg));
+                $circle.css('background', `conic-gradient(#4CAF50 ${v}deg, #e9ecef ${v}deg)`);
+            }
+        });
+
+        // Contador del porcentaje con efecto de subida
+        if ($text.length) {
+            const start = parseInt(($text.text() || '0').replace('%',''), 10) || 0;
+            window.anime({
+                targets: { val: start },
+                val: Math.round(percentage),
+                duration: 900,
+                easing: 'easeOutCubic',
+                update: (anim) => {
+                    const v = Math.round(anim.animations[0].currentValue);
+                    $text.text(`${v}%`);
+                }
+            });
+        }
+
+        // Realce sutil: pulsación y brillo para darle presencia
+        window.anime({
+            targets: $circle[0],
+            scale: [0.97, 1],
+            duration: 600,
+            easing: 'easeOutBack'
+        });
+
+        // Brillo rotatorio continuo (evitar múltiples inicializaciones)
+        if ($glow.length && !$glow[0]._glowSpinInit) {
+            window.anime({
+                targets: $glow[0],
+                rotate: '1turn',
+                duration: 4000,
+                easing: 'linear',
+                loop: true
+            });
+            $glow[0]._glowSpinInit = true;
+        }
+        // Segundo barrido con mayor velocidad para destacar
+        if ($glow2.length && !$glow2[0]._glowSpinInit2) {
+            window.anime({
+                targets: $glow2[0],
+                rotate: '1turn',
+                duration: Math.max(2200, 4000 - (percentage * 15)), // más rápido con más avance
+                easing: 'linear',
+                loop: true
+            });
+            $glow2[0]._glowSpinInit2 = true;
+        }
+        // Halo con pulso suave continuo
+        if ($halo.length && !$halo[0]._haloPulseInit) {
+            window.anime({
+                targets: $halo[0],
+                scale: [1, 1.05, 1],
+                opacity: [0.45, 0.65, 0.45],
+                duration: 1600,
+                easing: 'easeInOutSine',
+                loop: true
+            });
+            $halo[0]._haloPulseInit = true;
+        }
+
+        // Si está al 100%, celebramos con un pulso extra
+        if (percentage >= 100) {
+            window.anime({
+                targets: $circle[0],
+                scale: [1, 1.08, 1],
+                duration: 800,
+                easing: 'easeInOutSine'
+            });
+            // Burst de brillo breve en el halo para celebrarlo
+            if ($halo.length) {
+                window.anime({
+                    targets: $halo[0],
+                    opacity: [0.6, 0.85, 0.6],
+                    duration: 900,
+                    easing: 'easeInOutQuad'
+                });
+            }
+        }
     }
 
     function loadTeammates(projectId) {

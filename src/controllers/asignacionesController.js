@@ -9,10 +9,19 @@ exports.crearAsignacion = async (req, res) => {
     }
 
     try {
-        // Validar proyecto
-        const [proyectos] = await pool.promise().query('SELECT id FROM proyectos WHERE id = ?', [proyecto_id]);
+        // Validar proyecto y obtener responsable
+        const [proyectos] = await pool.promise().query('SELECT id, responsable_id FROM proyectos WHERE id = ?', [proyecto_id]);
         if (proyectos.length === 0) {
             return res.status(404).json({ success: false, error: 'Proyecto no encontrado' });
+        }
+
+        // Permisos: admin o líder responsable del proyecto
+        const user = req.session?.user;
+        const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador');
+        const esLider = user && user.rol === 'jefe_proyecto';
+        const esLiderDelProyecto = esLider && proyectos[0].responsable_id === user.id;
+        if (!esAdmin && !esLiderDelProyecto) {
+            return res.status(403).json({ success: false, error: 'No autorizado: solo el líder del proyecto o admin puede asignar miembros' });
         }
 
         // Validar usuario (rol trabajador/miembro activo)
