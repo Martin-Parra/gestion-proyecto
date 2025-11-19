@@ -114,6 +114,16 @@
     document.getElementById('btnRedactar').addEventListener('click', ()=>{ modal.classList.add('open'); });
     document.getElementById('cancelarRedactar').addEventListener('click', ()=>{ modal.classList.remove('open'); });
     document.getElementById('closeRedactar').addEventListener('click', ()=>{ modal.classList.remove('open'); });
+    
+    // Toggle CC and BCC fields
+    document.getElementById('toggleCc').addEventListener('click', (e)=>{
+      e.preventDefault();
+      document.getElementById('ccRow').classList.toggle('hidden');
+    });
+    document.getElementById('toggleBcc').addEventListener('click', (e)=>{
+      e.preventDefault();
+      document.getElementById('bccRow').classList.toggle('hidden');
+    });
 
     const form = document.getElementById('formRedactar');
     form.addEventListener('submit', (e)=>{
