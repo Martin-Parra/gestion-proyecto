@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const path = require('path');
+const pool = require('./db/connection');
 
 const app = express();
 
@@ -53,18 +54,43 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Servir archivos subidos de forma segura bajo /uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Endpoint para obtener información del usuario autenticado
-app.get('/api/auth/me', isAuthenticated, checkUserStatus, (req, res) => {
-    res.json({
-        success: true,
-        user: {
-            id: req.session.user.id,
-            nombre: req.session.user.nombre,
-            email: req.session.user.email,
-            rol: req.session.user.rol,
-            activo: req.session.user.activo
-        }
-    });
+// Endpoint para obtener información del usuario autenticado (siempre fresco desde BD)
+app.get('/api/auth/me', isAuthenticated, checkUserStatus, async (req, res) => {
+    try {
+        const userId = req.session?.user?.id;
+        if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
+        const [rows] = await pool.promise().query(
+            `SELECT u.id, u.nombre, u.email, u.rol, u.activo, p.avatar_url
+             FROM usuarios u
+             LEFT JOIN perfiles_usuario p ON p.usuario_id = u.id
+             WHERE u.id = ?`,
+            [userId]
+        );
+        const u = rows[0];
+        if (!u) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        res.json({ success: true, user: u });
+    } catch (err) {
+        console.error('Error en /api/auth/me:', err);
+        res.status(500).json({ success: false, message: 'Error en el servidor' });
+    }
+});
+
+// Verificar contraseña actual del usuario autenticado
+app.post('/api/auth/verify_password', isAuthenticated, checkUserStatus, async (req, res) => {
+    try {
+        const { password } = req.body || {};
+        if (!password) return res.status(400).json({ success: false, message: 'Contraseña requerida' });
+        const userId = req.session?.user?.id;
+        const [rows] = await pool.promise().query('SELECT password FROM usuarios WHERE id = ?', [userId]);
+        const hashed = rows[0]?.password;
+        if (!hashed) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        const bcrypt = require('bcryptjs');
+        const ok = await bcrypt.compare(password, hashed);
+        res.json({ success: true, valid: !!ok });
+    } catch (err) {
+        console.error('Error en verify_password:', err);
+        res.status(500).json({ success: false, message: 'Error en el servidor' });
+    }
 });
 
 // Endpoint para cerrar sesión

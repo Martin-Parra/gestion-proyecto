@@ -150,7 +150,7 @@ exports.actualizarUsuario = (req, res) => {
     }
     
     // Validar que el rol sea válido
-    const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro'];
+    const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro', 'admin', 'trabajador'];
     if (!rolesPermitidos.includes(rol)) {
         return res.status(400).json({
             success: false,
@@ -177,7 +177,7 @@ exports.actualizarUsuario = (req, res) => {
                 activo: activo !== undefined ? activo : 1
             };
             
-            actualizarUsuarioEnBD(userId, usuario, res);
+            actualizarUsuarioEnBD(userId, usuario, req, res);
         });
     } else {
         const usuario = {
@@ -187,12 +187,12 @@ exports.actualizarUsuario = (req, res) => {
             activo: activo !== undefined ? activo : 1
         };
         
-        actualizarUsuarioEnBD(userId, usuario, res);
+        actualizarUsuarioEnBD(userId, usuario, req, res);
     }
 };
 
 // Función auxiliar para actualizar usuario en la BD
-function actualizarUsuarioEnBD(userId, usuario, res) {
+function actualizarUsuarioEnBD(userId, usuario, req, res) {
     pool.query('UPDATE usuarios SET ? WHERE id = ?', [usuario, userId], (err, result) => {
         if (err) {
             // Manejo específico de error por email duplicado
@@ -227,6 +227,18 @@ function actualizarUsuarioEnBD(userId, usuario, res) {
             });
         }
         
+        // Sincronizar sesión si el usuario actualizado es el actual
+        try {
+            if (req?.session?.user && String(req.session.user.id) === String(userId)) {
+                req.session.user.nombre = usuario.nombre;
+                req.session.user.email = usuario.email;
+                if (usuario.rol) req.session.user.rol = usuario.rol;
+                if (typeof usuario.activo !== 'undefined') req.session.user.activo = !!usuario.activo;
+            }
+        } catch (e) {
+            console.warn('Advertencia: no se pudo sincronizar la sesión tras actualizar usuario:', e);
+        }
+
         res.json({
             success: true,
             message: 'Usuario actualizado exitosamente'
@@ -259,4 +271,31 @@ exports.eliminarUsuario = (req, res) => {
             message: 'Usuario eliminado exitosamente'
         });
     });
+};
+
+// Subir y guardar avatar del usuario
+exports.guardarAvatar = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Archivo de avatar requerido' });
+        }
+        const relativeUrl = `/uploads/avatars/${req.file.filename}`;
+
+        // Asegurar que exista registro en perfiles_usuario (la migración ya lo crea, pero por si acaso)
+        await pool.promise().query('INSERT IGNORE INTO perfiles_usuario (usuario_id) VALUES (?)', [userId]);
+        await pool.promise().query('UPDATE perfiles_usuario SET avatar_url = ?, updated_at = CURRENT_TIMESTAMP WHERE usuario_id = ?', [relativeUrl, userId]);
+
+        // Si el que sube es el mismo usuario, refrescar en sesión el avatar (si se usa en cliente)
+        try {
+            if (req?.session?.user && String(req.session.user.id) === String(userId)) {
+                req.session.user.avatar_url = relativeUrl;
+            }
+        } catch (_) {}
+
+        res.json({ success: true, avatar_url: relativeUrl });
+    } catch (err) {
+        console.error('Error al guardar avatar:', err);
+        res.status(500).json({ success: false, message: 'Error al guardar avatar' });
+    }
 };

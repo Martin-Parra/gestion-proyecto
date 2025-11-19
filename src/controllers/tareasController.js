@@ -62,7 +62,8 @@ const obtenerTareaPorId = async (req, res) => {
 
     try {
         const [tareas] = await connection.promise().query(
-            'SELECT id, titulo, descripcion, estado, prioridad, fecha_inicio, fecha_fin, proyecto_id, created_at FROM tareas WHERE id = ?',
+            // Seleccionar solo columnas presentes en la BD
+            'SELECT id, titulo, descripcion, estado, proyecto_id, created_at FROM tareas WHERE id = ?',
             [tarea_id]
         );
 

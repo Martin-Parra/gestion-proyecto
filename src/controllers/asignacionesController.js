@@ -52,7 +52,7 @@ exports.crearAsignacion = async (req, res) => {
 exports.listarAsignaciones = async (req, res) => {
     const { proyecto_id } = req.query;
     try {
-        let query = `SELECT a.id, a.proyecto_id, a.usuario_id, a.created_at, p.nombre AS proyecto_nombre, u.nombre AS usuario_nombre
+        let query = `SELECT a.id, a.proyecto_id, a.usuario_id, p.nombre AS proyecto_nombre, u.nombre AS usuario_nombre
                      FROM asignaciones a
                      INNER JOIN proyectos p ON p.id = a.proyecto_id
                      INNER JOIN usuarios u ON u.id = a.usuario_id`;
@@ -61,7 +61,8 @@ exports.listarAsignaciones = async (req, res) => {
             query += ' WHERE a.proyecto_id = ?';
             params.push(proyecto_id);
         }
-        query += ' ORDER BY a.created_at DESC';
+        // Ordenar por id descendente para compatibilidad en bases sin columna created_at
+        query += ' ORDER BY a.id DESC';
 
         const [rows] = await pool.promise().query(query, params);
         res.json({ success: true, asignaciones: rows });

@@ -1,4 +1,26 @@
 (function(){
+  // Overlay de carga para transiciones de salida (navegación a otra página/sección)
+  function ensureOverlay(){
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay){
+      overlay = document.createElement('div');
+      overlay.id = 'loadingOverlay';
+      overlay.className = 'loading-overlay';
+      overlay.setAttribute('aria-hidden','true');
+      overlay.innerHTML = '<div class="loader-content"><div class="loader-spinner" aria-label="Cargando"></div><div class="loader-text">Cargando…</div></div>';
+      document.body.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function showOverlayThenNavigate(href, duration = 1000){
+    const overlay = ensureOverlay();
+    overlay.style.display = 'flex';
+    overlay.classList.add('active');
+    // Mantener overlay visible hasta que cambie la página
+    setTimeout(() => { window.location.href = href; }, duration);
+  }
+
   function setupLogout(){
     const btn = document.getElementById('logoutBtn');
     if (!btn) return;
@@ -36,6 +58,29 @@
     setupLogout();
     setupTogglePassword();
 
+    // Interceptar navegación interna para mostrar overlay sólo al cambiar de sección/página
+    const LOADER_MS = 800;
+    const anchors = Array.from(document.querySelectorAll('a[href]:not([target])'));
+    anchors.forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (!href) return;
+        const isInternal = href.startsWith('/') || href.startsWith(window.location.origin);
+        const isHash = href.startsWith('#');
+        if (isInternal || isHash){
+          e.preventDefault();
+          showOverlayThenNavigate(href, LOADER_MS);
+        }
+      });
+    });
+
+    // Mostrar overlay en salida de la página (refrescos/cambios directos)
+    window.addEventListener('beforeunload', () => {
+      const overlay = ensureOverlay();
+      overlay.style.display = 'flex';
+      overlay.classList.add('active');
+    });
+
     const form = document.getElementById('formCrearUsuario');
     if (!form) return;
 
@@ -59,7 +104,7 @@
         if (data && data.success){
           Swal.fire({ icon: 'success', title: 'Usuario creado', timer: 1500, showConfirmButton: false });
           // Volver al dashboard de usuarios
-          window.location.href = '/dashboard/admin#usuarios';
+          showOverlayThenNavigate('/dashboard/admin#usuarios', 800);
         } else {
           const msg = (data && data.message) || 'Error al crear usuario';
           Swal.fire({ icon: 'error', title: 'Error', text: msg });

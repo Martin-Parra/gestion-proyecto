@@ -14,22 +14,29 @@
     <script src="/js/tareas.js"></script>
 </head>
 <body>
+    <!-- Overlay de carga global -->
+    <div id="pageLoader" class="page-loader" aria-hidden="true">
+        <div class="loader-spinner"></div>
+        <div class="loader-label">Cargando…</div>
+    </div>
     <!-- Barra superior reemplazando el sidebar -->
     <header class="topbar">
         <div class="topbar-inner">
             <div class="sidebar-header">
                 <h2><i class="fas fa-laugh-wink"></i> ADMIN</h2>
             </div>
-            <button class="menu-toggle" aria-label="Mostrar menú">
-                <i class="fas fa-chevron-down"></i>
-            </button>
+            <!-- Menú visible siempre; se removió el botón de despliegue -->
             <ul class="sidebar-menu">
                 <li><a href="#usuarios"><i class="fas fa-users"></i> Usuarios</a></li>
                 <li><a href="/correo"><i class="fas fa-envelope"></i> Correo</a></li>
                 <li><a href="#proyectos"><i class="fas fa-project-diagram"></i> Gestión de Proyectos</a></li>
-                <li><a href="#revicion_proyectos"><i class="fas fa-clipboard-check"></i> Revicion de proyectos</a></li>
-                <li><a href="#asignacion"><i class="fas fa-user-plus"></i> Asignar Miembros</a></li>
-                <li><a href="#visualizacion"><i class="fas fa-chart-bar"></i> Miembros Asignados</a></li>
+                <li><a href="#revicion_proyectos"><i class="fas fa-clipboard-check"></i> Revisión de proyectos</a></li>
+                <li><a href="#gestion_miembros"><i class="fas fa-user-cog"></i> Gestión de Miembros</a></li>
+                <li class="profile">
+                    <button id="profileBtn" class="profile-btn" aria-label="Perfil">
+                        <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
+                    </button>
+                </li>
                 <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
             </ul>
         </div>
@@ -37,67 +44,61 @@
 
     <main class="main-content">
         <section id="usuarios" class="dashboard-section">
-            <h2>Gestión de Usuarios</h2>
-            
-            <!-- Sección SOLO de lista de usuarios -->
-            <div id="seccionListaUsuarios">
-              <div class="card">
-                <div class="card-header">
-                    <h3 class="mb-0"><i class="fas fa-table"></i> Lista de Usuarios</h3>
+            <h2 class="page-title">Gestión de Usuarios</h2>
+
+            <!-- Lista de usuarios a pantalla completa, sin cabecera de card -->
+            <div id="seccionListaUsuarios" class="fullbleed-section">
+                <div class="user-toolbar">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="busquedaUsuario" class="form-control search-input" placeholder="Buscar por nombre, email o rol...">
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="records-control">
+                            <label for="cantidadRegistros">Mostrar</label>
+                            <select id="cantidadRegistros" class="form-control form-control-sm records-select">
+                                <option value="5">5</option>
+                                <option value="7" selected>7</option>
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <label>registros</label>
+                        </div>
+                        <a href="/admin/usuarios/nuevo" class="btn btn-primary btn-sm" id="btnIrCrearUsuario">
+                            <i class="fas fa-user-plus"></i> Agregar usuario
+                        </a>
+                    </div>
                 </div>
-                
-                <div class="card-body">
-                    <div class="user-toolbar">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="busquedaUsuario" class="form-control search-input" placeholder="Buscar por nombre, email o rol...">
-                        </div>
-                        <div class="toolbar-right">
-                            <div class="records-control">
-                                <label for="cantidadRegistros">Mostrar</label>
-                                <select id="cantidadRegistros" class="form-control form-control-sm records-select">
-                                    <option value="5">5</option>
-                                    <option value="10" selected>10</option>
-                                    <option value="30">30</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                                <label>registros</label>
-                            </div>
-                            <a href="/admin/usuarios/nuevo" class="btn btn-primary btn-sm" id="btnIrCrearUsuario">
-                              <i class="fas fa-user-plus"></i> Agregar usuario
-                            </a>
-                        </div>
+
+                <div class="table-responsive fullbleed-table">
+                    <table id="tablaUsuarios" class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Usuarios se cargan aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="footer-left">
+                        <span id="infoRegistros">Mostrando 0 de 0 registros</span>
                     </div>
-                    
-                    <div class="table-responsive">
-                        <table id="tablaUsuarios" class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Email</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Usuarios se cargan aquí -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                        <div class="col" style="flex: 1;">
-                            <span id="infoRegistros">Mostrando 0 de 0 registros</span>
-                        </div>
-                        <div class="col" style="display: flex; justify-content: flex-end;">
-                            <div class="pagination">
-                                <button id="btnAnterior" class="btn btn-sm btn-outline-primary" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
-                                <span id="paginaActual" style="margin: 0 10px; line-height: 31px;">Página 1</span>
-                                <button id="btnSiguiente" class="btn btn-sm btn-outline-primary" disabled>Siguiente <i class="fas fa-chevron-right"></i></button>
-                            </div>
+                    <div class="footer-right">
+                        <div class="pagination">
+                            <button id="btnAnterior" class="btn btn-sm btn-outline-primary" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span id="paginaActual" class="page-indicator">Página 1</span>
+                            <button id="btnSiguiente" class="btn btn-sm btn-outline-primary" disabled>Siguiente <i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
@@ -107,21 +108,16 @@
         <section id="proyectos" class="dashboard-section">
             <h2>Gestión de Proyectos</h2>
 
-            
             <!-- Formulario de crear proyecto movido a página independiente: /admin/proyectos/nuevo -->
-            
             <div class="card">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0"><i class="fas fa-list"></i> Lista de Proyectos</h3>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                    <div style="display: flex; justify-content: flex-end; width: 100%;">
                         <a href="/admin/proyectos/nuevo" class="btn btn-primary btn-sm" id="btnIrCrearProyecto">
                             <i class="fas fa-plus-circle"></i> Crear Proyecto
                         </a>
                     </div>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive fullbleed-table">
                     <table id="tablaProyectos" class="table">
                         <thead>
                             <tr>
@@ -138,22 +134,31 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="table-footer">
+                    <div class="footer-left">
+                        <span id="infoRegistrosProy">Mostrando 0 a 0 de 0 registros</span>
+                    </div>
+                    <div class="footer-right">
+                        <div class="pagination">
+                            <button id="btnAnteriorProy" class="btn btn-sm btn-outline-primary" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span id="paginaActualProy" class="page-indicator">Página 1</span>
+                            <button id="btnSiguienteProy" class="btn btn-sm btn-outline-primary" disabled>Siguiente <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- Nueva sección: Revicion de proyectos -->
+        <!-- Nueva sección: Revisión de proyectos -->
         <section id="revicion_proyectos" class="dashboard-section">
-            <h2>Revicion de proyectos</h2>
+            <h2>Revisión de proyectos</h2>
 
             <!-- Grid de Proyectos -->
-            <div class="card">
-                <div class="card-header">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3><i class="fas fa-layer-group"></i> Proyectos</h3>
-                        <button class="btn btn-primary btn-sm" id="btnAbrirAsignacionTareas">
-                            <i class="fas fa-tasks"></i> Asignación de Tareas
-                        </button>
-                    </div>
+            <div class="card" id="proyectos">
+                <div class="card-header actions-right">
+                    <button class="btn btn-primary btn-sm" id="btnAbrirAsignacionTareas">
+                        <i class="fas fa-tasks"></i> Asignación de Tareas
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="proyectosGrid" class="projects-grid"></div>
@@ -208,81 +213,103 @@
             </div>
         </section>
         
-        <section id="asignacion" class="dashboard-section">
-            <h2>Asignar Miembros</h2>
-            
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3><i class="fas fa-user-plus"></i> Asignar Miembro a Proyecto</h3>
+        <section id="gestion_miembros" class="dashboard-section">
+            <h2>Gestión de Miembros</h2>
+            <div class="members-grid">
+                <div class="members-left">
+                    <h3 class="members-subtitle">Asignar Miembro a Proyecto</h3>
+                    <div class="assign-box">
+                        <form id="formAsignarMiembro">
+                            <div class="form-group">
+                                <label for="proyectoAsignacion">Proyecto:</label>
+                                <select id="proyectoAsignacion" name="proyectoAsignacion" class="form-control" required>
+                                    <option value="">Seleccione un proyecto...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="miembroAsignacion">Miembro:</label>
+                                <select id="miembroAsignacion" name="miembroAsignacion" class="form-control" required>
+                                    <option value="">Seleccione un miembro...</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-center">Asignar Miembro</button>
+                        </form>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form id="formAsignarMiembro">
-                        <div class="form-group">
-                            <label for="proyectoAsignacion">Proyecto:</label>
-                            <select id="proyectoAsignacion" name="proyectoAsignacion" class="form-control" required>
-                                <option value="">Seleccione un proyecto...</option>
-                            </select>
+                <div class="members-divider" aria-hidden="true"></div>
+                <div class="members-right">
+                    <div class="stat-cards">
+                        <div class="stat-card primary">
+                            <h3><i class="fas fa-project-diagram"></i> Proyectos</h3>
+                            <h2 id="totalProyectos">0</h2>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="miembroAsignacion">Miembro:</label>
-                            <select id="miembroAsignacion" name="miembroAsignacion" class="form-control" required>
-                                <option value="">Seleccione un miembro...</option>
-                            </select>
+                        <div class="stat-card success">
+                            <h3><i class="fas fa-users"></i> Miembros</h3>
+                            <h2 id="totalMiembros">0</h2>
                         </div>
-                        
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Asignar Miembro
-                        </button>
-                    </form>
+                        <div class="stat-card info">
+                            <h3><i class="fas fa-tasks"></i> Asignaciones</h3>
+                            <h2 id="totalAsignaciones">0</h2>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
-        
-        <section id="visualizacion" class="dashboard-section">
-            <h2>Miembros Asignados</h2>
-            
-            <div class="stat-cards">
-                <div class="stat-card primary">
-                    <h3><i class="fas fa-project-diagram"></i> Proyectos</h3>
-                    <h2 id="totalProyectos">0</h2>
-                </div>
-                
-                <div class="stat-card success">
-                    <h3><i class="fas fa-users"></i> Miembros</h3>
-                    <h2 id="totalMiembros">0</h2>
-                </div>
-                
-                <div class="stat-card info">
-                    <h3><i class="fas fa-tasks"></i> Asignaciones</h3>
-                    <h2 id="totalAsignaciones">0</h2>
-                </div>
-            </div>
-            
-            <!-- INICIO Bloque comentado: Lista de Asignaciones ocultada
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-clipboard-list"></i> Lista de Asignaciones</h3>
-                </div>
-                <div class="table-responsive">
-                    <table id="tablaTrabajadoresAsignados" class="table">
-                        <thead>
-                            <tr>
-                                <th>Proyecto</th>
-                                <th>Miembro</th>
-                                <th>Fecha de asignación</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            [Asignaciones se cargan aquí]
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            FIN Bloque comentado: Lista de Asignaciones ocultada -->
         </section>
     </main>
+
+    <div id="perfilModal" class="modal" aria-hidden="true" style="display:none;">
+        <div class="modal-content perfil-modal-content">
+            <button type="button" class="close" id="closePerfilModal" aria-label="Cerrar">&times;</button>
+            <h3 class="modal-title"><i class="fas fa-user-circle"></i> Mi Perfil</h3>
+            <div class="perfil-body">
+                <div class="perfil-avatar-wrap">
+                    <div class="avatar-circle avatar-lg" id="perfilAvatarPreview">U</div>
+                    <div class="avatar-actions">
+                        <label for="perfilFoto" class="btn btn-secondary btn-sm"><i class="fas fa-camera"></i> Cambiar foto</label>
+                        <input type="file" id="perfilFoto" accept="image/*" style="display:none;" />
+                    </div>
+                </div>
+                <form id="perfilForm" autocomplete="off">
+                    <div class="form-group">
+                        <label for="perfilNombre"><i class="fas fa-id-card"></i> Nombre</label>
+                        <input type="text" id="perfilNombre" class="form-control" placeholder="Tu nombre" />
+                    </div>
+                    <div class="form-group">
+                        <label for="perfilEmail"><i class="fas fa-envelope"></i> Correo</label>
+                        <input type="email" id="perfilEmail" class="form-control" placeholder="tu@correo.com" />
+                    </div>
+                    <div class="form-group">
+                        <label for="perfilPwdActual"><i class="fas fa-lock"></i> Contraseña actual</label>
+                        <div class="pwd-row">
+                            <input type="password" id="perfilPwdActual" class="form-control" placeholder="Escribe tu contraseña" />
+                            <button type="button" id="btnVerificarPwd" class="btn btn-outline-primary btn-verify">Verificar</button>
+                        </div>
+                        <small id="msgVerificacionPwd" class="text-muted"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="perfilPwdNueva"><i class="fas fa-key"></i> Nueva contraseña</label>
+                        <input type="password" id="perfilPwdNueva" class="form-control" placeholder="Mínimo 6 caracteres" disabled />
+                    </div>
+                    <div class="form-group">
+                        <label for="perfilPwdConfirm"><i class="fas fa-key"></i> Confirmar nueva contraseña</label>
+                        <input type="password" id="perfilPwdConfirm" class="form-control" placeholder="Repite la nueva contraseña" disabled />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelarPerfil">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="guardarPerfil">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay global de carga con blur -->
+    <div id="globalLoader" class="loading-overlay" aria-hidden="true" role="status">
+        <div class="loader-content">
+            <div class="loader-spinner" aria-hidden="true"></div>
+            <div class="loader-text">Cargando sección…</div>
+        </div>
+    </div>
     <!-- Modal Editar Usuario -->
     <div id="modalEditarUsuario" class="modal">
         <div class="modal-content">
@@ -333,7 +360,28 @@
             </form>
         </div>
     </div>
-    
+
+    <!-- Modal Resumen (clic en tarjetas de la derecha) -->
+    <div id="modalResumen" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalResumenTitulo"><i class="fas fa-info-circle"></i> Resumen</h3>
+                <button class="modal-close" id="modalResumenCerrar" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul id="modalResumenLista" class="modal-list"></ul>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-pagination">
+                    <button class="btn btn-outline-primary" id="modalResumenPrev">Anterior</button>
+                    <span id="modalResumenPage">Página 1</span>
+                    <button class="btn btn-outline-primary" id="modalResumenNext">Siguiente</button>
+                </div>
+                <button class="btn btn-secondary" id="modalResumenCerrar2">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Editar Proyecto -->
     <div id="modalEditarProyecto" class="modal">
         <div class="modal-content">

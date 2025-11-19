@@ -1,6 +1,21 @@
 (function(){
   const state = { box:'inbox', user:null, cache:{inbox:[], sent:[]} };
 
+  function showLoadingOverlay(durationMs = 2000, onDone){
+    const overlay = document.getElementById('globalLoaderCorreo');
+    if (!overlay){ onDone && onDone(); return; }
+    document.body.classList.add('loading');
+    overlay.classList.add('active');
+    setTimeout(()=>{
+      overlay.classList.remove('active');
+      document.body.classList.remove('loading');
+      // Animación de entrada del contenido
+      document.querySelector('.page-header')?.classList.add('enter');
+      document.querySelector('.mail-layout')?.classList.add('enter');
+      onDone && onDone();
+    }, durationMs);
+  }
+
   function fetchUser(){
     return fetch('/api/auth/me')
       .then(r => r.ok ? r.json() : Promise.reject(r))
@@ -80,6 +95,8 @@
   }
 
   function setup(){
+    // Mostrar overlay de carga al entrar a Correo (2s)
+    showLoadingOverlay(2000);
     document.querySelectorAll('.folders .folder').forEach(el=>{
       el.addEventListener('click', ()=>load(el.dataset.box));
     });
@@ -145,6 +162,7 @@
       });
     }).catch(()=>{});
 
+    // Continuar cargando datos en paralelo; al cerrar overlay el contenido entrará animado
     fetchUser().then(()=>load('inbox'));
   }
 

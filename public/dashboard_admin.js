@@ -1,7 +1,7 @@
 // Variables globales para la gestión de usuarios
 let todosLosUsuarios = [];
 let usuariosFiltrados = [];
-let cantidadPorPagina = 5; // Por defecto mostrar 5 registros
+let cantidadPorPagina = 7; // Por defecto mostrar 7 registros
 let paginaActual = 1;
 let terminoBusqueda = '';
 
@@ -361,6 +361,11 @@ window.seleccionarJefe = function(id, nombre) {
     }
 };
 
+// Variables y paginación para proyectos
+let todosLosProyectos = [];
+let paginaProyectos = 1;
+const proyectosPorPagina = 6; // mostrar 6 por página
+
 // Función para cargar proyectos
 window.cargarProyectos = function() {
     console.log('Cargando proyectos...');
@@ -387,21 +392,57 @@ window.cargarProyectos = function() {
                     return;
                 }
                 
+                // Guardar y renderizar con paginación
+                todosLosProyectos = Array.isArray(data.proyectos) ? data.proyectos : [];
                 tablaBody.innerHTML = '';
                 
-                if (!data.proyectos || data.proyectos.length === 0) {
+                if (!todosLosProyectos || todosLosProyectos.length === 0) {
                     console.log('No hay proyectos para mostrar');
                     const tr = document.createElement('tr');
                     tr.innerHTML = '<td colspan="6" class="text-center">No hay proyectos registrados</td>';
                     tablaBody.appendChild(tr);
                     return;
                 }
+                mostrarProyectosEnTabla();
+                agregarEventosPaginacionProyectos();
+                // Agregar eventos a los botones de acción de proyectos
+                agregarEventosAccionesProyectos();
+            } else {
+                console.error('Error al cargar proyectos:', data.message);
+                alert('Error al cargar proyectos: ' + data.message);
+            }
+        })
+        .catch(error => {
+                console.error('Error de conexión:', error);
                 
-                console.log('Mostrando', data.proyectos.length, 'proyectos');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al cargar proyectos',
+                    text: error.message,
+                    confirmButtonColor: '#4e73df'
+                });
                 
-                data.proyectos.forEach(proyecto => {
-                    try {
-                        console.log('Procesando proyecto:', proyecto);
+                const tablaBody = document.querySelector('#tablaProyectos tbody');
+                if (tablaBody) {
+                    tablaBody.innerHTML = '<tr><td colspan="6" class="text-center">Error al cargar proyectos. Intente nuevamente.</td></tr>';
+                }
+            });
+};
+
+function mostrarProyectosEnTabla() {
+    const tablaBody = document.querySelector('#tablaProyectos tbody');
+    if (!tablaBody) return;
+    tablaBody.innerHTML = '';
+    const total = todosLosProyectos.length;
+    const totalPaginas = Math.ceil(total / proyectosPorPagina);
+    if (paginaProyectos > totalPaginas) paginaProyectos = totalPaginas || 1;
+    const inicio = (paginaProyectos - 1) * proyectosPorPagina;
+    const fin = Math.min(inicio + proyectosPorPagina, total);
+    const paginaItems = todosLosProyectos.slice(inicio, fin);
+
+    paginaItems.forEach(proyecto => {
+        try {
+            console.log('Procesando proyecto:', proyecto);
                         
                         // Asegurarse de que las fechas sean válidas
                         let fechaInicio = 'No definida';
@@ -436,34 +477,37 @@ window.cargarProyectos = function() {
                         `;
                         
                         tablaBody.appendChild(tr);
-                    } catch (error) {
-                        console.error('Error al procesar proyecto:', error, proyecto);
-                    }
-                });
-                
-                // Agregar eventos a los botones de acción de proyectos
-                agregarEventosAccionesProyectos();
-            } else {
-                console.error('Error al cargar proyectos:', data.message);
-                alert('Error al cargar proyectos: ' + data.message);
-            }
-        })
-        .catch(error => {
-                console.error('Error de conexión:', error);
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al cargar proyectos',
-                    text: error.message,
-                    confirmButtonColor: '#4e73df'
-                });
-                
-                const tablaBody = document.querySelector('#tablaProyectos tbody');
-                if (tablaBody) {
-                    tablaBody.innerHTML = '<tr><td colspan="6" class="text-center">Error al cargar proyectos. Intente nuevamente.</td></tr>';
-                }
-            });
-};
+        } catch (error) {
+            console.error('Error al procesar proyecto:', error, proyecto);
+        }
+    });
+    actualizarInfoPaginacionProyectos(total, inicio, fin);
+}
+
+function actualizarInfoPaginacionProyectos(total, inicio, fin) {
+    const pageLabel = document.getElementById('paginaActualProy');
+    const btnAnt = document.getElementById('btnAnteriorProy');
+    const btnSig = document.getElementById('btnSiguienteProy');
+    const info = document.getElementById('infoRegistrosProy');
+    const totalPaginas = Math.ceil(total / proyectosPorPagina);
+    if (pageLabel) pageLabel.textContent = `Página ${paginaProyectos}`;
+    if (btnAnt) btnAnt.disabled = paginaProyectos <= 1;
+    if (btnSig) btnSig.disabled = paginaProyectos >= totalPaginas;
+    const inicioMostrar = total > 0 ? inicio + 1 : 0;
+    const finMostrar = total > 0 ? fin : 0;
+    if (info) info.textContent = `Mostrando ${inicioMostrar} a ${finMostrar} de ${total} registros`;
+}
+
+function agregarEventosPaginacionProyectos() {
+    const btnAnt = document.getElementById('btnAnteriorProy');
+    const btnSig = document.getElementById('btnSiguienteProy');
+    if (btnAnt) {
+        btnAnt.onclick = () => { paginaProyectos = Math.max(1, paginaProyectos - 1); mostrarProyectosEnTabla(); agregarEventosAccionesProyectos(); };
+    }
+    if (btnSig) {
+        btnSig.onclick = () => { paginaProyectos = paginaProyectos + 1; mostrarProyectosEnTabla(); agregarEventosAccionesProyectos(); };
+    }
+}
 
 // Función para agregar eventos a los botones de acción de proyectos
 function agregarEventosAccionesProyectos() {
@@ -608,22 +652,22 @@ function setupNavigation() {
             }
         }
     }
+    // Exponer activación de sección para que otros módulos controlen la navegación
+    window.activateDashboardSection = activateSection;
     
-    // Añadir evento click a cada enlace del menú
-    menuLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href') || '';
-            // Solo interceptar navegación para enlaces de ancla (#seccion)
-            if (href.startsWith('#')) {
-                e.preventDefault();
-                const sectionId = href.substring(1);
-                activateSection(sectionId);
-            } else {
-                // Permitir navegación normal (por ejemplo, /login/logout)
-                // No llamamos preventDefault para que el navegador siga el enlace
-            }
-        });
-    });
+    // Función para mostrar overlay de carga entre secciones
+    function showLoadingOverlay(durationMs = 2000, onDone) {
+        const overlay = document.getElementById('globalLoader');
+        if (!overlay) { onDone && onDone(); return; }
+        document.body.classList.add('loading');
+        overlay.classList.add('active');
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            document.body.classList.remove('loading');
+            onDone && onDone();
+        }, durationMs);
+    }
+    // La navegación de secciones se controla desde setupNavLoader para evitar duplicidades.
     
     // Activar la sección guardada en localStorage o la primera por defecto
     const savedSection = localStorage.getItem('activeDashboardSection');
@@ -1576,11 +1620,41 @@ window.cargarProyectosTarjetas = function() {
                 const card = document.createElement('div');
                 card.className = 'project-card';
                 const porcentaje = Number(p.porcentaje_avance || 0);
+                // Fechas legibles
+                let fechaInicio = 'No definida';
+                let fechaFin = 'No definida';
+                try {
+                    if (p.fecha_inicio) fechaInicio = new Date(p.fecha_inicio).toLocaleDateString();
+                    if (p.fecha_fin) fechaFin = new Date(p.fecha_fin).toLocaleDateString();
+                } catch {}
+                // Estado y badge
+                const estadoDB = p.estado || 'pendiente';
+                const estadoLabelMap = {
+                    pendiente: 'Pendiente',
+                    en_progreso: 'En progreso',
+                    completada: 'Completada',
+                    revisando: 'Revisando'
+                };
+                const estadoLabel = estadoLabelMap[estadoDB] || estadoDB;
+
                 card.innerHTML = `
-                    <h4>${p.nombre || 'Proyecto'}</h4>
+                    <div class="project-card-top">
+                        <h4>${p.nombre || 'Proyecto'}</h4>
+                        <span class="status-badge ${estadoDB}">${estadoLabel}</span>
+                    </div>
                     <div class="project-progress">
                         <div class="progress"><div class="progress-bar" style="width:${porcentaje}%"></div></div>
                         <span>${porcentaje}%</span>
+                    </div>
+                    <div class="mini-summary">
+                        <div class="summary-item" title="Jefe de proyecto">
+                            <i class="fas fa-user-tie"></i>
+                            <span>${p.jefe_nombre || 'Sin asignar'}</span>
+                        </div>
+                        <div class="summary-item" title="Rango de fechas">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>${fechaInicio} — ${fechaFin}</span>
+                        </div>
                     </div>
                 `;
                 card.addEventListener('click', () => { window.location.href = '/admin/proyecto/' + p.id; });
@@ -1831,6 +1905,8 @@ function setupLogout(){
     if(!btn) return;
     btn.addEventListener('click', function(e){
         e.preventDefault();
+        // Suprimir cualquier loader disparado por otros listeners al abrir el modal
+        window.__suppressLoader = true;
         Swal.fire({
             title: '¿Cerrar sesión?',
             text: '¿Deseas cerrar sesión ahora?',
@@ -1845,8 +1921,11 @@ function setupLogout(){
                 try {
                     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true });
                 } catch (_) {}
+                window.__suppressLoader = true;
                 window.location.href = '/login';
             } else {
+                // Reactivar loader para la navegación normal tras cancelar
+                window.__suppressLoader = false;
                 // Al cancelar, navegar a la sección Usuarios dentro del panel
                 const usuariosLink = document.querySelector('.sidebar-menu a[href="#usuarios"]');
                 if (usuariosLink) {
@@ -1907,62 +1986,88 @@ window.cargarOpcionesAsignacion = function() {
 
 // Renderizar tabla de asignaciones (opcionalmente por proyecto)
 window.cargarAsignacionesTabla = function(proyectoId = null) {
+    const list = document.getElementById('asignacionesLista');
     const tbody = document.querySelector('#tablaTrabajadoresAsignados tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="4">Cargando asignaciones...</td></tr>';
+    // Preferir la lista de tarjetas si existe; si no, usar tabla legacy
+    if (list) {
+        list.innerHTML = '<div class="muted">Cargando asignaciones...</div>';
+    } else if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4">Cargando asignaciones...</td></tr>';
+    }
 
     const url = proyectoId ? `/api/asignaciones?proyecto_id=${proyectoId}` : '/api/asignaciones';
     fetch(url)
         .then(r => r.json())
         .then(data => {
             const asignaciones = data && data.success ? (data.asignaciones || []) : [];
-            tbody.innerHTML = '';
-            if (asignaciones.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay asignaciones registradas</td></tr>';
-            } else {
-                asignaciones.forEach(a => {
-                    const tr = document.createElement('tr');
-                    const fecha = a.created_at ? new Date(a.created_at) : null;
-                    const fechaTxt = fecha ? fecha.toLocaleString() : '';
-                    tr.innerHTML = `
-                        <td>${a.proyecto_nombre || a.proyecto_id}</td>
-                        <td>${a.usuario_nombre || a.usuario_id}</td>
-                        <td>${fechaTxt}</td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" data-asignacion-id="${a.id}"><i class="fas fa-trash-alt"></i></button>
-                        </td>`;
-                    tbody.appendChild(tr);
-                });
-
-                // Bind eliminar
-                tbody.querySelectorAll('button[data-asignacion-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.getAttribute('data-asignacion-id');
-                        fetch(`/api/asignaciones/${id}`, { method: 'DELETE' })
-                            .then(r => r.json())
-                            .then(resp => {
-                                if (!resp.success) throw new Error(resp.error || 'No se pudo eliminar');
-                                Swal.fire({ icon: 'success', title: 'Eliminada', text: 'Asignación eliminada', confirmButtonColor: '#4e73df' });
-                                window.cargarAsignacionesTabla(proyectoId);
-                                // Actualizar contador
-                                const totalAsignacionesEl = document.getElementById('totalAsignaciones');
-                                if (totalAsignacionesEl) totalAsignacionesEl.textContent = Math.max(0, (parseInt(totalAsignacionesEl.textContent) || 0) - 1);
-                            })
-                            .catch(err => {
-                                console.error('Error eliminando asignación:', err);
-                                Swal.fire({ icon: 'error', title: 'Error', text: err.message, confirmButtonColor: '#4e73df' });
-                            });
+            if (list) {
+                list.innerHTML = '';
+                if (asignaciones.length > 0) {
+                    asignaciones.forEach(a => {
+                        const fecha = a.created_at ? new Date(a.created_at) : null;
+                        const fechaTxt = fecha ? fecha.toLocaleString() : '';
+                        const card = document.createElement('div');
+                        card.className = 'assign-card';
+                        card.innerHTML = `
+                            <div class="assign-header">
+                                <span class="assign-project"><i class="fas fa-diagram-project"></i> ${a.proyecto_nombre || a.proyecto_id}</span>
+                            </div>
+                            <div class="assign-body">
+                                <div><i class="fas fa-user"></i> ${a.usuario_nombre || a.usuario_id}</div>
+                                <div><i class="far fa-clock"></i> ${fechaTxt}</div>
+                            </div>`;
+                        list.appendChild(card);
                     });
-                });
+                    // Se ha retirado la acción de eliminación visual en Gestión de Miembros.
+                }
+            } else if (tbody) {
+                tbody.innerHTML = '';
+                if (asignaciones.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay asignaciones registradas</td></tr>';
+                } else {
+                    asignaciones.forEach(a => {
+                        const tr = document.createElement('tr');
+                        const fecha = a.created_at ? new Date(a.created_at) : null;
+                        const fechaTxt = fecha ? fecha.toLocaleString() : '';
+                        tr.innerHTML = `
+                            <td>${a.proyecto_nombre || a.proyecto_id}</td>
+                            <td>${a.usuario_nombre || a.usuario_id}</td>
+                            <td>${fechaTxt}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" data-asignacion-id="${a.id}"><i class="fas fa-trash-alt"></i></button>
+                            </td>`;
+                        tbody.appendChild(tr);
+                    });
+                    tbody.querySelectorAll('button[data-asignacion-id]').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const id = btn.getAttribute('data-asignacion-id');
+                            fetch(`/api/asignaciones/${id}`, { method: 'DELETE' })
+                                .then(r => r.json())
+                                .then(resp => {
+                                    if (!resp.success) throw new Error(resp.error || 'No se pudo eliminar');
+                                    Swal.fire({ icon: 'success', title: 'Eliminada', text: 'Asignación eliminada', confirmButtonColor: '#4e73df' });
+                                    window.cargarAsignacionesTabla(proyectoId);
+                                    const totalAsignacionesEl = document.getElementById('totalAsignaciones');
+                                    if (totalAsignacionesEl) totalAsignacionesEl.textContent = Math.max(0, (parseInt(totalAsignacionesEl.textContent) || 0) - 1);
+                                })
+                                .catch(err => {
+                                    console.error('Error eliminando asignación:', err);
+                                    Swal.fire({ icon: 'error', title: 'Error', text: err.message, confirmButtonColor: '#4e73df' });
+                                });
+                        });
+                    });
+                }
             }
 
-            // Actualizar contador de asignaciones
+            // Actualizar contador de asignaciones siempre, aunque no se renderice lista/tabla
             const totalAsignacionesEl = document.getElementById('totalAsignaciones');
             if (totalAsignacionesEl) totalAsignacionesEl.textContent = asignaciones.length;
         })
         .catch(err => {
             console.error('Error cargando asignaciones:', err);
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error al cargar asignaciones</td></tr>';
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error al cargar asignaciones</td></tr>';
+            }
         });
 };
 
@@ -2172,4 +2277,500 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});
+
+// ----- Resumen modal al hacer clic en tarjetas de la derecha -----
+(function setupResumenModal(){
+    const modal = document.getElementById('modalResumen');
+    const tituloEl = document.getElementById('modalResumenTitulo');
+    const listaEl = document.getElementById('modalResumenLista');
+    const cerrarBtn = document.getElementById('modalResumenCerrar');
+    const cerrarBtn2 = document.getElementById('modalResumenCerrar2');
+    const prevBtn = document.getElementById('modalResumenPrev');
+    const nextBtn = document.getElementById('modalResumenNext');
+    const pageEl = document.getElementById('modalResumenPage');
+    const cards = document.querySelectorAll('#gestion_miembros .members-right .stat-card');
+    if (!modal || !tituloEl || !listaEl || cards.length === 0) return;
+
+    const MODAL_PAGE_SIZE = 6;
+    let modalItems = [];
+    let currentPage = 1;
+
+    function abrir(){ modal.classList.add('show'); modal.setAttribute('aria-hidden','false'); document.body.classList.add('modal-open'); }
+    function cerrar(){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); document.body.classList.remove('modal-open'); }
+    cerrarBtn && cerrarBtn.addEventListener('click', cerrar);
+    cerrarBtn2 && cerrarBtn2.addEventListener('click', cerrar);
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) cerrar(); });
+
+    function renderPage(){
+        if (!Array.isArray(modalItems)) modalItems = [];
+        const totalPages = Math.max(1, Math.ceil(modalItems.length / MODAL_PAGE_SIZE));
+        currentPage = Math.min(Math.max(1, currentPage), totalPages);
+        const start = (currentPage - 1) * MODAL_PAGE_SIZE;
+        const slice = modalItems.slice(start, start + MODAL_PAGE_SIZE);
+        listaEl.innerHTML = '';
+        slice.forEach(html => {
+            const li = document.createElement('li');
+            li.innerHTML = html;
+            listaEl.appendChild(li);
+        });
+        if (pageEl) pageEl.textContent = `Página ${currentPage} de ${totalPages}`;
+        if (prevBtn) prevBtn.disabled = currentPage <= 1;
+        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    prevBtn && prevBtn.addEventListener('click', () => {
+        if (currentPage > 1){ currentPage--; renderPage(); }
+    });
+    nextBtn && nextBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(modalItems.length / MODAL_PAGE_SIZE);
+        if (currentPage < totalPages){ currentPage++; renderPage(); }
+    });
+
+    async function cargarProyectosResumen(){
+        tituloEl.innerHTML = '<i class="fas fa-project-diagram"></i> Proyectos';
+        listaEl.innerHTML = '<li class="muted">Cargando proyectos...</li>';
+        try{
+            const r = await fetch('/api/proyectos');
+            const data = await r.json();
+            const proyectos = data && data.success ? (data.proyectos || []) : [];
+            if (proyectos.length === 0){ listaEl.innerHTML = '<li class="muted">No hay proyectos</li>'; abrir(); return; }
+            modalItems = proyectos.map(p => {
+                let fi = '—'; let ff = '—';
+                try{ if (p.fecha_inicio) fi = new Date(p.fecha_inicio).toLocaleDateString(); if (p.fecha_fin) ff = new Date(p.fecha_fin).toLocaleDateString(); }catch{}
+                const estado = p.estado || 'pendiente';
+                return `<strong>${p.nombre || 'Proyecto'}</strong><br><small>Estado: ${estado} · ${fi} — ${ff}</small>`;
+            });
+            currentPage = 1; renderPage(); abrir();
+        }catch(err){ console.error('Resumen proyectos:', err); listaEl.innerHTML = '<li class="muted">Error al cargar proyectos</li>'; abrir(); }
+    }
+
+    async function cargarMiembrosResumen(){
+        tituloEl.innerHTML = '<i class="fas fa-users"></i> Miembros';
+        listaEl.innerHTML = '<li class="muted">Cargando miembros...</li>';
+        try{
+            const r = await fetch('/api/usuarios');
+            const data = await r.json();
+            const usuarios = data && data.success ? (data.usuarios || []) : [];
+            const miembros = usuarios.filter(u => (u.rol === 'miembro' || u.rol === 'trabajador') && u.activo);
+            if (miembros.length === 0){ listaEl.innerHTML = '<li class="muted">No hay miembros</li>'; abrir(); return; }
+            modalItems = miembros.map(u => `<strong>${u.nombre}</strong><br><small>${u.email} · Estado: activo</small>`);
+            currentPage = 1; renderPage(); abrir();
+        }catch(err){ console.error('Resumen miembros:', err); listaEl.innerHTML = '<li class="muted">Error al cargar miembros</li>'; abrir(); }
+    }
+
+    async function cargarAsignacionesResumen(){
+        tituloEl.innerHTML = '<i class="fas fa-tasks"></i> Asignaciones';
+        listaEl.innerHTML = '<li class="muted">Cargando asignaciones...</li>';
+        try{
+            const r = await fetch('/api/asignaciones');
+            const data = await r.json();
+            const asignaciones = data && data.success ? (data.asignaciones || []) : [];
+            if (asignaciones.length === 0){ listaEl.innerHTML = '<li class="muted">No hay asignaciones</li>'; abrir(); return; }
+            modalItems = asignaciones.map(a => {
+                let f = '';
+                try{ if (a.created_at) f = new Date(a.created_at).toLocaleString(); }catch{}
+                return `<strong>${a.proyecto_nombre || a.proyecto_id}</strong><br><small>${a.usuario_nombre || a.usuario_id} · ${f}</small>`;
+            });
+            currentPage = 1; renderPage(); abrir();
+        }catch(err){ console.error('Resumen asignaciones:', err); listaEl.innerHTML = '<li class="muted">Error al cargar asignaciones</li>'; abrir(); }
+    }
+
+    cards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            const title = card.querySelector('h3')?.textContent?.trim().toLowerCase() || '';
+            if (title.includes('proyectos')) { cargarProyectosResumen(); }
+            else if (title.includes('miembros')) { cargarMiembrosResumen(); }
+            else if (title.includes('asignaciones')) { cargarAsignacionesResumen(); }
+            else { tituloEl.textContent = 'Resumen'; listaEl.innerHTML = '<li class="muted">Sin contenido</li>'; abrir(); }
+        });
+    });
+})();
+// Bandera para controlar si se debe mostrar el loader
+window.__suppressLoader = window.__suppressLoader || false;
+function showPageLoader(){
+  if (window.__suppressLoader) return;
+  const el = document.getElementById('pageLoader');
+  if (el) el.classList.add('visible');
+}
+
+function hidePageLoader(){
+  const el = document.getElementById('pageLoader');
+  if (el) el.classList.remove('visible');
+}
+
+function animateMainEnter(){
+  const main = document.querySelector('.main-content');
+  if (main){ main.classList.remove('enter'); void main.offsetWidth; main.classList.add('enter'); }
+}
+
+function animateSectionById(id){
+  const section = document.getElementById(id);
+  if (section){ section.classList.add('enter'); setTimeout(() => { section.classList.remove('enter'); void section.offsetWidth; section.classList.add('enter'); }, 0); }
+}
+
+function setupNavLoader(){
+  const LOADER_MS = 1000;
+  const anchors = Array.from(document.querySelectorAll('a[href]:not([target])'));
+  anchors.forEach(a => {
+    a.addEventListener('click', (e) => {
+      // Evitar loader para elementos marcados o el botón de logout
+      if (a.id === 'logoutBtn' || a.dataset.noLoader === 'true') {
+        return; // El flujo específico manejará navegación/confirmación
+      }
+      const href = a.getAttribute('href');
+      if (!href) return;
+      // Hash navigation (in-page sections)
+      if (href.startsWith('#')){
+        e.preventDefault();
+        const targetId = href.slice(1);
+        if (!window.__suppressLoader) showPageLoader();
+        setTimeout(() => {
+          hidePageLoader();
+          if (typeof window.activateDashboardSection === 'function') {
+            window.activateDashboardSection(targetId);
+          } else {
+            document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+          animateSectionById(targetId);
+        }, LOADER_MS);
+        return;
+      }
+      // Internal page navigation
+      const isInternal = href.startsWith('/') || href.startsWith(window.location.origin);
+      if (isInternal){
+        e.preventDefault();
+        if (!window.__suppressLoader) showPageLoader();
+        setTimeout(() => { window.location.href = href; }, LOADER_MS);
+      }
+    });
+  });
+  window.addEventListener('beforeunload', () => { if (!window.__suppressLoader) showPageLoader(); });
+}
+
+// ===== Perfil de Usuario (avatar y modal) =====
+(function setupPerfil(){
+    let currentUser = null;
+    const profileBtn = document.getElementById('profileBtn');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const modal = document.getElementById('perfilModal');
+    const closeBtn = document.getElementById('closePerfilModal');
+    const cancelarBtn = document.getElementById('cancelarPerfil');
+    const form = document.getElementById('perfilForm');
+    const nombreInput = document.getElementById('perfilNombre');
+    const emailInput = document.getElementById('perfilEmail');
+    const fotoInput = document.getElementById('perfilFoto');
+    const avatarPreview = document.getElementById('perfilAvatarPreview');
+    const pwdActualInput = document.getElementById('perfilPwdActual');
+    const pwdNuevaInput = document.getElementById('perfilPwdNueva');
+    const pwdConfirmInput = document.getElementById('perfilPwdConfirm');
+    const btnVerificarPwd = document.getElementById('btnVerificarPwd');
+    const msgVerificacionPwd = document.getElementById('msgVerificacionPwd');
+    let pwdVerificada = false;
+
+    function getInitials(name){
+        if (!name) return 'U';
+        return name.split(' ').map(p => p[0]?.toUpperCase()).filter(Boolean).slice(0,2).join('') || 'U';
+    }
+
+    async function loadCurrentUser(){
+        try{
+            const res = await fetch('/api/auth/me', { credentials: 'include' });
+            const data = await res.json().catch(()=>({}));
+            if (!res.ok || !data || !data.user){
+                throw new Error(data?.message || 'No se pudo obtener el usuario actual');
+            }
+            currentUser = data.user;
+            if (nombreInput) nombreInput.value = currentUser.nombre || '';
+            if (emailInput) emailInput.value = currentUser.email || '';
+            const initials = getInitials(currentUser.nombre);
+            const defaultAvatar = '/assets/default-avatar.svg';
+            // Topbar avatar
+            if (profileAvatar){
+                const url = currentUser.avatar_url || '';
+                if (url){
+                    profileAvatar.style.backgroundImage = `url('${url}')`;
+                    profileAvatar.style.backgroundSize = 'cover';
+                    profileAvatar.style.backgroundPosition = 'center';
+                    profileAvatar.textContent = '';
+                } else {
+                    profileAvatar.style.backgroundImage = `url('${defaultAvatar}')`;
+                    profileAvatar.style.backgroundSize = 'cover';
+                    profileAvatar.style.backgroundPosition = 'center';
+                    profileAvatar.textContent = '';
+                }
+            }
+            // Preview en modal
+            if (avatarPreview){
+                const url = currentUser.avatar_url || defaultAvatar;
+                avatarPreview.style.backgroundImage = `url('${url}')`;
+                avatarPreview.style.backgroundSize = 'cover';
+                avatarPreview.style.backgroundPosition = 'center';
+                avatarPreview.textContent = '';
+            }
+        }catch(err){
+            console.warn('Perfil: no se pudo cargar el usuario actual:', err);
+        }
+    }
+
+    function openModal(){
+        if (modal){
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            // Reset estado de contraseña
+            pwdVerificada = false;
+            if (pwdActualInput){ pwdActualInput.value = ''; }
+            if (pwdNuevaInput){ pwdNuevaInput.value = ''; pwdNuevaInput.disabled = true; }
+            if (pwdConfirmInput){ pwdConfirmInput.value = ''; pwdConfirmInput.disabled = true; }
+            if (msgVerificacionPwd){ msgVerificacionPwd.textContent = ''; }
+        }
+    }
+    function closeModal(){ if (modal){ modal.classList.remove('show'); modal.style.display = 'none'; } }
+
+    if (profileBtn) profileBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelarBtn) cancelarBtn.addEventListener('click', closeModal);
+
+    if (fotoInput){
+        fotoInput.addEventListener('change', async () => {
+            const file = fotoInput.files && fotoInput.files[0];
+            if (!file) return;
+            // Previsualización inmediata
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (avatarPreview){
+                    avatarPreview.style.backgroundImage = `url('${e.target.result}')`;
+                    avatarPreview.style.backgroundSize = 'cover';
+                    avatarPreview.style.backgroundPosition = 'center';
+                    avatarPreview.textContent = '';
+                }
+            };
+            reader.readAsDataURL(file);
+
+            // Subir avatar inmediatamente y no depender del botón Guardar
+            try{
+                if (!currentUser || !currentUser.id){
+                    Swal.fire({ icon:'error', title:'Error', text:'No se pudo identificar el usuario actual.' });
+                    return;
+                }
+                const fd = new FormData();
+                fd.append('avatar', file);
+                const avRes = await fetch(`/api/usuarios/${currentUser.id}/avatar`, { method: 'POST', body: fd });
+                const avData = await avRes.json().catch(()=>({}));
+                if (avRes.ok && avData?.avatar_url){
+                    const url = avData.avatar_url;
+                    // Actualizar avatar del topbar y preview con la URL final
+                    if (avatarPreview){
+                        avatarPreview.style.backgroundImage = `url('${url}')`;
+                        avatarPreview.style.backgroundSize = 'cover';
+                        avatarPreview.style.backgroundPosition = 'center';
+                        avatarPreview.textContent = '';
+                    }
+                    if (profileAvatar){
+                        profileAvatar.style.backgroundImage = `url('${url}')`;
+                        profileAvatar.style.backgroundSize = 'cover';
+                        profileAvatar.style.backgroundPosition = 'center';
+                        profileAvatar.textContent = '';
+                    }
+                    currentUser.avatar_url = url;
+                    Swal.fire({ icon:'success', title:'Foto actualizada', timer:1200, showConfirmButton:false });
+                } else {
+                    const msg = avData?.message || 'No se pudo guardar la foto.';
+                    Swal.fire({ icon:'error', title:'Error al subir foto', text: msg });
+                }
+            }catch(err){
+                Swal.fire({ icon:'error', title:'Error al subir foto', text: String(err.message || err) });
+            }
+        });
+    }
+
+    // Verificación de contraseña actual
+    if (btnVerificarPwd){
+        btnVerificarPwd.addEventListener('click', async () => {
+            if (!currentUser || !currentUser.id){
+                Swal.fire({ icon:'error', title:'Error', text:'No se pudo identificar el usuario actual.' });
+                return;
+            }
+            const actual = (pwdActualInput?.value || '').trim();
+            if (!actual){
+                Swal.fire({ icon:'warning', title:'Falta la contraseña', text:'Ingresa tu contraseña actual para verificar.' });
+                return;
+            }
+            btnVerificarPwd.disabled = true;
+            if (msgVerificacionPwd) msgVerificacionPwd.textContent = '';
+            try{
+                const res = await fetch('/api/auth/verify_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ password: actual })
+                });
+                const data = await res.json().catch(()=>({}));
+                if (res.ok && (data.valid === true || data.ok === true)){
+                    pwdVerificada = true;
+                    if (pwdNuevaInput) pwdNuevaInput.disabled = false;
+                    if (pwdConfirmInput) pwdConfirmInput.disabled = false;
+                    if (msgVerificacionPwd) msgVerificacionPwd.textContent = 'Contraseña verificada correctamente.';
+                } else {
+                    pwdVerificada = false;
+                    if (pwdNuevaInput) pwdNuevaInput.disabled = true;
+                    if (pwdConfirmInput) pwdConfirmInput.disabled = true;
+                    const message = data?.message || 'No se pudo verificar la contraseña.';
+                    Swal.fire({ icon:'error', title:'Verificación fallida', text: message });
+                }
+            }catch(err){
+                pwdVerificada = false;
+                if (pwdNuevaInput) pwdNuevaInput.disabled = true;
+                if (pwdConfirmInput) pwdConfirmInput.disabled = true;
+                Swal.fire({ icon:'error', title:'Error', text:String(err.message || err) });
+            }finally{
+                btnVerificarPwd.disabled = false;
+            }
+        });
+        // Si cambia la contraseña actual tras verificar, volver a bloquear
+        if (pwdActualInput){
+            pwdActualInput.addEventListener('input', () => {
+                pwdVerificada = false;
+                if (pwdNuevaInput) pwdNuevaInput.disabled = true;
+                if (pwdConfirmInput) pwdConfirmInput.disabled = true;
+                if (msgVerificacionPwd) msgVerificacionPwd.textContent = '';
+            });
+        }
+    }
+
+    if (form){
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser || !currentUser.id){
+                Swal.fire({ icon:'error', title:'Error', text:'No se pudo identificar el usuario actual.' });
+                return;
+            }
+            const submitBtn = document.getElementById('guardarPerfil');
+            if (submitBtn) submitBtn.disabled = true;
+            try{
+                const nuevoNombre = (nombreInput?.value || '').trim();
+                const nuevoEmail = (emailInput?.value || '').trim();
+                const payload = {
+                    nombre: nuevoNombre || currentUser.nombre,
+                    email: nuevoEmail || currentUser.email,
+                    rol: currentUser.rol,
+                    activo: currentUser.activo
+                };
+                const nuevaPwd = (pwdNuevaInput?.value || '').trim();
+                const confirmPwd = (pwdConfirmInput?.value || '').trim();
+                if (nuevaPwd || confirmPwd){
+                    if (!pwdVerificada){
+                        throw new Error('Primero verifica tu contraseña actual.');
+                    }
+                    if (nuevaPwd.length < 6){
+                        throw new Error('La nueva contraseña debe tener al menos 6 caracteres.');
+                    }
+                    if (nuevaPwd !== confirmPwd){
+                        throw new Error('La confirmación no coincide con la nueva contraseña.');
+                    }
+                    // Incluir campos esperados por el backend
+                    payload.password = nuevaPwd;
+                    payload.current_password = (pwdActualInput?.value || '').trim();
+                }
+                // Subir avatar primero si hay archivo, sin bloquear por errores de perfil
+                const file = fotoInput?.files && fotoInput.files[0];
+                let avatarOk = false;
+                let avatarMsg = '';
+                if (file){
+                    try{
+                        const fd = new FormData();
+                        fd.append('avatar', file);
+                        const avRes = await fetch(`/api/usuarios/${currentUser.id}/avatar`, { method: 'POST', body: fd });
+                        const avData = await avRes.json().catch(()=>({}));
+                        if (avRes.ok && avData?.avatar_url){
+                            avatarOk = true;
+                            currentUser.avatar_url = avData.avatar_url;
+                            if (profileAvatar){
+                                profileAvatar.style.backgroundImage = `url('${avData.avatar_url}')`;
+                                profileAvatar.style.backgroundSize = 'cover';
+                                profileAvatar.style.backgroundPosition = 'center';
+                                profileAvatar.textContent = '';
+                            }
+                            if (avatarPreview){
+                                avatarPreview.style.backgroundImage = `url('${avData.avatar_url}')`;
+                                avatarPreview.style.backgroundSize = 'cover';
+                                avatarPreview.style.backgroundPosition = 'center';
+                                avatarPreview.textContent = '';
+                            }
+                        } else {
+                            avatarMsg = avData?.message || 'No se pudo guardar la foto.';
+                        }
+                    } catch (errAv){
+                        avatarMsg = String(errAv.message || errAv);
+                    }
+                }
+
+                // Determinar si hay cambios en nombre/email o contraseña
+                const hayCambiosBasicos = (
+                    (nuevoNombre && nuevoNombre !== currentUser.nombre) ||
+                    (nuevoEmail && nuevoEmail !== currentUser.email) ||
+                    !!payload.password
+                );
+
+                let perfilOk = true;
+                let perfilMsg = '';
+                if (hayCambiosBasicos){
+                    const updRes = await fetch(`/api/usuarios/${currentUser.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const updData = await updRes.json().catch(()=>({}));
+                    if (!updRes.ok){
+                        perfilOk = false;
+                        perfilMsg = updData?.message || 'No se pudo actualizar el perfil';
+                    } else {
+                        // Refrescar nombre mostrado
+                        currentUser.nombre = payload.nombre;
+                    }
+                }
+
+                // Mensajería combinada según resultados
+                if (perfilOk && (avatarOk || !file)){
+                    Swal.fire({ icon:'success', title:'Cambios guardados', timer:1500, showConfirmButton:false });
+                    closeModal();
+                } else if (!perfilOk && avatarOk){
+                    Swal.fire({ icon:'warning', title:'Foto guardada', text: `Perfil no actualizado: ${perfilMsg}` });
+                } else if (perfilOk && !avatarOk && file){
+                    Swal.fire({ icon:'warning', title:'Perfil actualizado', text: `Foto no guardada: ${avatarMsg}` });
+                } else {
+                    Swal.fire({ icon:'error', title:'No se guardaron los cambios', text: perfilMsg || avatarMsg || 'Inténtalo nuevamente.' });
+                }
+                closeModal();
+                currentUser.nombre = payload.nombre;
+                const initials = getInitials(currentUser.nombre);
+                const defaultAvatar = '/assets/default-avatar.svg';
+                if (profileAvatar && !profileAvatar.style.backgroundImage){
+                    profileAvatar.style.backgroundImage = `url('${defaultAvatar}')`;
+                    profileAvatar.style.backgroundSize = 'cover';
+                    profileAvatar.style.backgroundPosition = 'center';
+                    profileAvatar.textContent = '';
+                }
+            }catch(err){
+                console.error('Error actualizando perfil:', err);
+                Swal.fire({ icon:'error', title:'Error', text: String(err.message || err) });
+            }finally{
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Cargar usuario al iniciar
+    if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', loadCurrentUser);
+    } else {
+        loadCurrentUser();
+    }
+})();
+document.addEventListener('DOMContentLoaded', () => {
+  // Mostrar loader inicial 1s y animar entrada
+  showPageLoader();
+  setTimeout(() => { hidePageLoader(); animateMainEnter(); }, 1000);
+  setupNavLoader();
 });

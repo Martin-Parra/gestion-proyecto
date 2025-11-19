@@ -2,14 +2,14 @@
   const estadoUiToDb = {
     'Pendiente': 'pendiente',
     'Haciendo': 'en_progreso',
-    'Revisando': 'revision',
+    'Revisando': 'revisando',
     'Hecho': 'completada'
   };
 
   const estadoDbToUi = {
     'pendiente': 'Pendiente',
     'en_progreso': 'Haciendo',
-    'revision': 'Revisando',
+    'revisando': 'Revisando',
     'completada': 'Hecho'
   };
 
@@ -42,7 +42,7 @@
     const liderEl = document.getElementById('proyectoInfoLider');
     const pageTitleEl = document.getElementById('pageTitle');
     if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> Tareas del Proyecto: ${data.nombre}`;
-    if (pageTitleEl) pageTitleEl.textContent = `Detalle del Proyecto: ${data.nombre}`;
+    if (pageTitleEl) pageTitleEl.textContent = `Detalle del Proyecto`;
     if (liderEl) liderEl.textContent = data.jefe_nombre || '—';
   }
 
@@ -78,6 +78,9 @@
         confirmarQuitarMiembro(asignacionId);
       });
     });
+    // Animar sección al completar render
+    const section = document.getElementById('proyectoTeam');
+    if (section){ section.classList.remove('enter'); void section.offsetWidth; section.classList.add('enter'); }
   }
 
   function confirmarQuitarMiembro(asignacionId){
@@ -130,7 +133,7 @@
           </select>
         </td>
         <td>
-          <button class="btn btn-sm btn-primary" title="Editar" disabled><i class="fas fa-pen"></i></button>
+          <button class="btn btn-sm btn-primary" title="Editar" data-edit-id="${t.id}"><i class="fas fa-pen"></i></button>
           <button class="btn btn-sm btn-danger" title="Eliminar" data-delete-id="${t.id}"><i class="fas fa-trash"></i></button>
         </td>
       `;
@@ -147,12 +150,24 @@
       });
     });
 
+    // Edit buttons
+    tbody.querySelectorAll('button[data-edit-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tareaId = btn.getAttribute('data-edit-id');
+        abrirEditorTarea(tareaId);
+      });
+    });
+
     tbody.querySelectorAll('button[data-delete-id]').forEach(btn => {
       btn.addEventListener('click', () => {
         const tareaId = btn.getAttribute('data-delete-id');
         eliminarTarea(tareaId);
       });
     });
+
+    // Animar sección al completar render
+    const section = document.getElementById('proyectoTasks');
+    if (section){ section.classList.remove('enter'); void section.offsetWidth; section.classList.add('enter'); }
   }
 
   function actualizarEstadoTarea(tareaId, estadoDb){
@@ -248,13 +263,17 @@
         eliminarDocumento(id);
       });
     });
+
+    // Animar sección al completar render
+    const section = document.getElementById('proyectoDocumentos');
+    if (section){ section.classList.remove('enter'); void section.offsetWidth; section.classList.add('enter'); }
   }
 
   function cargarDocumentos(){
     const tbody = document.querySelector('#tablaDocumentos tbody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
     if (!currentProjectId) return;
-    fetch(`/api/proyectos/${currentProjectId}/documentos`)
+    return fetch(`/api/proyectos/${currentProjectId}/documentos`)
       .then(r => r.json())
       .then(data => {
         if (data && data.success){
@@ -301,11 +320,77 @@
     });
   }
 
+  // Editor de tarea (título y descripción) con SweetAlert
+  function abrirEditorTarea(tareaId){
+    fetch(`/api/tareas/${tareaId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data || !data.success || !data.tarea){
+          const msg = (data && (data.error || data.message)) || 'No se pudo cargar la tarea';
+          Swal.fire('Error', msg, 'error');
+          return;
+        }
+        const tarea = data.tarea;
+        Swal.fire({
+          title: 'Editar tarea',
+          html: `
+            <div class="form-group" style="text-align:left">
+              <label for="swalTitulo">Título</label>
+              <input id="swalTitulo" class="swal2-input" style="width:100%" value="${(tarea.titulo||'').replace(/"/g, '&quot;')}">
+            </div>
+            <div class="form-group" style="text-align:left">
+              <label for="swalDescripcion">Descripción</label>
+              <textarea id="swalDescripcion" class="swal2-textarea" style="width:100%">${(tarea.descripcion||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Guardar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const titulo = document.getElementById('swalTitulo').value.trim();
+            const descripcion = document.getElementById('swalDescripcion').value.trim();
+            if (!titulo){
+              Swal.showValidationMessage('El título es obligatorio');
+              return false;
+            }
+            return { titulo, descripcion };
+          }
+        }).then(res => {
+          if (!res.isConfirmed || !res.value) return;
+          const { titulo, descripcion } = res.value;
+          fetch(`/api/tareas/${tareaId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, descripcion })
+          })
+          .then(r => r.json())
+          .then(upd => {
+            if (upd && (upd.success || upd.message)){
+              Swal.fire('Actualizada', 'La tarea fue actualizada', 'success');
+              cargarTareas();
+            } else {
+              const msg = (upd && (upd.error || upd.message)) || 'No se pudo actualizar';
+              Swal.fire('Error', msg, 'error');
+            }
+          })
+          .catch(err => {
+            console.error('Error al actualizar tarea:', err);
+            Swal.fire('Error', 'Ocurrió un problema al actualizar', 'error');
+          });
+        });
+      })
+      .catch(err => {
+        console.error('Error al obtener tarea:', err);
+        Swal.fire('Error', 'Ocurrió un problema al cargar la tarea', 'error');
+      });
+  }
+
   let currentProjectId = null;
 
   function cargarProyecto(){
     if (!currentProjectId) return;
-    fetch(`/api/proyectos/${currentProjectId}`)
+    return fetch(`/api/proyectos/${currentProjectId}`)
       .then(r => r.json())
       .then(data => {
         if (data && data.success && data.proyecto){
@@ -326,7 +411,7 @@
   function cargarTareas(){
     if (!currentProjectId) return;
     setLoading('#tablaTareasProyecto');
-    fetch(`/api/tareas/proyecto/${currentProjectId}`)
+    return fetch(`/api/tareas/proyecto/${currentProjectId}`)
       .then(r => r.json())
       .then(data => {
         const tareas = data && data.success ? (data.tareas || []) : [];
@@ -393,16 +478,63 @@
     });
   }
 
+  function showPageLoader(){
+    const el = document.getElementById('pageLoader');
+    if (el) el.classList.add('visible');
+  }
+
+  function hidePageLoader(){
+    const el = document.getElementById('pageLoader');
+    if (el) el.classList.remove('visible');
+  }
+
+  function setupNavLoader(){
+    // Mostrar overlay antes de cambiar de página para que se perciba la acción
+    const anchors = Array.from(document.querySelectorAll('a[href]:not([target])'));
+    anchors.forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (!href) return;
+        // Solo interceptamos navegación interna del sitio
+        const isInternal = href.startsWith('/') || href.startsWith(window.location.origin);
+        if (!isInternal) return;
+        e.preventDefault();
+        showPageLoader();
+        // Mantener el loader visible ~1s antes de navegar
+        setTimeout(() => {
+          window.location.href = href;
+        }, 1000);
+      });
+    });
+
+    // fallback en caso de navegación programática
+    window.addEventListener('beforeunload', () => {
+      showPageLoader();
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    const main = document.querySelector('.main-content');
+    showPageLoader();
     currentProjectId = getProjectIdFromPath();
     setupLogout();
     setupEstadoProyecto();
+    setupNavLoader();
     if (!currentProjectId){
       Swal.fire('Sin proyecto', 'No se ha especificado un proyecto válido', 'warning');
+      hidePageLoader();
       return;
     }
-    cargarProyecto();
-    cargarTareas();
-    cargarDocumentos();
+    const minWait = new Promise(res => setTimeout(res, 1000));
+    Promise.all([cargarProyecto(), cargarTareas(), cargarDocumentos(), minWait])
+      .catch(() => {})
+      .finally(() => {
+        hidePageLoader();
+        if (main){
+          main.classList.remove('enter');
+          void main.offsetWidth;
+          main.classList.add('enter');
+        }
+      });
   });
 })();
