@@ -103,6 +103,45 @@ document.addEventListener('DOMContentLoaded', function() {
             if (topbar.__closeMenu) topbar.__closeMenu();
         }
     });
+
+    // Perfil: abrir/cerrar y poblar datos
+    const profileBtn = document.getElementById('profileBtn');
+    const perfilModal = document.getElementById('perfilModal');
+    const closePerfilModal = document.getElementById('closePerfilModal');
+    const cancelarPerfil = document.getElementById('cancelarPerfil');
+    const perfilNombre = document.getElementById('perfilNombre');
+    const perfilEmail = document.getElementById('perfilEmail');
+    const perfilAvatarPreview = document.getElementById('perfilAvatarPreview');
+    const profileAvatar = document.getElementById('profileAvatar');
+
+    const openPerfil = () => {
+        if (!perfilModal) return;
+        perfilModal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        if (currentUser) {
+            perfilNombre.value = currentUser.nombre || '';
+            perfilEmail.value = currentUser.email || '';
+            const initial = (currentUser.nombre || currentUser.email || 'U').trim().charAt(0).toUpperCase();
+            if (perfilAvatarPreview) perfilAvatarPreview.textContent = initial;
+        }
+    };
+    const closePerfil = () => {
+        if (!perfilModal) return;
+        perfilModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    };
+    if (profileBtn) profileBtn.addEventListener('click', openPerfil);
+    if (closePerfilModal) closePerfilModal.addEventListener('click', closePerfil);
+    if (cancelarPerfil) cancelarPerfil.addEventListener('click', closePerfil);
+
+    // Setear inicial del avatar en la barra
+    const setAvatarInitial = () => {
+        if (!profileAvatar) return;
+        const initial = (currentUser && (currentUser.nombre || currentUser.email) ? (currentUser.nombre || currentUser.email) : 'U').trim().charAt(0).toUpperCase();
+        profileAvatar.textContent = initial;
+    };
+    // Intentar setear inicial cuando ya cargamos usuario
+    document.addEventListener('userLoaded', setAvatarInitial);
 });
 
 // Configurar event listeners
@@ -220,6 +259,8 @@ async function loadUserInfo() {
             if (userNameElement) {
                 userNameElement.textContent = currentUser.nombre;
             }
+            // Disparar evento para actualizar avatar inicial
+            document.dispatchEvent(new Event('userLoaded'));
         } else {
             throw new Error('Error al obtener información del usuario');
         }
