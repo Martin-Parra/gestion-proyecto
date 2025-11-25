@@ -17,7 +17,7 @@ exports.crearAsignacion = async (req, res) => {
 
         // Permisos: admin o líder responsable del proyecto
         const user = req.session?.user;
-        const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador');
+        const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador' || user.rol === 'ceo');
         const esLider = user && user.rol === 'jefe_proyecto';
         const esLiderDelProyecto = esLider && proyectos[0].responsable_id === user.id;
         if (!esAdmin && !esLiderDelProyecto) {

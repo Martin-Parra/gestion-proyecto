@@ -75,7 +75,7 @@ exports.asignarAreaAProyecto = async (req, res) => {
     await ensureTables();
     // Verificar permisos: admin o líder responsable
     const user = req.session?.user;
-    const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador');
+    const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador' || user.rol === 'ceo');
     const [proyRows] = await pool.promise().query('SELECT responsable_id FROM proyectos WHERE id = ?', [proyectoId]);
     if (proyRows.length === 0) return res.status(404).json({ success: false, error: 'Proyecto no encontrado' });
     const esLiderDelProyecto = user && user.rol === 'jefe_proyecto' && proyRows[0].responsable_id === user.id;
@@ -105,7 +105,7 @@ exports.eliminarAreaDeProyecto = async (req, res) => {
     await ensureTables();
     // Verificar permisos
     const user = req.session?.user;
-    const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador');
+    const esAdmin = user && (user.rol === 'admin' || user.rol === 'administrador' || user.rol === 'ceo');
     const [proyRows] = await pool.promise().query('SELECT responsable_id FROM proyectos WHERE id = ?', [proyectoId]);
     if (proyRows.length === 0) return res.status(404).json({ success: false, error: 'Proyecto no encontrado' });
     const esLiderDelProyecto = user && user.rol === 'jefe_proyecto' && proyRows[0].responsable_id === user.id;

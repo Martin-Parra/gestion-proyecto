@@ -14,7 +14,7 @@ const isAuthenticated = (req, res, next) => {
 
 // Middleware para verificar si el usuario es administrador
 const isAdmin = (req, res, next) => {
-    if (req.session.user && (req.session.user.rol === 'administrador' || req.session.user.rol === 'admin')) {
+    if (req.session.user && (req.session.user.rol === 'administrador' || req.session.user.rol === 'admin' || req.session.user.rol === 'ceo')) {
         return next();
     }
 

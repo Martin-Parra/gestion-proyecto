@@ -21,6 +21,19 @@ $(document).ready(function() {
             logout();
         });
 
+        // Volver atrás
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function(e){
+                e.preventDefault();
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/dashboard/trabajador';
+                }
+            });
+        }
+
         // Filtros de tareas
         $('.filter-btn').click(function() {
             $('.filter-btn').removeClass('active');
@@ -36,7 +49,17 @@ $(document).ready(function() {
             showStatusChangeModal(taskId, currentStatus);
         });
 
-        // Toggle del menú en el topbar (similar al dashboard del trabajador)
+        // Ajuste de offset según barra worker-topbar
+        const main = document.querySelector('.main-content');
+        const workerBar = document.querySelector('.worker-topbar');
+        const applyOffset = () => {
+            const h = workerBar ? workerBar.offsetHeight : 64;
+            if (main) main.style.paddingTop = (h + 20) + 'px';
+        };
+        applyOffset();
+        window.addEventListener('resize', applyOffset);
+
+        // Toggle del menú anterior solo si existe la vieja topbar
         const topbar = document.querySelector('.topbar');
         const toggleBtn = document.querySelector('.topbar .menu-toggle');
         const topbarMenuLinks = document.querySelectorAll('.topbar .sidebar-menu a');
@@ -117,7 +140,21 @@ $(document).ready(function() {
         $.get('/api/auth/me')
             .done(function(response) {
                 if (response.success && response.user) {
-                    $('#userName').text(response.user.nombre);
+                    const $avatar = $('#profileAvatar');
+                    const url = response.user.avatar_url;
+                    if ($avatar.length) {
+                        if (url) {
+                            $avatar.css({
+                                backgroundImage: `url('${url}')`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                            }).text('');
+                        } else {
+                            const nombre = response.user.nombre || response.user.email || 'U';
+                            const initial = (nombre || 'U').trim().charAt(0).toUpperCase();
+                            $avatar.css({ backgroundImage: '' }).text(initial);
+                        }
+                    }
                 }
             })
             .fail(function() {

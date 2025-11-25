@@ -150,7 +150,7 @@ exports.actualizarUsuario = (req, res) => {
     }
     
     // Validar que el rol sea válido
-    const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro', 'admin', 'trabajador'];
+    const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro', 'admin', 'trabajador', 'ceo'];
     if (!rolesPermitidos.includes(rol)) {
         return res.status(400).json({
             success: false,

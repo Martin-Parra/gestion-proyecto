@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CEO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/dashboard_admin.css">
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+      html, body { overflow-y: auto; }
+      .main-content { height: auto; min-height: 100vh; overflow-y: auto; }
+      .dashboard-section { padding-bottom: 24px; }
+      .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+      .chart-card { margin: 0; }
+      .chart-box { position: relative; height: 280px; }
+      @media (max-width: 768px){ .chart-box { height: 220px; } }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="sidebar-header">
+                <h2>CEO</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#dashboard" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/correo"><i class="fas fa-envelope"></i> Correo</a></li>
+                <li class="profile">
+                    <button id="profileBtn" class="profile-btn" aria-label="Perfil">
+                        <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
+                    </button>
+                </li>
+                <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section id="dashboard" class="dashboard-section active">
+            <h2>Visión General</h2>
+            <div class="stat-cards">
+                <div class="stat-card primary">
+                    <h3><i class="fas fa-diagram-project"></i> Proyectos</h3>
+                    <h2 id="statTotalProyectos">0</h2>
+                </div>
+                <div class="stat-card success">
+                    <h3><i class="fas fa-tasks"></i> Tareas</h3>
+                    <h2 id="statTotalTareas">0</h2>
+                </div>
+                <div class="stat-card info">
+                    <h3><i class="fas fa-check-circle"></i> Completadas</h3>
+                    <h2 id="statTareasCompletadas">0</h2>
+                </div>
+                <div class="stat-card warning">
+                    <h3><i class="fas fa-percent"></i> Avance promedio</h3>
+                    <h2 id="statAvancePromedio">0%</h2>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> Filtrar por proyecto</h3>
+                </div>
+                <div class="card-body">
+                    <select id="filtroProyecto" class="form-control" style="max-width: 420px;">
+                        <option value="">Seleccione un proyecto...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-pie"></i> Estados de proyectos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box"><canvas id="chartEstadosProyectos"></canvas></div>
+                    </div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Tareas por estado (proyecto)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box"><canvas id="chartTareasProyecto"></canvas></div>
+                    </div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-doughnut"></i> Avance del proyecto</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box"><canvas id="chartAvanceProyecto"></canvas></div>
+                    </div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-users"></i> Composición del equipo (proyecto)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box"><canvas id="chartEquipoProyecto"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="perfilModal" class="modal" aria-hidden="true" style="display:none;">
+      <div class="modal-content perfil-modal-content">
+        <button type="button" class="close" id="closePerfilModal" aria-label="Cerrar">&times;</button>
+        <h3 class="modal-title"><i class="fas fa-user-circle"></i> Mi Perfil</h3>
+        <div class="perfil-body">
+          <div class="perfil-avatar-wrap">
+            <div class="avatar-circle avatar-lg" id="perfilAvatarPreview">U</div>
+            <div class="avatar-actions">
+              <label for="perfilFoto" class="btn btn-secondary btn-sm"><i class="fas fa-camera"></i> Cambiar foto</label>
+              <input type="file" id="perfilFoto" accept="image/*" style="display:none;" />
+            </div>
+          </div>
+          <form id="perfilForm" autocomplete="off">
+            <div class="form-group">
+              <label for="perfilNombre"><i class="fas fa-id-card"></i> Nombre</label>
+              <input type="text" id="perfilNombre" class="form-control" placeholder="Tu nombre" />
+            </div>
+            <div class="form-group">
+              <label for="perfilEmail"><i class="fas fa-envelope"></i> Correo</label>
+              <input type="email" id="perfilEmail" class="form-control" placeholder="tu@correo.com" />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" id="cancelarPerfil">Cancelar</button>
+              <button type="submit" class="btn btn-primary" id="guardarPerfil">Guardar cambios</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/ceo.js"></script>
+  </body>
+</html>

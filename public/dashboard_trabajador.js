@@ -129,8 +129,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentUser) {
             perfilNombre.value = currentUser.nombre || '';
             perfilEmail.value = currentUser.email || '';
-            const initial = (currentUser.nombre || currentUser.email || 'U').trim().charAt(0).toUpperCase();
-            if (perfilAvatarPreview) perfilAvatarPreview.textContent = initial;
+            const url = currentUser.avatar_url;
+            if (perfilAvatarPreview) {
+                if (url) {
+                    perfilAvatarPreview.style.backgroundImage = `url('${url}')`;
+                    perfilAvatarPreview.style.backgroundSize = 'cover';
+                    perfilAvatarPreview.style.backgroundPosition = 'center';
+                    perfilAvatarPreview.textContent = '';
+                } else {
+                    const initial = (currentUser.nombre || currentUser.email || 'U').trim().charAt(0).toUpperCase();
+                    perfilAvatarPreview.style.backgroundImage = '';
+                    perfilAvatarPreview.textContent = initial;
+                }
+            }
         }
     };
     const closePerfil = () => {
@@ -145,11 +156,112 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setear inicial del avatar en la barra
     const setAvatarInitial = () => {
         if (!profileAvatar) return;
-        const initial = (currentUser && (currentUser.nombre || currentUser.email) ? (currentUser.nombre || currentUser.email) : 'U').trim().charAt(0).toUpperCase();
-        profileAvatar.textContent = initial;
+        const url = currentUser && currentUser.avatar_url;
+        if (url) {
+            profileAvatar.style.backgroundImage = `url('${url}')`;
+            profileAvatar.style.backgroundSize = 'cover';
+            profileAvatar.style.backgroundPosition = 'center';
+            profileAvatar.textContent = '';
+        } else {
+            const initial = (currentUser && (currentUser.nombre || currentUser.email) ? (currentUser.nombre || currentUser.email) : 'U').trim().charAt(0).toUpperCase();
+            profileAvatar.style.backgroundImage = '';
+            profileAvatar.textContent = initial;
+        }
     };
     // Intentar setear inicial cuando ya cargamos usuario
     document.addEventListener('userLoaded', setAvatarInitial);
+
+    let selectedAvatarFile = null;
+    const perfilFotoInput = document.getElementById('perfilFoto');
+    if (perfilFotoInput) {
+        perfilFotoInput.addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            if (!file) return;
+            selectedAvatarFile = file;
+            const previewUrl = URL.createObjectURL(file);
+            if (perfilAvatarPreview) {
+                perfilAvatarPreview.style.backgroundImage = `url('${previewUrl}')`;
+                perfilAvatarPreview.style.backgroundSize = 'cover';
+                perfilAvatarPreview.style.backgroundPosition = 'center';
+                perfilAvatarPreview.textContent = '';
+            }
+        });
+    }
+
+    const perfilForm = document.getElementById('perfilForm');
+    if (perfilForm) {
+        perfilForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+            const userId = currentUser.id;
+            const nombre = perfilNombre ? (perfilNombre.value || '').trim() : '';
+            const email = perfilEmail ? (perfilEmail.value || '').trim() : '';
+            const rol = currentUser.rol;
+            let avatarUrl = currentUser.avatar_url || '';
+
+            try {
+                if (selectedAvatarFile) {
+                    const fd = new FormData();
+                    fd.append('avatar', selectedAvatarFile);
+                    const r = await fetch(`/api/usuarios/${userId}/avatar`, { method: 'POST', body: fd, credentials: 'include' });
+                    const ct = r.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                        const j = await r.json();
+                        if (j.success && j.avatar_url) {
+                            avatarUrl = j.avatar_url;
+                        }
+                    }
+                }
+
+                const resp = await fetch(`/api/usuarios/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ nombre, email, rol })
+                });
+                const ct2 = resp.headers.get('content-type') || '';
+                if (!ct2.includes('application/json')) throw new Error('Respuesta no válida');
+                const data = await resp.json();
+                if (!data.success) throw new Error('No se pudo actualizar');
+
+                currentUser.nombre = nombre || currentUser.nombre;
+                currentUser.email = email || currentUser.email;
+                if (avatarUrl) currentUser.avatar_url = avatarUrl;
+
+                if (profileAvatar) {
+                    if (avatarUrl) {
+                        profileAvatar.style.backgroundImage = `url('${avatarUrl}')`;
+                        profileAvatar.style.backgroundSize = 'cover';
+                        profileAvatar.style.backgroundPosition = 'center';
+                        profileAvatar.textContent = '';
+                    } else {
+                        const initial = (currentUser.nombre || currentUser.email || 'U').trim().charAt(0).toUpperCase();
+                        profileAvatar.style.backgroundImage = '';
+                        profileAvatar.textContent = initial;
+                    }
+                }
+
+                if (perfilAvatarPreview) {
+                    if (avatarUrl) {
+                        perfilAvatarPreview.style.backgroundImage = `url('${avatarUrl}')`;
+                        perfilAvatarPreview.style.backgroundSize = 'cover';
+                        perfilAvatarPreview.style.backgroundPosition = 'center';
+                        perfilAvatarPreview.textContent = '';
+                    } else {
+                        const initial = (currentUser.nombre || currentUser.email || 'U').trim().charAt(0).toUpperCase();
+                        perfilAvatarPreview.style.backgroundImage = '';
+                        perfilAvatarPreview.textContent = initial;
+                    }
+                }
+
+                closePerfil();
+                Swal.fire({ icon: 'success', title: 'Perfil actualizado', confirmButtonColor: '#28a745' });
+            } catch (err) {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el perfil', confirmButtonColor: '#28a745' });
+            }
+        });
+    }
 });
 
 // Configurar event listeners

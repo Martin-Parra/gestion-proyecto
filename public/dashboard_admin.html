@@ -32,6 +32,7 @@
                 <li><a href="#proyectos"><i class="fas fa-project-diagram"></i> Gestión de Proyectos</a></li>
                 <li><a href="#revicion_proyectos"><i class="fas fa-clipboard-check"></i> Revisión de proyectos</a></li>
                 <li><a href="#gestion_miembros"><i class="fas fa-user-cog"></i> Gestión de Miembros</a></li>
+                <li><a href="#registro_cambios"><i class="fas fa-history"></i> Registro de Cambios</a></li>
                 <li class="profile">
                     <button id="profileBtn" class="profile-btn" aria-label="Perfil">
                         <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
@@ -255,6 +256,32 @@
                 </div>
             </div>
         </section>
+        <section id="registro_cambios" class="dashboard-section">
+            <h2>Registro de Cambios</h2>
+            <div class="tabla-controles">
+                <div class="selector-cantidad" style="gap: 12px;">
+                    <label for="selectProyectoCambios">Proyecto</label>
+                    <select id="selectProyectoCambios" class="records-select">
+                        <option value="__all__">Todos los proyectos</option>
+                    </select>
+                </div>
+            </div>
+            <div class="tabla-container">
+                <table id="tablaRegistroCambios" class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Proyecto</th>
+                            <th>Tipo</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" class="text-center">Cargando registro de cambios...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <div id="perfilModal" class="modal" aria-hidden="true" style="display:none;">
@@ -345,6 +372,7 @@
                         <option value="administrador">Administrador</option>
                         <option value="jefe_proyecto">Jefe de Proyecto</option>
                         <option value="miembro">Miembro</option>
+                        <option value="ceo">CEO</option>
                     </select>
                 </div>
                 

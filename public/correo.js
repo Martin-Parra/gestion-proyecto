@@ -29,9 +29,11 @@
           const back = document.getElementById('backLink');
           if (back){
             const role = (data.user.rol || '').toLowerCase();
-            back.href = (role === 'administrador' || role === 'admin') 
-              ? '/dashboard/admin' 
-              : (role === 'jefe_proyecto' ? '/dashboard/lider/misproyectos' : '/dashboard/trabajador');
+            back.href = (role === 'administrador' || role === 'admin')
+              ? '/dashboard/admin'
+              : (role === 'ceo'
+                ? '/dashboard/ceo'
+                : (role === 'jefe_proyecto' ? '/dashboard/lider/misproyectos' : '/dashboard/trabajador'));
           }
           return data.user;
         }

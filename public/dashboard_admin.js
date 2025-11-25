@@ -651,6 +651,11 @@ function setupNavigation() {
                 window.cargarProyectos();
             }
         }
+        if (sectionId === 'registro_cambios') {
+            if (typeof window.cargarRegistroCambios === 'function') {
+                window.cargarRegistroCambios();
+            }
+        }
     }
     // Exponer activación de sección para que otros módulos controlen la navegación
     window.activateDashboardSection = activateSection;
@@ -1665,6 +1670,102 @@ window.cargarProyectosTarjetas = function() {
             console.error('Error cargando proyectos:', err);
             grid.innerHTML = '<p>Error al cargar proyectos. Intente nuevamente.</p>';
         });
+};
+
+window.cargarRegistroCambios = async function() {
+    const tbody = document.querySelector('#tablaRegistroCambios tbody');
+    const select = document.getElementById('selectProyectoCambios');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando registro de cambios...</td></tr>';
+    try {
+        const rProy = await fetch('/api/proyectos');
+        const dProy = await rProy.json();
+        const proyectos = dProy && dProy.success ? (dProy.proyectos || []) : [];
+        const projectMap = new Map(proyectos.map(p => [p.id, p]));
+        let events = [];
+        proyectos.forEach(p => {
+            if (p.created_at) {
+                events.push({ type: 'proyecto', projectId: p.id, title: 'Proyecto creado', detail: p.nombre || 'Proyecto', date: new Date(p.created_at) });
+            }
+            if (typeof p.porcentaje_avance === 'number' && p.created_at) {
+                events.push({ type: 'porcentaje', projectId: p.id, title: 'Porcentaje de avance', detail: `${p.porcentaje_avance}%`, date: new Date(p.created_at) });
+            }
+            if (p.estado && p.created_at) {
+                events.push({ type: 'estado', projectId: p.id, title: 'Estado del proyecto', detail: p.estado, date: new Date(p.created_at) });
+            }
+        });
+        const tareasPromises = proyectos.map(p => fetch(`/api/tareas/proyecto/${p.id}`).then(r => r.json().catch(() => ({}))).then(d => ({ pid: p.id, tareas: d && d.success ? (d.tareas || []) : [] })).catch(() => ({ pid: p.id, tareas: [] })));
+        const docsPromises = proyectos.map(p => fetch(`/api/proyectos/${p.id}/documentos`).then(r => r.json().catch(() => ({}))).then(d => ({ pid: p.id, documentos: d && d.success ? (d.documentos || []) : [] })).catch(() => ({ pid: p.id, documentos: [] })));
+        const asignRes = await fetch('/api/asignaciones').then(r => r.json().catch(() => ({}))).catch(() => ({}));
+        const asignaciones = asignRes && asignRes.success ? (asignRes.asignaciones || []) : [];
+        const tareasResults = await Promise.all(tareasPromises);
+        const docsResults = await Promise.all(docsPromises);
+        tareasResults.forEach(({ pid, tareas }) => {
+            tareas.forEach(t => {
+                if (t.created_at) {
+                    events.push({ type: 'tarea', projectId: pid, title: 'Tarea creada', detail: t.titulo || 'Tarea', date: new Date(t.created_at) });
+                }
+            });
+        });
+        docsResults.forEach(({ pid, documentos }) => {
+            documentos.forEach(doc => {
+                const f = doc.fecha_subida ? new Date(doc.fecha_subida) : null;
+                events.push({ type: 'documento', projectId: pid, title: 'Documento subido', detail: doc.nombre_archivo || 'Documento', who: doc.subido_por || '', date: f });
+            });
+        });
+        asignaciones.forEach(a => {
+            const f = a.created_at ? new Date(a.created_at) : null;
+            events.push({ type: 'asignacion', projectId: a.proyecto_id, title: 'Miembro asignado', detail: a.usuario_nombre || a.usuario_id || '', date: f });
+        });
+        events = events.filter(e => e.date instanceof Date && !Number.isNaN(e.date.getTime()));
+        events.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+        window._registroCambios = { events, projectMap };
+
+        const render = (projectId) => {
+            const filtered = projectId && projectId !== '__all__'
+                ? events.filter(ev => String(ev.projectId) === String(projectId))
+                : events;
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="4" class="text-center">Sin cambios</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+            filtered.forEach(ev => {
+                const p = projectMap.get(ev.projectId);
+                const pName = p ? (p.nombre || `Proyecto ${ev.projectId}`) : `Proyecto ${ev.projectId}`;
+                const fechaTxt = ev.date ? ev.date.toLocaleString() : '';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${fechaTxt}</td>
+                    <td>${pName}</td>
+                    <td>${ev.title}</td>
+                    <td>${ev.detail}${ev.who ? ' · ' + ev.who : ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        if (select) {
+            while (select.options.length > 1) { select.remove(1); }
+            proyectos.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = String(p.id);
+                opt.textContent = p.nombre || `Proyecto ${p.id}`;
+                select.appendChild(opt);
+            });
+            const old = select.cloneNode(true);
+            select.parentNode.replaceChild(old, select);
+            old.addEventListener('change', (e) => render(e.target.value));
+        }
+
+        render('__all__');
+    } catch (err) {
+        console.error('Error al cargar registro de cambios:', err);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Error al cargar registro de cambios</td></tr>';
+    }
 };
 
 function mapEstadoDBaUI(estado) {

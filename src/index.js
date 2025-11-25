@@ -118,6 +118,12 @@ app.get('/dashboard/admin', isAuthenticated, checkUserStatus, isAdmin, (req, res
     res.sendFile(path.join(__dirname, '../public/dashboard_admin.html'));
 });
 
+app.get('/dashboard/ceo', isAuthenticated, checkUserStatus, (req, res) => {
+    const u = req.session && req.session.user;
+    if (!u || u.rol !== 'ceo') return res.redirect('/login?error=access');
+    res.sendFile(path.join(__dirname, '../public/ceo.html'));
+});
+
 app.get('/dashboard/trabajador', isAuthenticated, checkUserStatus, (req, res) => {
     res.sendFile(path.join(__dirname, '../public/dashboard_trabajador.html'));
 });

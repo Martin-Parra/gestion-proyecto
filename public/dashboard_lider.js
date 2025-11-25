@@ -3,6 +3,7 @@
   const topbar = document.querySelector('.topbar');
   const menuBtn = document.querySelector('.menu-toggle');
   const icon = menuBtn?.querySelector('i');
+  let currentUser = null;
 
   function animateOpen(){
     if (window.anime) {
@@ -46,10 +47,24 @@
     fetchJSON('/api/auth/me').then(res => {
       if (res.success && res.user){
         const { user } = res;
+        currentUser = user;
         const nameEl = document.getElementById('userName');
         const roleEl = document.getElementById('userRole');
         if (nameEl) nameEl.textContent = user.nombre;
         if (roleEl) roleEl.textContent = roleLabel(user.rol);
+        const avatarEl = document.getElementById('profileAvatar');
+        if (avatarEl){
+          const url = user.avatar_url || '';
+          if (url){
+            avatarEl.style.backgroundImage = `url('${url}')`;
+            avatarEl.style.backgroundSize = 'cover';
+            avatarEl.style.backgroundPosition = 'center';
+            avatarEl.textContent = '';
+          } else {
+            avatarEl.style.backgroundImage = '';
+            avatarEl.textContent = (user.nombre || 'U').trim().charAt(0).toUpperCase();
+          }
+        }
       }
     }).catch(()=>{});
   }
@@ -61,9 +76,23 @@
       default: return rol || '-';
     }
   }
-  document.getElementById('logoutBtn')?.addEventListener('click', (e)=>{
+  document.getElementById('logoutBtn')?.addEventListener('click', async (e)=>{
     e.preventDefault();
-    fetch('/api/auth/logout', { method: 'POST' }).then(()=> window.location.href='/login');
+    const result = await Swal.fire({
+      title: '¿Cerrar sesión?',
+      text: '¿Deseas cerrar sesión ahora?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cerrar sesión',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#4e73df',
+      cancelButtonColor: '#6c757d'
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true });
+    } catch (_) {}
+    window.location.href = '/login';
   });
 
   // Proyectos del líder
@@ -436,6 +465,57 @@
   loadUser();
   cargarMisProyectos();
   cargarMiembrosCatalogo();
+
+  // Perfil (SweetAlert)
+  const profileBtn = document.getElementById('profileBtn');
+  profileBtn?.addEventListener('click', async () => {
+    if (!currentUser){ await loadUser(); }
+    const html = `
+      <div style="display:grid; grid-template-columns: 140px 1fr; gap: 16px; align-items:start;">
+        <div style="display:grid; gap:10px; justify-items:center;">
+          <div id="swAvatarPreview" style="width:96px;height:96px;border-radius:50%;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#374151;overflow:hidden;"></div>
+          <input type="file" id="swPerfilFoto" accept="image/*" style="display:none;" />
+          <label for="swPerfilFoto" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #6670AA;border-radius:8px;color:#363955;cursor:pointer;"><i class="fas fa-camera"></i> Cambiar foto</label>
+        </div>
+        <div>
+          <div class="form-group" style="margin-bottom:12px;"><label style="font-weight:600;color:#363955;">Nombre</label><input id="swPerfilNombre" class="form-control" value="${currentUser?.nombre||''}" /></div>
+          <div class="form-group"><label style="font-weight:600;color:#363955;">Correo</label><input id="swPerfilEmail" class="form-control" value="${currentUser?.email||''}" /></div>
+        </div>
+      </div>`;
+    const result = await Swal.fire({ title: 'Mi Perfil', html, width: 600, showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar', focusConfirm: false, didOpen: async () => {
+      const prev = document.getElementById('swAvatarPreview');
+      const url = currentUser?.avatar_url || '';
+      if (prev){ if (url){ prev.style.backgroundImage = `url('${url}')`; prev.style.backgroundSize='cover'; prev.style.backgroundPosition='center'; prev.textContent=''; } else { prev.textContent = (currentUser?.nombre||'U').trim().charAt(0).toUpperCase(); } }
+      const fileInput = document.getElementById('swPerfilFoto');
+      fileInput?.addEventListener('change', () => {
+        const f = fileInput.files && fileInput.files[0];
+        if (!f || !prev) return;
+        const reader = new FileReader();
+        reader.onload = e => { prev.style.backgroundImage = `url('${e.target.result}')`; prev.style.backgroundSize='cover'; prev.style.backgroundPosition='center'; prev.textContent=''; };
+        reader.readAsDataURL(f);
+      });
+    } });
+    if (result && result.isConfirmed){
+      try {
+        const nombre = (document.getElementById('swPerfilNombre')?.value || '').trim();
+        const email = (document.getElementById('swPerfilEmail')?.value || '').trim();
+        const fileInput = document.getElementById('swPerfilFoto');
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if (file){
+          const fd = new FormData(); fd.append('avatar', file);
+          const avRes = await fetch(`/api/usuarios/${currentUser.id}/avatar`, { method: 'POST', body: fd });
+          const avData = await avRes.json().catch(()=>({}));
+          if (avRes.ok && avData.avatar_url){ currentUser.avatar_url = avData.avatar_url; const avatarEl = document.getElementById('profileAvatar'); if (avatarEl){ avatarEl.style.backgroundImage = `url('${avData.avatar_url}')`; avatarEl.style.backgroundSize='cover'; avatarEl.style.backgroundPosition='center'; avatarEl.textContent=''; } }
+        }
+        const payload = { nombre: nombre || currentUser.nombre, email: email || currentUser.email, rol: currentUser.rol, activo: currentUser.activo };
+        const updRes = await fetch(`/api/usuarios/${currentUser.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const updData = await updRes.json().catch(()=>({}));
+        if (!updRes.ok){ throw new Error(updData.message || 'No se pudo actualizar el perfil'); }
+        currentUser.nombre = payload.nombre; currentUser.email = payload.email;
+        Swal.fire({ icon:'success', title:'Perfil actualizado', timer:1200, showConfirmButton:false });
+      } catch (err){ Swal.fire({ icon:'error', title:'Error', text: String(err.message || err) }); }
+    }
+  });
 })();
 
 // Helpers de UI adicionales

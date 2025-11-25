@@ -41,7 +41,10 @@ exports.login = (req, res) => {
                     activo: user.activo
                 };
                 
-                if (user.rol === 'administrador' || user.rol === 'admin') {
+                if (user.rol === 'ceo') {
+                    console.log('Redirigiendo a dashboard CEO');
+                    res.redirect('/dashboard/ceo');
+                } else if (user.rol === 'administrador' || user.rol === 'admin') {
                     console.log('Redirigiendo a dashboard admin');
                     res.redirect('/dashboard/admin');
                 } else if (user.rol === 'jefe_proyecto') {
