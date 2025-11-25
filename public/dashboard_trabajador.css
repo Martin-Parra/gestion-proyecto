@@ -963,7 +963,7 @@ label {
 /* Contenido a pantalla completa */
 .main-content { 
     margin-left: 0 !important; 
-    padding: 48px 1.5rem 1.5rem; 
+    padding: 88px 1.5rem 1.5rem; 
     min-height: 100vh; 
     background: #f8f9fc; 
     transition: all 0.3s; 
@@ -1600,12 +1600,17 @@ label {
 .main-content .dashboard-section:first-of-type { margin-top: 6px; }
 .main-content .dashboard-section:first-of-type h2 { margin-top: 6px; }
 .topbar{display:none!important}
-.worker-topbar{position:fixed;top:0;left:0;right:0;min-height:20px;background:rgba(255,255,255,0.9);backdrop-filter:saturate(125%) blur(6px);-webkit-backdrop-filter:saturate(125%) blur(6px);border-bottom:1px solid rgba(30,126,52,0.15);z-index:400}
-.wt-inner{display:flex;align-items:center;justify-content:space-between;padding:0 8px}
+.worker-topbar{position:fixed;top:0;left:0;right:0;min-height:64px;background:rgba(255,255,255,0.9);backdrop-filter:saturate(125%) blur(8px);-webkit-backdrop-filter:saturate(125%) blur(8px);border-bottom:1px solid rgba(30,126,52,0.15);z-index:400}
+.wt-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;gap:12px}
+.wt-left{display:flex;align-items:center;gap:12px}
 .wt-left h2{color:#1e7e34;font-size:0.95rem;line-height:1;margin:0}
-.wt-right{display:flex;align-items:center;gap:10px}
+.wt-right{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex:1}
 .profile-btn{border:none;background:transparent;padding:0;cursor:pointer}
 .avatar-circle{width:24px;height:24px;border-radius:50%;background:#1e7e34;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 .logout-link{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none}
 .section-toolbar{position:sticky;top:0;z-index:300;display:flex;gap:10px;align-items:center;padding:6px 12px;background:transparent}
 .section-toolbar .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none}
+.worker-topbar .sidebar-menu{list-style:none;display:flex;gap:10px;margin:0;padding:0;align-items:center}
+.worker-topbar .sidebar-menu a{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none;line-height:1}
+.worker-topbar .sidebar-menu a:hover{background:#1e7e34;color:#fff}
+.worker-topbar .sidebar-menu a.active{background:#1b6e2e;color:#fff;border-color:#1b6e2e}

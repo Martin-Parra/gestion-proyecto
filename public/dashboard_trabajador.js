@@ -87,12 +87,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cerrar menú y animar contenido al seleccionar una sección
     const main = document.querySelector('.main-content');
+    const workerBar = document.querySelector('.worker-topbar');
+    const applyOffset = () => {
+        const h = workerBar ? workerBar.offsetHeight : 64;
+        if (main) main.style.paddingTop = (h + 20) + 'px';
+    };
+    applyOffset();
+    window.addEventListener('resize', applyOffset);
     document.querySelectorAll('.sidebar-menu a[href^="#"], .sidebar-menu a[href^="/"]').forEach(a => {
         a.addEventListener('click', () => {
             if (topbar && topbar.__closeMenu) topbar.__closeMenu();
             if (main) {
                 main.classList.add('content-enter');
                 setTimeout(() => main.classList.remove('content-enter'), 300);
+                applyOffset();
             }
         });
     });
