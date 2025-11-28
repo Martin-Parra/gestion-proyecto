@@ -47,6 +47,8 @@ body {
 .worker-topbar .sidebar-menu a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none;line-height:1;font-size:0.95rem}
 .worker-topbar .sidebar-menu a:hover{background:#1e7e34;color:#fff}
 .worker-topbar .sidebar-menu a.active{background:#1b6e2e;color:#fff;border-color:#1b6e2e}
+/* Burbuja de no leídos en topbar */
+.menu-bubble{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;line-height:20px;text-align:center;margin-left:6px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:700;vertical-align:middle;padding:0;box-sizing:border-box}
 
 /* Ajuste del contenido principal para no quedar detrás del topbar */
 .main-content { padding-top: 88px; margin-left: 0 !important; width: 100% !important; }

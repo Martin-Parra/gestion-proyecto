@@ -37,6 +37,9 @@ body.loading{overflow:hidden}
 .folder{background:#fff;border:1px solid var(--border);padding:10px 14px;border-radius:999px;text-align:center;cursor:pointer}
 .folder.active,.folder:hover{border-color:var(--primary);box-shadow:0 0 0 2px rgba(78,115,223,.10)}
 
+/* Burbuja de no leídos */
+.bubble{display:inline-block;min-width:20px;height:20px;line-height:20px;padding:0 6px;margin-left:8px;border-radius:999px;background:var(--danger);color:#fff;font-size:12px;font-weight:700;vertical-align:middle}
+
 /* Lista de correos ocupa alto disponible */
 .mail-list{height:100%;}
 .list-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--border)}

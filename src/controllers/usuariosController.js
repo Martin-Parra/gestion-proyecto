@@ -13,17 +13,18 @@ function normalizarRol(rol) {
 // Crear un nuevo usuario
 exports.crearUsuario = (req, res) => {
     const { nombre, email, password, rol } = req.body;
+    const nombreSan = String(nombre || '').trim();
+    const emailSan = String(email || '').trim().toLowerCase();
+    const rolNorm = normalizarRol(rol);
     
-    // Validar datos
-    if (!nombre || !email || !password || !rol) {
+    if (!nombreSan || !emailSan || !password || !rolNorm) {
         return res.status(400).json({ 
             success: false, 
             message: 'Todos los campos son obligatorios' 
         });
     }
     
-    // Verificar si el email ya existe
-    pool.query('SELECT * FROM usuarios WHERE email = ?', [email], (err, results) => {
+    pool.query('SELECT * FROM usuarios WHERE LOWER(TRIM(email)) = ?', [emailSan], (err, results) => {
         if (err) {
             console.error('Error al verificar email:', err);
             return res.status(500).json({ 
@@ -39,7 +40,6 @@ exports.crearUsuario = (req, res) => {
             });
         }
         
-        // Encriptar la contraseña
         bcrypt.hash(password, 10, (err, hash) => {
             if (err) {
                 console.error('Error al encriptar contraseña:', err);
@@ -49,12 +49,11 @@ exports.crearUsuario = (req, res) => {
                 });
             }
             
-            // Insertar el nuevo usuario
             const nuevoUsuario = {
-                nombre,
-                email,
+                nombre: nombreSan,
+                email: emailSan,
                 password: hash,
-                rol: normalizarRol(rol),
+                rol: rolNorm,
                 activo: 1
             };
             
@@ -126,39 +125,24 @@ exports.obtenerUsuarioPorId = (req, res) => {
 exports.actualizarUsuario = (req, res) => {
     const userId = req.params.id;
     const { nombre, email, password, rol, activo } = req.body;
+    const nombreSan = String(nombre || '').trim();
+    const emailSan = String(email || '').trim().toLowerCase();
+    const rolSan = String(rol || '').trim();
     
-    // Validar campos requeridos
-    if (!nombre || nombre.trim() === '') {
-        return res.status(400).json({
-            success: false,
-            message: 'El nombre es requerido'
-        });
+    if (!nombreSan) {
+        return res.status(400).json({ success: false, message: 'El nombre es requerido' });
     }
-    
-    if (!email || email.trim() === '') {
-        return res.status(400).json({
-            success: false,
-            message: 'El email es requerido'
-        });
+    if (!emailSan) {
+        return res.status(400).json({ success: false, message: 'El email es requerido' });
     }
-    
-    if (!rol || rol.trim() === '') {
-        return res.status(400).json({
-            success: false,
-            message: 'El rol es requerido'
-        });
+    if (!rolSan) {
+        return res.status(400).json({ success: false, message: 'El rol es requerido' });
     }
-    
-    // Validar que el rol sea válido
     const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro', 'admin', 'trabajador', 'ceo'];
-    if (!rolesPermitidos.includes(rol)) {
-        return res.status(400).json({
-            success: false,
-            message: 'El rol seleccionado no es válido'
-        });
+    if (!rolesPermitidos.includes(rolSan)) {
+        return res.status(400).json({ success: false, message: 'El rol seleccionado no es válido' });
     }
     
-    // Si se proporciona contraseña, encriptarla
     if (password) {
         bcrypt.hash(password, 10, (err, hash) => {
             if (err) {
@@ -170,10 +154,10 @@ exports.actualizarUsuario = (req, res) => {
             }
             
             const usuario = {
-                nombre,
-                email,
+                nombre: nombreSan,
+                email: emailSan,
                 password: hash,
-                rol: normalizarRol(rol),
+                rol: normalizarRol(rolSan),
                 activo: activo !== undefined ? activo : 1
             };
             
@@ -181,9 +165,9 @@ exports.actualizarUsuario = (req, res) => {
         });
     } else {
         const usuario = {
-            nombre,
-            email,
-            rol: normalizarRol(rol),
+            nombre: nombreSan,
+            email: emailSan,
+            rol: normalizarRol(rolSan),
             activo: activo !== undefined ? activo : 1
         };
         
@@ -297,5 +281,56 @@ exports.guardarAvatar = async (req, res) => {
     } catch (err) {
         console.error('Error al guardar avatar:', err);
         res.status(500).json({ success: false, message: 'Error al guardar avatar' });
+    }
+};
+
+// Restablecer contraseña por admin: genera una temporal y la retorna
+exports.resetPasswordAdmin = async (req, res) => {
+    try {
+        const requester = req.session?.user;
+        if (!requester || !['admin','administrador','ceo'].includes(requester.rol)) {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+        const userId = req.params.id;
+        const [rows] = await pool.promise().query('SELECT id FROM usuarios WHERE id = ?', [userId]);
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#%';
+        let temp = '';
+        for (let i = 0; i < 12; i++) {
+            temp += alphabet[Math.floor(Math.random() * alphabet.length)];
+        }
+        const hash = await bcrypt.hash(temp, 10);
+        await pool.promise().query('UPDATE usuarios SET password = ? WHERE id = ?', [hash, userId]);
+        res.json({ success: true, temp_password: temp });
+    } catch (err) {
+        console.error('Error al restablecer contraseña por admin:', err);
+        res.status(500).json({ success: false, message: 'Error al restablecer contraseña' });
+    }
+};
+
+exports.actualizarPasswordAdmin = async (req, res) => {
+    try {
+        const requester = req.session?.user;
+        if (!requester || !['admin','administrador','ceo'].includes(requester.rol)) {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
+        const userId = req.params.id;
+        const { password } = req.body || {};
+        const pwd = String(password || '').trim();
+        if (pwd.length < 6) {
+            return res.status(400).json({ success: false, message: 'La contraseña debe tener al menos 6 caracteres' });
+        }
+        const [rows] = await pool.promise().query('SELECT id FROM usuarios WHERE id = ?', [userId]);
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+        const hash = await bcrypt.hash(pwd, 10);
+        await pool.promise().query('UPDATE usuarios SET password = ? WHERE id = ?', [hash, userId]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error al actualizar contraseña por admin:', err);
+        res.status(500).json({ success: false, message: 'Error al actualizar contraseña' });
     }
 };

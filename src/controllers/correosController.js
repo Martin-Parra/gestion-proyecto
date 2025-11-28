@@ -185,3 +185,16 @@ exports.remove = async (req, res) => {
     res.json({ok:true});
   } catch (e) { console.error(e); res.status(500).json({error:'Error al eliminar'}); }
 };
+
+exports.unreadCount = async (req, res) => {
+  try {
+    const userId = req.session?.user?.id;
+    const [rows] = await pool.promise().query(`
+      SELECT COUNT(*) AS cnt
+      FROM correo_destinatarios cd
+      WHERE cd.usuario_id = ? AND cd.eliminado = 0 AND IFNULL(cd.leido,0) = 0
+    `, [userId]);
+    const cnt = rows && rows[0] ? Number(rows[0].cnt) : 0;
+    res.json({ count: cnt });
+  } catch (e) { console.error(e); res.status(500).json({error:'Error al contar no leídos'}); }
+};

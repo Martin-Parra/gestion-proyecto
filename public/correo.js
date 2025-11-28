@@ -73,6 +73,7 @@
       renderList(list);
       const visor = document.getElementById('visor');
       visor.innerHTML = '<div class="placeholder">Selecciona un correo para visualizarlo</div>';
+      updateUnreadBadge();
     });
   }
 
@@ -92,8 +93,19 @@
         <div class=\"muted\" style=\"margin-top:10px;color:#6b7280\">${fecha}</div>
       `;
       // marcar leído si aplica (inbox)
-      if(state.box==='inbox' && !m.leido){ fetch(`/api/correos/${id}/leido`, {method:'PATCH'}).then(()=>load('inbox')); }
+      if(state.box==='inbox' && !m.leido){ fetch(`/api/correos/${id}/leido`, {method:'PATCH'}).then(()=>{ load('inbox'); updateUnreadBadge(); }); }
     });
+  }
+
+  function updateUnreadBadge(){
+    fetch('/api/correos/unread_count').then(r=>r.json()).then(data=>{
+      const badge = document.getElementById('badgeUnread');
+      const cnt = Number((data && data.count) || 0);
+      if (badge){
+        if (cnt > 0){ badge.textContent = String(cnt); badge.style.display = 'inline-block'; }
+        else { badge.textContent = '0'; badge.style.display = 'none'; }
+      }
+    }).catch(()=>{});
   }
 
   function setup(){
@@ -175,7 +187,7 @@
     }).catch(()=>{});
 
     // Continuar cargando datos en paralelo; al cerrar overlay el contenido entrará animado
-    fetchUser().then(()=>load('inbox'));
+    fetchUser().then(()=>{ load('inbox'); updateUnreadBadge(); });
   }
 
   document.addEventListener('DOMContentLoaded', setup);

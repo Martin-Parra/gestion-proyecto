@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const usuariosController = require('../controllers/usuariosController');
-const { isAuthenticated, checkUserStatus } = require('../middleware/auth');
+const { isAuthenticated, checkUserStatus, isAdmin } = require('../middleware/auth');
 
 // Ruta para crear un nuevo usuario
 router.post('/', usuariosController.crearUsuario);
@@ -39,5 +39,11 @@ const upload = multer({ storage });
 
 // Subir avatar del usuario actual
 router.post('/:id/avatar', isAuthenticated, checkUserStatus, upload.single('avatar'), usuariosController.guardarAvatar);
+
+// Restablecer contraseña por admin
+router.post('/:id/reset_password', isAuthenticated, checkUserStatus, isAdmin, usuariosController.resetPasswordAdmin);
+
+// Cambiar contraseña directamente por admin
+router.put('/:id/password', isAuthenticated, checkUserStatus, isAdmin, usuariosController.actualizarPasswordAdmin);
 
 module.exports = router;

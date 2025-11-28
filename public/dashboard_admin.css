@@ -97,6 +97,8 @@ html { height: 100%; overflow-y: hidden; }
     background: var(--p-800);
     border-color: var(--p-800);
 }
+/* Burbuja de no leídos en topbar */
+.menu-bubble{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;line-height:20px;text-align:center;margin-left:6px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:700;vertical-align:middle;padding:0;box-sizing:border-box}
 /* Ubicar "Cerrar sesión" al extremo derecho del topbar */
 .topbar .sidebar-menu li.logout { margin-left: auto; padding-left: 12px; border-left: 1px solid rgba(90,96,155,0.25); }
 /* Estado colapsado por defecto en pantallas pequeñas */

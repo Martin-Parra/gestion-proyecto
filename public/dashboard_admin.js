@@ -172,19 +172,74 @@ function abrirModalEditarUsuario(userId) {
                 
                 // Verificar que el valor se asignó correctamente
                 console.log('Valor asignado al select rol:', document.getElementById('editarRol').value);
-                
-                // Limpiar el campo de contraseña
-                const passwordField = document.getElementById('editarPassword');
-                if (passwordField) {
-                    passwordField.value = '';
+                const btnCambiarPwd = document.getElementById('btnAbrirCambiarPwd');
+                const cambiarModal = document.getElementById('modalCambiarPwd');
+                const closeCambiar = document.getElementById('closeCambiarPwd');
+                const cambiarUserId = document.getElementById('cambiarPwdUserId');
+                const nuevaPwdInput = document.getElementById('cambiarPwdNueva');
+                const confirmPwdInput = document.getElementById('cambiarPwdConfirm');
+                const toggleNueva = document.getElementById('toggleNuevaPwd');
+                const toggleConfirm = document.getElementById('toggleConfirmPwd');
+                const submitCambiar = document.getElementById('submitCambiarPwd');
+
+                if (btnCambiarPwd && cambiarModal) {
+                    btnCambiarPwd.onclick = () => {
+                        const uid = document.getElementById('editarUsuarioId').value;
+                        cambiarUserId.value = uid || '';
+                        if (nuevaPwdInput) nuevaPwdInput.value = '';
+                        if (confirmPwdInput) confirmPwdInput.value = '';
+                        cambiarModal.style.display = 'block';
+                    };
+                }
+                if (closeCambiar && cambiarModal) {
+                    closeCambiar.onclick = () => { cambiarModal.style.display = 'none'; };
+                }
+                if (toggleNueva && nuevaPwdInput) {
+                    toggleNueva.onclick = () => {
+                        nuevaPwdInput.type = nuevaPwdInput.type === 'password' ? 'text' : 'password';
+                        toggleNueva.classList.toggle('fa-eye-slash');
+                        toggleNueva.classList.toggle('fa-eye');
+                    };
+                }
+                if (toggleConfirm && confirmPwdInput) {
+                    toggleConfirm.onclick = () => {
+                        confirmPwdInput.type = confirmPwdInput.type === 'password' ? 'text' : 'password';
+                        toggleConfirm.classList.toggle('fa-eye-slash');
+                        toggleConfirm.classList.toggle('fa-eye');
+                    };
+                }
+                if (submitCambiar && cambiarModal) {
+                    submitCambiar.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        try{
+                            const uid = cambiarUserId.value;
+                            const nueva = (nuevaPwdInput?.value || '').trim();
+                            const confirm = (confirmPwdInput?.value || '').trim();
+                            if (nueva.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres');
+                            if (nueva !== confirm) throw new Error('La confirmación no coincide');
+                            submitCambiar.disabled = true;
+                            const res = await fetch(`/api/usuarios/${uid}/password`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ password: nueva })
+                            });
+                            const data = await res.json().catch(()=>({}));
+                            if (res.ok && data.success) {
+                                cambiarModal.style.display = 'none';
+                                Swal.fire({ icon:'success', title:'Contraseña actualizada', timer: 1500, showConfirmButton: false });
+                            } else {
+                                const msg = data?.message || 'No se pudo actualizar la contraseña';
+                                throw new Error(msg);
+                            }
+                        } catch (err) {
+                            Swal.fire({ icon:'error', title:'Error', text: String(err.message || err) });
+                        } finally {
+                            submitCambiar.disabled = false;
+                        }
+                    });
                 }
                 
-                // Asegurarse de que el icono de ojo esté en modo "oculto"
-                const togglePassword = document.querySelector('.toggle-password');
-                if (togglePassword) {
-                    togglePassword.classList.remove('fa-eye-slash');
-                    togglePassword.classList.add('fa-eye');
-                }
+                
                 
                 const modal = document.getElementById('modalEditarUsuario');
                 if (modal) {
@@ -684,24 +739,21 @@ function setupNavigation() {
     }
 }
 
-// Función para alternar la visibilidad de la contraseña
-function setupPasswordToggle() {
-    const togglePassword = document.querySelector('.toggle-password');
-    if (togglePassword) {
-        togglePassword.addEventListener('click', function() {
-            const passwordInput = document.getElementById('editarPassword');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                this.classList.remove('fa-eye');
-                this.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                this.classList.remove('fa-eye-slash');
-                this.classList.add('fa-eye');
-            }
-        });
-    }
+function updateTopCorreoBadge(){
+    const el = document.getElementById('topCorreoBadge');
+    if (!el) return;
+    fetch('/api/correos/unread_count')
+        .then(r=>r.json())
+        .then(d=>{
+            const cnt = Number((d && d.count) || 0);
+            if (cnt > 0){ el.textContent = String(cnt); el.style.display = 'inline-block'; }
+            else { el.style.display = 'none'; }
+        })
+        .catch(()=>{});
 }
+
+// Función para alternar la visibilidad de la contraseña
+ 
 
 // Evento cuando el DOM está completamente cargado
 // Configurar el buscador de jefes para el modal de editar proyecto
@@ -921,8 +973,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     nombreUsuario.textContent = usuario.nombre;
                 }
                 
-                // Verificar si el usuario es administrador
-                if (usuario.rol !== 'administrador') {
+                // Verificar si el usuario es administrador (aceptar 'administrador' o 'admin')
+                if (usuario.rol !== 'administrador' && usuario.rol !== 'admin') {
                     console.error('Acceso denegado: no es administrador');
                     window.location.href = '/login';
                     return;
@@ -931,8 +983,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Configurar la navegación entre secciones
     setupNavigation();
                 
-                // Configurar el toggle de contraseña
-                setupPasswordToggle();
+                updateTopCorreoBadge();
+                setInterval(updateTopCorreoBadge, 30000);
+                
                 
                 // Configurar logout con confirmación
                 setupLogout();
@@ -1149,16 +1202,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('El rol seleccionado no es válido');
             }
             
-            // Obtener el valor de la contraseña
-            const password = document.getElementById('editarPassword').value;
-            
             // Crear objeto con los datos del usuario
             const userData = { nombre, email, rol, activo };
-            
-            // Añadir contraseña solo si se ha ingresado una nueva
-            if (password.trim() !== '') {
-                userData.password = password;
-            }
             
             try {
                 const response = await fetch(`/api/usuarios/${userId}`, {
@@ -2712,7 +2757,12 @@ function setupNavLoader(){
                     pwdVerificada = true;
                     if (pwdNuevaInput) pwdNuevaInput.disabled = false;
                     if (pwdConfirmInput) pwdConfirmInput.disabled = false;
-                    if (msgVerificacionPwd) msgVerificacionPwd.textContent = 'Contraseña verificada correctamente.';
+                    if (msgVerificacionPwd){
+                        msgVerificacionPwd.textContent = 'Contraseña verificada correctamente.';
+                        msgVerificacionPwd.classList.remove('text-muted');
+                        msgVerificacionPwd.classList.add('text-success');
+                        msgVerificacionPwd.style.color = '#28a745';
+                    }
                 } else {
                     pwdVerificada = false;
                     if (pwdNuevaInput) pwdNuevaInput.disabled = true;
@@ -2735,7 +2785,12 @@ function setupNavLoader(){
                 pwdVerificada = false;
                 if (pwdNuevaInput) pwdNuevaInput.disabled = true;
                 if (pwdConfirmInput) pwdConfirmInput.disabled = true;
-                if (msgVerificacionPwd) msgVerificacionPwd.textContent = '';
+                if (msgVerificacionPwd){
+                    msgVerificacionPwd.textContent = '';
+                    msgVerificacionPwd.classList.remove('text-success');
+                    msgVerificacionPwd.classList.add('text-muted');
+                    msgVerificacionPwd.style.color = '';
+                }
             });
         }
     }

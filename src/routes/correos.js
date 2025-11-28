@@ -26,6 +26,7 @@ const upload = multer({ storage });
 
 router.get('/inbox', correos.inbox);
 router.get('/enviados', correos.sent);
+router.get('/unread_count', correos.unreadCount);
 router.get('/:id', correos.getOne);
 router.post('/', upload.array('adjuntos', 10), correos.send);
 router.patch('/:id/leido', correos.markRead);

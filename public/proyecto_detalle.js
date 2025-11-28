@@ -12,6 +12,8 @@ $(document).ready(function() {
         loadProjectDetails();
         setupEventListeners();
         setupDocumentoModalHandlers();
+        updateTopCorreoBadge();
+        setInterval(updateTopCorreoBadge, 30000);
     }
 
     function setupEventListeners() {
@@ -118,6 +120,19 @@ $(document).ready(function() {
                 link.addEventListener('click', () => { closeMenu(); });
             });
         }
+    }
+
+    function updateTopCorreoBadge(){
+        const el = document.getElementById('topCorreoBadge');
+        if (!el) return;
+        fetch('/api/correos/unread_count')
+            .then(r=>r.json())
+            .then(d=>{
+                const cnt = Number((d && d.count) || 0);
+                if (cnt > 0){ el.textContent = String(cnt); el.style.display = 'inline-block'; }
+                else { el.style.display = 'none'; }
+            })
+            .catch(()=>{});
     }
 
     function setupDocumentoModalHandlers(){

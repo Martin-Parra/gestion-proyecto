@@ -4,15 +4,16 @@ const pool = require('../db/connection');
 
 exports.login = (req, res) => {
     const { username, password } = req.body;
-    console.log('Intento de login:', username);
+    const loginId = String(username || '').trim().toLowerCase();
+    console.log('Intento de login:', loginId);
     
-    pool.query('SELECT * FROM usuarios WHERE email = ?', [username], (err, results) => {
+    pool.query('SELECT * FROM usuarios WHERE LOWER(TRIM(email)) = ?', [loginId], (err, results) => {
         if (err) {
             console.error('Error en la consulta:', err);
             return res.status(500).send('Error en el servidor');
         }
         if (results.length === 0) {
-            console.log('Usuario no encontrado:', username);
+            console.log('Usuario no encontrado:', loginId);
             return res.redirect('/login?error=auth');
         }
         

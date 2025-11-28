@@ -95,6 +95,16 @@
     window.location.href = '/login';
   });
 
+  function updateTopCorreoBadge(){
+    const el = document.getElementById('topCorreoBadge');
+    if (!el) return;
+    fetch('/api/correos/unread_count').then(r=>r.json()).then(d=>{
+      const cnt = Number((d && d.count) || 0);
+      if (cnt > 0){ el.textContent = String(cnt); el.style.display = 'inline-block'; }
+      else { el.style.display = 'none'; }
+    }).catch(()=>{});
+  }
+
   // Proyectos del líder
   const proyectosGrid = document.getElementById('proyectosGrid');
   const selProyectoAsignacion = document.getElementById('selProyectoAsignacion');
@@ -465,6 +475,8 @@
   loadUser();
   cargarMisProyectos();
   cargarMiembrosCatalogo();
+  updateTopCorreoBadge();
+  setInterval(updateTopCorreoBadge, 30000);
 
   // Perfil (SweetAlert)
   const profileBtn = document.getElementById('profileBtn');
