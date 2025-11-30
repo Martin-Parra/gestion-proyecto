@@ -6,6 +6,16 @@ const path = require('path');
 const pool = require('./db/connection');
 
 const app = express();
+(
+    async () => {
+        try {
+            const [cols] = await pool.promise().query("SHOW COLUMNS FROM usuarios LIKE 'last_login'");
+            if (!cols || cols.length === 0) {
+                await pool.promise().query("ALTER TABLE usuarios ADD COLUMN last_login DATETIME NULL");
+            }
+        } catch (_) {}
+    }
+)();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // Añadir soporte para JSON
@@ -60,7 +70,7 @@ app.get('/api/auth/me', isAuthenticated, checkUserStatus, async (req, res) => {
         const userId = req.session?.user?.id;
         if (!userId) return res.status(401).json({ success: false, message: 'No autenticado' });
         const [rows] = await pool.promise().query(
-            `SELECT u.id, u.nombre, u.email, u.rol, u.activo, p.avatar_url
+            `SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.last_login, p.avatar_url
              FROM usuarios u
              LEFT JOIN perfiles_usuario p ON p.usuario_id = u.id
              WHERE u.id = ?`,
@@ -68,6 +78,16 @@ app.get('/api/auth/me', isAuthenticated, checkUserStatus, async (req, res) => {
         );
         const u = rows[0];
         if (!u) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        console.log('auth/me: usuario', userId, 'last_login (pre):', u.last_login);
+        if (!u.last_login) {
+            try {
+                await pool.promise().query('UPDATE usuarios SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [userId]);
+                const [r2] = await pool.promise().query('SELECT last_login FROM usuarios WHERE id = ?', [userId]);
+                u.last_login = r2[0]?.last_login || u.last_login;
+                console.log('auth/me: usuario', userId, 'last_login (post update):', u.last_login);
+            } catch (_) {}
+        }
+        console.log('auth/me: usuario', userId, 'last_login (final):', u.last_login);
         res.json({ success: true, user: u });
     } catch (err) {
         console.error('Error en /api/auth/me:', err);

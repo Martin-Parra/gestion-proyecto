@@ -88,10 +88,18 @@
 
                 <div id="proyectoDocumentos" class="project-docs section-block" style="margin-top: 18px;">
                     <h4><i class="fas fa-folder-open"></i> Documentos del Proyecto</h4>
+                    <div class="form-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
+                        <label class="muted" style="margin-right:8px;">Acciones</label>
+                        <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Descargar todos</button>
+                        <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
+                    </div>
                     <div class="table-responsive">
                         <table id="tablaDocumentos" class="table">
                             <thead>
                                 <tr>
+                                    <th style="width:36px; text-align:center;">
+                                        <input type="checkbox" id="chkDocsSelectAll" aria-label="Seleccionar todo" />
+                                    </th>
                                     <th>Nombre</th>
                                     <th>Subido por</th>
                                     <th>Fecha subida</th>
@@ -100,7 +108,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="5" class="text-center">Cargando...</td></tr>
+                                <tr><td colspan="6" class="text-center">Cargando...</td></tr>
                             </tbody>
                         </table>
                     </div>

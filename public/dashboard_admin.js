@@ -2614,6 +2614,27 @@ function setupNavLoader(){
     const btnVerificarPwd = document.getElementById('btnVerificarPwd');
     const msgVerificacionPwd = document.getElementById('msgVerificacionPwd');
     let pwdVerificada = false;
+    function formatDateTime(v){
+        if(!v) return '';
+        try{
+            const s = String(v).replace(' ', 'T');
+            let d = new Date(s);
+            if(isNaN(d)){
+                const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(v));
+                if (m){ d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])); }
+            }
+            if (isNaN(d)) return String(v);
+            const pad = (n)=>String(n).padStart(2,'0');
+            return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }catch(_){ return String(v); }
+    }
+    function setLastLoginUI(v){
+        const lastLoginEl = document.getElementById('perfilLastLogin');
+        const dbg = document.getElementById('perfilLastLoginDebug');
+        const formatted = formatDateTime(v) || '—';
+        if (lastLoginEl) lastLoginEl.value = formatted;
+        if (dbg) dbg.textContent = `raw: ${v ?? ''} | fmt: ${formatted}`;
+    }
 
     function getInitials(name){
         if (!name) return 'U';
@@ -2628,8 +2649,11 @@ function setupNavLoader(){
                 throw new Error(data?.message || 'No se pudo obtener el usuario actual');
             }
             currentUser = data.user;
+            console.debug('Perfil: usuario cargado', currentUser);
+            console.debug('Perfil: last_login recibido (raw)', currentUser.last_login);
             if (nombreInput) nombreInput.value = currentUser.nombre || '';
             if (emailInput) emailInput.value = currentUser.email || '';
+            setLastLoginUI(currentUser.last_login);
             const initials = getInitials(currentUser.nombre);
             const defaultAvatar = '/assets/default-avatar.svg';
             // Topbar avatar
@@ -2660,7 +2684,7 @@ function setupNavLoader(){
         }
     }
 
-    function openModal(){
+    async function openModal(){
         if (modal){
             modal.classList.add('show');
             modal.style.display = 'block';
@@ -2670,6 +2694,16 @@ function setupNavLoader(){
             if (pwdNuevaInput){ pwdNuevaInput.value = ''; pwdNuevaInput.disabled = true; }
             if (pwdConfirmInput){ pwdConfirmInput.value = ''; pwdConfirmInput.disabled = true; }
             if (msgVerificacionPwd){ msgVerificacionPwd.textContent = ''; }
+            try{
+                const r = await fetch('/api/auth/me', { credentials: 'include' });
+                const d = await r.json().catch(()=>({}));
+                if (r.ok && d && d.user){
+                    currentUser = d.user;
+                }
+                setLastLoginUI(currentUser?.last_login);
+                if (nombreInput) nombreInput.value = currentUser?.nombre || '';
+                if (emailInput) emailInput.value = currentUser?.email || '';
+            }catch(_){}
         }
     }
     function closeModal(){ if (modal){ modal.classList.remove('show'); modal.style.display = 'none'; } }

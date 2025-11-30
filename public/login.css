@@ -300,3 +300,7 @@ body.login-body {
 .modal-close:hover { color: var(--color-primary); }
 .modal-form .feedback { margin-top: 10px; color: var(--color-muted); }
 .modal-form .feedback.success { color: #16a34a; font-weight: 600; }
+
+/* Feedback en formulario de restablecimiento */
+.login-form .feedback { margin-top: 10px; color: var(--color-muted); }
+.login-form .feedback.success { color: #16a34a; font-weight: 600; }

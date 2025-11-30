@@ -40,11 +40,25 @@
             <label for="selProyectoDocs">Proyecto</label>
             <select id="selProyectoDocs" class="form-control"></select>
           </div>
+          <div class="form-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
+            <label class="muted" style="margin-right:8px;">Acciones</label>
+            <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Descargar todos</button>
+            <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
+          </div>
           <table id="tablaDocumentos" class="docs-table">
             <thead>
-              <tr><th>Nombre</th><th>Tipo</th><th>Fecha</th><th>Acciones</th></tr>
+              <tr>
+                <th style="width:36px; text-align:center;">
+                  <input type="checkbox" id="chkDocsSelectAll" aria-label="Seleccionar todo" />
+                </th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Tamaño</th>
+                <th>Subido por</th>
+                <th>Acciones</th>
+              </tr>
             </thead>
-            <tbody><tr><td colspan="4" class="text-center">Seleccione un proyecto</td></tr></tbody>
+            <tbody><tr><td colspan="6" class="text-center">Seleccione un proyecto</td></tr></tbody>
           </table>
         </div>
       </div>

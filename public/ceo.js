@@ -3,6 +3,20 @@
   let charts = { estados: null, tareas: null, avance: null };
   let pluginRegistered = false;
   let currentUser = null;
+  function formatDateTime(v){
+    if(!v) return '';
+    try{
+      const s = String(v).replace(' ', 'T');
+      let d = new Date(s);
+      if(isNaN(d)){
+        const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(v));
+        if (m){ d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])); }
+      }
+      if (isNaN(d)) return String(v);
+      const pad = (n)=>String(n).padStart(2,'0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(v); }
+  }
 
   function setAvatar(name) {
     const avatar = document.getElementById('profileAvatar');
@@ -80,6 +94,7 @@
     function openModal(){ if (modal) { modal.classList.add('show'); modal.style.display = 'block'; populateForm(); } }
     function closeModal(){ if (modal) { modal.classList.remove('show'); modal.style.display = 'none'; } }
     function populateForm(){ if (!currentUser) return; if (nombreInput) nombreInput.value = currentUser.nombre || ''; if (emailInput) emailInput.value = currentUser.email || ''; const url = currentUser.avatar_url || ''; if (avatarPreview){ if (url){ avatarPreview.style.backgroundImage = `url('${url}')`; avatarPreview.style.backgroundSize='cover'; avatarPreview.style.backgroundPosition='center'; avatarPreview.textContent=''; } else { avatarPreview.style.backgroundImage=''; avatarPreview.textContent = (currentUser.nombre||'U').trim().charAt(0).toUpperCase(); } } }
+    function populateLastLogin(){ if (!currentUser) return; const el = document.getElementById('perfilLastLogin'); const raw = currentUser.last_login; const fmt = raw ? formatDateTime(raw) : '—'; console.debug('CEO perfil: last_login (raw):', raw, '| (fmt):', fmt); if (el){ el.value = fmt; } }
 
     profileBtn && profileBtn.addEventListener('click', openModal);
     closeBtn && closeBtn.addEventListener('click', closeModal);
@@ -124,6 +139,7 @@
         } catch (err){ Swal.fire({ icon:'error', title:'Error', text: String(err.message || err) }); }
       });
     }
+    populateLastLogin();
   }
 
   function promedioAvance(list) {

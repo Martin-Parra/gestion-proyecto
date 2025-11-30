@@ -8,6 +8,8 @@ body {
     overflow: hidden;
 }
 
+:root { --p-500:#7886B9; --p-600:#6670AA; --p-700:#5A609B; --p-800:#4D5180; --p-900:#363955; --p-950:#2B2D40; }
+
 .dashboard-container {
     display: flex;
     min-height: 100vh;
@@ -133,7 +135,7 @@ section h2::after {
     left: 0;
     width: 50px;
     height: 3px;
-    background: #28a745;
+    background: var(--p-700);
     border-radius: 2px;
 }
 
@@ -166,7 +168,10 @@ section h2::after {
     font-size: 1rem;
     font-weight: 600;
     color: #5a5c69;
+    position: relative;
+    padding-bottom: 6px;
 }
+.card-header h3::after { content:''; position:absolute; bottom:0; left:0; width:40px; height:3px; background: var(--p-700); border-radius: 999px; }
 
 .card-body {
     padding: 1.25rem;
@@ -189,27 +194,28 @@ section h2::after {
     padding: 1.25rem;
     text-align: center;
     transition: transform 0.3s ease;
-    border-left: 0.25rem solid #28a745;
+    border-left: 0.25rem solid var(--p-700);
 }
+.stat-card::after { content:''; display:block; width:36px; height:4px; background: var(--p-700); border-radius:999px; margin-top:8px; }
 
 .stat-card:hover {
     transform: translateY(-5px);
 }
 
 .stat-card.primary {
-    border-left-color: #28a745;
+    border-left-color: var(--p-700);
 }
 
 .stat-card.success {
-    border-left-color: #1cc88a;
+    border-left-color: var(--p-700);
 }
 
 .stat-card.info {
-    border-left-color: #36b9cc;
+    border-left-color: var(--p-700);
 }
 
 .stat-card.warning {
-    border-left-color: #f6c23e;
+    border-left-color: var(--p-700);
 }
 
 .stat-card h3 {
@@ -635,7 +641,7 @@ label {
     padding: 16px;
     cursor: pointer;
     transition: transform .1s ease, box-shadow .1s ease;
-    border-left: 0.25rem solid #28a745;
+    border-left: 0.25rem solid var(--p-700);
 }
 
 .project-card:hover {
@@ -646,7 +652,7 @@ label {
 .project-card h4 {
     margin: 0 0 10px 0;
     font-size: 16px;
-    color: #28a745;
+    color: var(--p-700);
 }
 
 .project-progress {
@@ -665,7 +671,7 @@ label {
 
 .progress-bar {
         height: 100%;
-        background: #28a745;
+        background: var(--p-700);
     }
 
     /* Badges para estados y prioridades */
@@ -724,7 +730,7 @@ label {
     border-radius: 0.35rem;
     color: #fff;
 }
-.due-ok { background-color: #28a745; }
+.due-ok { background-color: var(--p-700); }
 .due-soon { background-color: #f6c23e; color: #212529; }
 .due-overdue { background-color: #e74a3b; }
 
@@ -996,7 +1002,7 @@ label {
 /* --- Resto de estilos existentes (se mantienen) --- */
 section { margin-bottom: 2rem; }
 section h2 { color:#5a5c69; font-size:1.75rem; font-weight:400; margin: 0.75rem 0 1.5rem; position:relative; padding-bottom:0.5rem; }
-section h2::after { content:''; position:absolute; bottom:0; left:0; width:50px; height:3px; background:#28a745; border-radius:2px; }
+section h2::after { content:''; position:absolute; bottom:0; left:0; width:50px; height:3px; background:var(--p-700); border-radius:2px; }
 
 .dashboard-section { display:block; }
 .dashboard-section.hidden { display:none; }
@@ -1025,13 +1031,13 @@ section h2::after { content:''; position:absolute; bottom:0; left:0; width:50px;
 
 /* Stat Cards */
 .stat-cards { display:flex; flex-wrap:wrap; gap:1.5rem; margin-bottom:1.5rem; }
-.stat-card { flex:1; min-width:250px; background:#fff; border-radius:0.35rem; box-shadow:0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15); padding:1.25rem; text-align:center; transition:transform 0.3s ease; border-left:0.25rem solid #28a745; }
+.stat-card { flex:1; min-width:250px; background:#fff; border-radius:0.35rem; box-shadow:0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15); padding:1.25rem; text-align:center; transition:transform 0.3s ease; border-left:0.25rem solid var(--p-700); }
 .stat-card:hover { transform: translateY(-5px); }
-.stat-card.primary { border-left-color:#28a745; }
-.stat-card.success { border-left-color:#1cc88a; }
-.stat-card.info { border-left-color:#36b9cc; }
-.stat-card.info { border-left-color:#1e7e34; }
-.stat-card.warning { border-left-color:#f6c23e; }
+.stat-card.primary { border-left-color:var(--p-700); }
+.stat-card.success { border-left-color:var(--p-700); }
+.stat-card.info { border-left-color:var(--p-700); }
+.stat-card.info { border-left-color:var(--p-700); }
+.stat-card.warning { border-left-color:var(--p-700); }
 
 .stat-card h3 { color:#5a5c69; font-size:0.875rem; font-weight:700; text-transform:uppercase; margin-bottom:0.5rem; }
 .stat-card h2 { color:#5a5c69; font-size:2rem; }
@@ -1445,7 +1451,7 @@ label {
     padding: 16px;
     cursor: pointer;
     transition: transform .1s ease, box-shadow .1s ease;
-    border-left: 0.25rem solid #28a745;
+    border-left: 0.25rem solid var(--p-700);
 }
 
 .project-card:hover {
@@ -1456,7 +1462,7 @@ label {
 .project-card h4 {
     margin: 0 0 10px 0;
     font-size: 16px;
-    color: #28a745;
+    color: var(--p-700);
 }
 
 .project-progress {
@@ -1475,7 +1481,7 @@ label {
 
 .progress-bar {
         height: 100%;
-        background: #28a745;
+        background: var(--p-700);
     }
 
     /* Badges para estados y prioridades */
@@ -1534,7 +1540,7 @@ label {
     border-radius: 0.35rem;
     color: #fff;
 }
-.due-ok { background-color: #28a745; }
+.due-ok { background-color: var(--p-700); }
 .due-soon { background-color: #f6c23e; color: #212529; }
 .due-overdue { background-color: #e74a3b; }
 
@@ -1607,17 +1613,17 @@ label {
 .main-content .dashboard-section:first-of-type { margin-top: 6px; }
 .main-content .dashboard-section:first-of-type h2 { margin-top: 6px; }
 .topbar{display:none!important}
-.worker-topbar{position:fixed;top:0;left:0;right:0;min-height:64px;background:rgba(255,255,255,0.9);backdrop-filter:saturate(125%) blur(8px);-webkit-backdrop-filter:saturate(125%) blur(8px);border-bottom:1px solid rgba(30,126,52,0.15);z-index:400}
+.worker-topbar{position:fixed;top:0;left:0;right:0;min-height:64px;background:rgba(255,255,255,0.9);backdrop-filter:saturate(125%) blur(8px);-webkit-backdrop-filter:saturate(125%) blur(8px);border-bottom:1px solid rgba(102,112,170,0.25);z-index:400}
 .wt-inner{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;gap:12px}
 .wt-left{display:flex;align-items:center;gap:12px}
-.wt-left h2{color:#1e7e34;font-size:1.1rem;line-height:1;margin:0}
+.wt-left h2{color:var(--p-700);font-size:1.1rem;line-height:1;margin:0}
 .wt-right{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex:1}
 .profile-btn{border:none;background:transparent;padding:2px;cursor:pointer}
 .avatar-circle{width:32px;height:32px;border-radius:50%;background:#1e7e34;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}
-.logout-link{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none}
+.logout-link{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--p-700);border-radius:999px;color:var(--p-700);text-decoration:none}
 .section-toolbar{position:sticky;top:0;z-index:300;display:flex;gap:10px;align-items:center;padding:6px 12px;background:transparent}
-.section-toolbar .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none}
+.section-toolbar .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--p-700);border-radius:999px;color:var(--p-700);text-decoration:none}
 .worker-topbar .sidebar-menu{list-style:none;display:flex;gap:10px;margin:0;padding:0;align-items:center}
-.worker-topbar .sidebar-menu a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #1e7e34;border-radius:999px;color:#1e7e34;text-decoration:none;line-height:1;font-size:0.95rem}
-.worker-topbar .sidebar-menu a:hover{background:#1e7e34;color:#fff}
-.worker-topbar .sidebar-menu a.active{background:#1b6e2e;color:#fff;border-color:#1b6e2e}
+.worker-topbar .sidebar-menu a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--p-700);border-radius:999px;color:var(--p-700);text-decoration:none;line-height:1;font-size:0.95rem}
+.worker-topbar .sidebar-menu a:hover{background:var(--p-700);color:#fff}
+.worker-topbar .sidebar-menu a.active{background:var(--p-800);color:#fff;border-color:var(--p-800)}

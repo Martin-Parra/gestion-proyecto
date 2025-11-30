@@ -717,38 +717,41 @@ $(document).ready(function() {
         });
     }
 
-    async function loadDocumentos(){
-        const tbody = document.querySelector('#tablaDocumentos tbody');
-        if (!tbody || !currentProject) return;
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
-        try {
-            const res = await fetch(`/api/proyectos/${currentProject.id}/documentos`);
-            const data = await res.json();
-            if (res.ok && data.success){
-                renderDocumentos(data.documentos || []);
-            } else {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No se pudieron cargar los documentos</td></tr>';
-            }
-        } catch(err){
-            console.error(err);
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error al cargar documentos</td></tr>';
-        }
-    }
+  async function loadDocumentos(){
+      const tbody = document.querySelector('#tablaDocumentos tbody');
+      if (!tbody || !currentProject) return;
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Cargando...</td></tr>';
+      try {
+          const res = await fetch(`/api/proyectos/${currentProject.id}/documentos`);
+          const data = await res.json();
+          if (res.ok && data.success){
+              renderDocumentos(data.documentos || []);
+          } else {
+              tbody.innerHTML = '<tr><td colspan="6" class="text-center">No se pudieron cargar los documentos</td></tr>';
+          }
+      } catch(err){
+          console.error(err);
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">Error al cargar documentos</td></tr>';
+      }
+  }
 
-    function renderDocumentos(docs){
-        const tbody = document.querySelector('#tablaDocumentos tbody');
-        if (!tbody) return;
-        if (!docs || docs.length === 0){
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin documentos</td></tr>';
-            return;
-        }
-        const rows = docs.map(doc => {
-            const fechaSub = doc.fecha_subida ? new Date(doc.fecha_subida).toLocaleString('es-ES') : '—';
-            const venc = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento) : null;
-            const vencHtml = venc ? getDueBadgeHtml(venc) : '<span class="badge">—</span>';
-            const nombre = doc.nombre_archivo || 'archivo';
-            return `
-                <tr>
+  function renderDocumentos(docs){
+      const tbody = document.querySelector('#tablaDocumentos tbody');
+      if (!tbody) return;
+      if (!docs || docs.length === 0){
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>';
+          return;
+      }
+      const rows = docs.map(doc => {
+          const fechaSub = doc.fecha_subida ? new Date(doc.fecha_subida).toLocaleString('es-ES') : '—';
+          const venc = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento) : null;
+          const vencHtml = venc ? getDueBadgeHtml(venc) : '<span class="badge">—</span>';
+          const nombre = doc.nombre_archivo || 'archivo';
+          return `
+                <tr data-id="${doc.id}">
+                    <td style="text-align:center;">
+                        <input type="checkbox" data-id="${doc.id}" />
+                    </td>
                     <td>${nombre}</td>
                     <td>${doc.subido_por || '—'}</td>
                     <td>${fechaSub}</td>
@@ -758,15 +761,23 @@ $(document).ready(function() {
                         <button class="btn btn-danger btn-sm" data-doc-id="${doc.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-            `;
-        }).join('');
-        tbody.innerHTML = rows;
-        // bind delete
-        $('#tablaDocumentos button[data-doc-id]').off('click').on('click', function(){
-            const id = this.getAttribute('data-doc-id');
-            confirmarEliminarDocumento(id);
-        });
-    }
+          `;
+      }).join('');
+      tbody.innerHTML = rows;
+      $('#tablaDocumentos button[data-doc-id]').off('click').on('click', function(){
+          const id = this.getAttribute('data-doc-id');
+          confirmarEliminarDocumento(id);
+      });
+      
+      const chkSelectAll = document.getElementById('chkDocsSelectAll');
+      if (chkSelectAll){
+        chkSelectAll.checked = false;
+        chkSelectAll.onchange = () => {
+          const checks = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-id]'));
+          checks.forEach(ch => { ch.checked = !!chkSelectAll.checked; });
+        };
+      }
+  }
 
     function confirmarEliminarDocumento(id){
         Swal.fire({
@@ -795,7 +806,7 @@ $(document).ready(function() {
         });
     }
 
-    function getDueBadgeHtml(dateObj){
+  function getDueBadgeHtml(dateObj){
         const today = new Date();
         const diffMs = dateObj.setHours(0,0,0,0) - today.setHours(0,0,0,0);
         const diffDays = Math.ceil(diffMs / (1000*60*60*24));
@@ -808,6 +819,40 @@ $(document).ready(function() {
         }
         return `<span class="due-badge ${cls}">${label}</span>`;
     }
+
+    const tablaDocumentos = document.getElementById('tablaDocumentos');
+    const btnDescTodos = document.getElementById('btnDescargarTodosDocs');
+    const btnDescSel = document.getElementById('btnDescargarSeleccionadosDocs');
+
+    function showInfo(title, text){
+      try{ if (typeof Swal !== 'undefined'){ Swal.fire({ icon:'info', title, text }); } else { alert(text || title); } }
+      catch(_){ alert(text || title); }
+    }
+
+    function triggerDownload(id){
+      const a = document.createElement('a');
+      a.href = `/api/documentos/${id}/download`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{ document.body.removeChild(a); }, 0);
+    }
+
+    btnDescTodos?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const tbody = tablaDocumentos?.querySelector('tbody');
+      const ids = Array.from(tbody?.querySelectorAll('tr[data-id]') || []).map(tr => tr.getAttribute('data-id'));
+      if (!ids.length){ return showInfo('Sin documentos', 'No hay archivos para descargar'); }
+      ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+    });
+
+    btnDescSel?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const tbody = tablaDocumentos?.querySelector('tbody');
+      const ids = Array.from(tbody?.querySelectorAll('input[type="checkbox"][data-id]:checked') || []).map(ch => ch.getAttribute('data-id'));
+      if (!ids.length){ return showInfo('Selecciona documentos', 'Marca uno o varios archivos para descargar'); }
+      ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+    });
 
     function logout() {
         Swal.fire({

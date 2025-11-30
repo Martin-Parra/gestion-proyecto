@@ -41,6 +41,20 @@ exports.login = (req, res) => {
                     rol: user.rol,
                     activo: user.activo
                 };
+                pool.query('UPDATE usuarios SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id], (e) => {
+                    if (e) {
+                        console.error('Error actualizando last_login:', e);
+                    } else {
+                        pool.query('SELECT last_login FROM usuarios WHERE id = ?', [user.id], (e2, r2) => {
+                            if (e2) {
+                                console.error('Error consultando last_login:', e2);
+                            } else {
+                                const v = r2 && r2[0] ? r2[0].last_login : null;
+                                console.log('Login: last_login actualizado para', user.id, '=>', v);
+                            }
+                        });
+                    }
+                });
                 
                 if (user.rol === 'ceo') {
                     console.log('Redirigiendo a dashboard CEO');

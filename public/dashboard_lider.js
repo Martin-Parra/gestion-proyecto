@@ -4,6 +4,20 @@
   const menuBtn = document.querySelector('.menu-toggle');
   const icon = menuBtn?.querySelector('i');
   let currentUser = null;
+  function formatDateTime(v){
+    if(!v) return '';
+    try{
+      const s = String(v).replace(' ', 'T');
+      let d = new Date(s);
+      if(isNaN(d)){
+        const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(v));
+        if (m){ d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])); }
+      }
+      if (isNaN(d)) return String(v);
+      const pad = (n)=>String(n).padStart(2,'0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(v); }
+  }
 
   function animateOpen(){
     if (window.anime) {
@@ -433,6 +447,41 @@
   // Documentos
   const tablaDocumentos = document.getElementById('tablaDocumentos');
   selProyectoDocs?.addEventListener('change', () => cargarDocumentos(selProyectoDocs.value));
+  const btnDescTodos = document.getElementById('btnDescargarTodosDocs');
+  const btnDescSel = document.getElementById('btnDescargarSeleccionadosDocs');
+  const chkSelectAll = document.getElementById('chkDocsSelectAll');
+  const showInfo = (title, text) => { try{ if (typeof Swal !== 'undefined'){ Swal.fire({ icon:'info', title, text }); } else { alert(text || title); } }catch(_){ alert(text || title); } };
+
+  function triggerDownload(id){
+    const a = document.createElement('a');
+    a.href = `/api/documentos/${id}/download`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); }, 0);
+  }
+
+  btnDescTodos?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const tbody = tablaDocumentos?.querySelector('tbody');
+    const ids = Array.from(tbody?.querySelectorAll('tr[data-id]') || []).map(tr => tr.getAttribute('data-id'));
+    if (!ids.length){ return showInfo('Sin documentos', 'No hay archivos para descargar'); }
+    ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+  });
+
+  btnDescSel?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const tbody = tablaDocumentos?.querySelector('tbody');
+    const ids = Array.from(tbody?.querySelectorAll('input[type="checkbox"][data-id]:checked') || []).map(ch => ch.getAttribute('data-id'));
+    if (!ids.length){ return showInfo('Selecciona documentos', 'Marca uno o varios archivos para descargar'); }
+    ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+  });
+
+  chkSelectAll?.addEventListener('change', ()=>{
+    const tbody = tablaDocumentos?.querySelector('tbody');
+    const checks = Array.from(tbody?.querySelectorAll('input[type="checkbox"][data-id]') || []);
+    checks.forEach(ch => { ch.checked = !!chkSelectAll.checked; });
+  });
   function cargarDocumentos(proyectoId){
     if (!proyectoId){
       const tbody = tablaDocumentos?.querySelector('tbody');
@@ -447,12 +496,16 @@
       const docs = d.success ? (d.documentos || []) : [];
       const tbody = tablaDocumentos?.querySelector('tbody');
       if (!tbody) return;
-      if (docs.length === 0){ tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin documentos</td></tr>'; return; }
+      if (docs.length === 0){ tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>'; return; }
       tbody.innerHTML = '';
       docs.forEach(doc => {
         const tr = document.createElement('tr');
+        tr.setAttribute('data-id', doc.id);
         tr.innerHTML = `
-          <td>${doc.nombre_archivo}</td>
+          <td style="text-align:center;">
+            <input type="checkbox" data-id="${doc.id}" aria-label="Seleccionar documento" />
+          </td>
+          <td>${escapeHtml(doc.nombre_archivo)}</td>
           <td>${doc.tipo}</td>
           <td>${(doc.tamano/1024).toFixed(1)} KB</td>
           <td>${doc.subido_por || '-'}</td>
@@ -462,6 +515,8 @@
           </td>`;
         tbody.appendChild(tr);
       });
+      // Al recibir lista, limpiar el estado del "Seleccionar todo"
+      if (chkSelectAll) chkSelectAll.checked = false;
       tbody.querySelectorAll('button[data-del]')?.forEach(btn => {
         btn.addEventListener('click', ()=>{
           const id = btn.getAttribute('data-del');
@@ -482,6 +537,8 @@
   const profileBtn = document.getElementById('profileBtn');
   profileBtn?.addEventListener('click', async () => {
     if (!currentUser){ await loadUser(); }
+    const last = currentUser?.last_login ? formatDateTime(currentUser.last_login) : '—';
+    console.debug('Líder perfil: last_login (raw):', currentUser?.last_login, '| (fmt):', last);
     const html = `
       <div style="display:grid; grid-template-columns: 140px 1fr; gap: 16px; align-items:start;">
         <div style="display:grid; gap:10px; justify-items:center;">
@@ -492,6 +549,7 @@
         <div>
           <div class="form-group" style="margin-bottom:12px;"><label style="font-weight:600;color:#363955;">Nombre</label><input id="swPerfilNombre" class="form-control" value="${currentUser?.nombre||''}" /></div>
           <div class="form-group"><label style="font-weight:600;color:#363955;">Correo</label><input id="swPerfilEmail" class="form-control" value="${currentUser?.email||''}" /></div>
+          <div class="form-group"><label style="font-weight:600;color:#363955;">Último ingreso</label><input id="swPerfilLastLogin" class="form-control" value="${last}" disabled /></div>
         </div>
       </div>`;
     const result = await Swal.fire({ title: 'Mi Perfil', html, width: 600, showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar', focusConfirm: false, didOpen: async () => {

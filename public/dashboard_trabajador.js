@@ -4,6 +4,21 @@ let currentProject = null;
 let allTasks = [];
 let currentFilter = 'todas';
 
+function formatDateTime(v){
+    if(!v) return '';
+    try{
+        const s = String(v).replace(' ', 'T');
+        let d = new Date(s);
+        if(isNaN(d)){
+            const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(v));
+            if (m){ d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])); }
+        }
+        if (isNaN(d)) return String(v);
+        const pad = (n)=>String(n).padStart(2,'0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(v); }
+}
+
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
@@ -144,6 +159,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentUser) {
             perfilNombre.value = currentUser.nombre || '';
             perfilEmail.value = currentUser.email || '';
+            const lastLoginEl = document.getElementById('perfilLastLogin');
+            if (lastLoginEl) {
+                const raw = currentUser.last_login;
+                const fmt = raw ? formatDateTime(raw) : '—';
+                console.debug('Trabajador perfil: last_login (raw):', raw, '| (fmt):', fmt);
+                lastLoginEl.value = fmt;
+            }
             const url = currentUser.avatar_url;
             if (perfilAvatarPreview) {
                 if (url) {

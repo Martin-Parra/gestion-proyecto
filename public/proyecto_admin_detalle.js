@@ -236,7 +236,7 @@
     const tbody = document.querySelector('#tablaDocumentos tbody');
     if (!tbody) return;
     if (!docs || docs.length === 0){
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin documentos</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>';
       return;
     }
     const rows = docs.map(doc => {
@@ -244,7 +244,10 @@
       const vencHtml = doc.fecha_vencimiento ? getDueBadgeHtml(new Date(doc.fecha_vencimiento)) : '<span class="badge badge-secondary">—</span>';
       const nombre = doc.nombre_archivo || 'archivo';
       return `
-        <tr>
+        <tr data-id="${doc.id}">
+          <td style="text-align:center;">
+            <input type="checkbox" data-id="${doc.id}" />
+          </td>
           <td>${nombre}</td>
           <td>${doc.subido_por || '—'}</td>
           <td>${fechaSub}</td>
@@ -264,6 +267,16 @@
       });
     });
 
+    // Bind select-all
+    const chkSelectAll = document.getElementById('chkDocsSelectAll');
+    if (chkSelectAll){
+      chkSelectAll.checked = false;
+      chkSelectAll.onchange = () => {
+        const checks = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-id]'));
+        checks.forEach(ch => { ch.checked = !!chkSelectAll.checked; });
+      };
+    }
+
     // Animar sección al completar render
     const section = document.getElementById('proyectoDocumentos');
     if (section){ section.classList.remove('enter'); void section.offsetWidth; section.classList.add('enter'); }
@@ -271,7 +284,7 @@
 
   function cargarDocumentos(){
     const tbody = document.querySelector('#tablaDocumentos tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Cargando...</td></tr>';
     if (!currentProjectId) return;
     return fetch(`/api/proyectos/${currentProjectId}/documentos`)
       .then(r => r.json())
@@ -281,14 +294,51 @@
         } else {
           const msg = (data && (data.error || data.message)) || 'No se pudieron cargar';
           Swal.fire('Error', msg, 'error');
-          if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Error</td></tr>';
         }
       })
       .catch(err => {
         console.error('Error cargando documentos:', err);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Error</td></tr>';
       });
   }
+
+  // Descargas múltiples
+  function showInfo(title, text){
+    try{ if (typeof Swal !== 'undefined'){ Swal.fire({ icon:'info', title, text }); } else { alert(text || title); } }
+    catch(_){ alert(text || title); }
+  }
+
+  function triggerDownload(id){
+    const a = document.createElement('a');
+    a.href = `/api/documentos/${id}/download`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); }, 0);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tablaDocumentos = document.getElementById('tablaDocumentos');
+    const btnDescTodos = document.getElementById('btnDescargarTodosDocs');
+    const btnDescSel = document.getElementById('btnDescargarSeleccionadosDocs');
+
+    btnDescTodos?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const tbody = tablaDocumentos?.querySelector('tbody');
+      const ids = Array.from(tbody?.querySelectorAll('tr[data-id]') || []).map(tr => tr.getAttribute('data-id'));
+      if (!ids.length){ return showInfo('Sin documentos', 'No hay archivos para descargar'); }
+      ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+    });
+
+    btnDescSel?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const tbody = tablaDocumentos?.querySelector('tbody');
+      const ids = Array.from(tbody?.querySelectorAll('input[type="checkbox"][data-id]:checked') || []).map(ch => ch.getAttribute('data-id'));
+      if (!ids.length){ return showInfo('Selecciona documentos', 'Marca uno o varios archivos para descargar'); }
+      ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+    });
+  });
 
   function eliminarDocumento(id){
     Swal.fire({
