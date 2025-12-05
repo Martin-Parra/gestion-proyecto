@@ -4,6 +4,7 @@ let currentProject = null;
 let allTasks = [];
 let currentFilter = 'todas';
 let charts = { tareas: null, documentos: null, colaboradores: null };
+let projectsData = [];
 
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
@@ -303,6 +304,14 @@ function setupEventListeners() {
     if (btnCerrarDetalle) {
         btnCerrarDetalle.addEventListener('click', cerrarProyectoDetalle);
     }
+
+    // Controles de Mi Proyecto
+    const buscarEl = document.getElementById('buscarProyecto');
+    const filtrarEl = document.getElementById('filtrarProyectoEstado');
+    const ordenarEl = document.getElementById('ordenarProyecto');
+    buscarEl && buscarEl.addEventListener('input', renderProjectCards);
+    filtrarEl && filtrarEl.addEventListener('change', renderProjectCards);
+    ordenarEl && ordenarEl.addEventListener('change', renderProjectCards);
 }
 
 // Mostrar sección específica (similar al admin)
@@ -338,6 +347,8 @@ function showSection(sectionName) {
         cargarDashboardTrabajador();
     } else if (sectionName === 'mi-proyecto') {
         loadProjectInfo();
+        const ts = document.getElementById('miProyectoTime');
+        if (ts) { ts.innerHTML = `<i class="far fa-clock"></i> ${new Date().toLocaleString('es-ES')}`; }
     } else if (sectionName === 'mis-tareas') {
         loadTasks();
     }
@@ -413,24 +424,9 @@ async function loadProjectInfo() {
         }
         const data = await response.json();
         if (data.success && Array.isArray(data.proyectos) && data.proyectos.length > 0) {
-            updateStatCards(data.proyectos.length);
-            grid.innerHTML = '';
-            data.proyectos.forEach((proyecto) => {
-                const card = document.createElement('div');
-                card.className = 'project-card';
-                const porcentaje = Number(proyecto.porcentaje_avance || 0);
-                card.innerHTML = `
-                    <h4>${proyecto.nombre || 'Proyecto'}</h4>
-                    <div class="project-progress">
-                        <div class="progress"><div class="progress-bar" style="width:${porcentaje}%"></div></div>
-                        <span>${porcentaje}%</span>
-                    </div>
-                `;
-                card.addEventListener('click', () => {
-                    window.location.href = `/proyecto-detalle?id=${proyecto.id}`;
-                });
-                grid.appendChild(card);
-            });
+            projectsData = data.proyectos;
+            updateStatCards(projectsData.length);
+            renderProjectCards();
         } else {
             updateStatCards(0);
             grid.innerHTML = `
@@ -451,6 +447,80 @@ async function loadProjectInfo() {
             </div>
         `;
     }
+}
+
+function renderProjectCards(){
+    const grid = document.getElementById('proyectoGrid');
+    if (!grid) return;
+    const q = (document.getElementById('buscarProyecto')?.value||'').toLowerCase();
+    const estadoFilter = document.getElementById('filtrarProyectoEstado')?.value || 'todos';
+    const ordenar = document.getElementById('ordenarProyecto')?.value || 'nombre';
+    let items = Array.isArray(projectsData) ? projectsData.slice() : [];
+    if (q){ items = items.filter(p=>String(p.nombre||'').toLowerCase().includes(q)); }
+    if (estadoFilter !== 'todos'){ items = items.filter(p=>String(p.estado||'').toLowerCase()===estadoFilter); }
+    items.sort((a,b)=>{
+        if (ordenar==='avance'){ return Number(b.porcentaje_avance||0) - Number(a.porcentaje_avance||0); }
+        if (ordenar==='fecha_fin'){ const af=a.fecha_fin?new Date(a.fecha_fin).getTime():0; const bf=b.fecha_fin?new Date(b.fecha_fin).getTime():0; return af-bf; }
+        const na = String(a.nombre||''); const nb = String(b.nombre||''); return na.localeCompare(nb);
+    });
+    grid.innerHTML = '';
+    items.forEach(proyecto => {
+        const pct = Number(proyecto.porcentaje_avance||0);
+        const estado = String(proyecto.estado||'pendiente');
+        let dias = '';
+        try{ if (proyecto.fecha_fin){ const diff = new Date(proyecto.fecha_fin).getTime()-Date.now(); dias = Math.ceil(diff/ (1000*60*60*24)); } }catch{}
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+            <h4 class="project-title">${proyecto.nombre || 'Proyecto'}</h4>
+            <div class="status-pill">${formatStatus(estado)}</div>
+            <div class="project-progress" aria-label="Avance">
+                <div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div>
+                <span>${pct}%</span>
+            </div>
+            <div class="project-meta" id="meta-${proyecto.id}">
+                ${dias!==''?`<div class="meta-line"><div class="meta-label">${dias>=0?`Restan ${dias} días`:`Vencido`}</div><div class="meta-bar"><span style="width:${Math.min(Math.max((100-Math.max(dias,0)),5),100)}%"></span></div></div>`:''}
+                <div class="meta-line"><div class="meta-label" id="txt-t-${proyecto.id}">Tareas: —</div><div class="meta-bar"><span id="bar-t-${proyecto.id}"></span></div></div>
+                <div class="meta-line"><div class="meta-label" id="txt-c-${proyecto.id}">Completadas: —</div><div class="meta-bar"><span id="bar-c-${proyecto.id}"></span></div></div>
+                <div class="meta-line"><div class="meta-label" id="txt-d-${proyecto.id}">Docs: —</div><div class="meta-bar"><span id="bar-d-${proyecto.id}"></span></div></div>
+                <div class="meta-line"><div class="meta-label" id="txt-e-${proyecto.id}">Equipo: —</div><div class="meta-bar"><span id="bar-e-${proyecto.id}"></span></div></div>
+            </div>
+        `;
+        card.addEventListener('click', ()=>{ window.location.href = `/proyecto-detalle?id=${proyecto.id}`; });
+        grid.appendChild(card);
+        hydrateProjectMeta(proyecto.id);
+    });
+}
+
+function hydrateProjectMeta(proyectoId){
+    fetch(`/api/trabajador/proyecto/${proyectoId}`, { credentials:'include' })
+      .then(r=>r.json()).then(d=>{
+        const tareas = Array.isArray(d.tareas)?d.tareas:[];
+        const equipo = Array.isArray(d.equipo)?d.equipo:[];
+        const tot = tareas.length;
+        const comp = tareas.filter(t=>String(t.estado).toLowerCase()==='completada').length;
+        const eq = equipo.length;
+        const txtT = document.getElementById(`txt-t-${proyectoId}`);
+        const txtC = document.getElementById(`txt-c-${proyectoId}`);
+        const txtE = document.getElementById(`txt-e-${proyectoId}`);
+        if (txtT) txtT.textContent = `Tareas: ${tot}`;
+        if (txtC) txtC.textContent = `Completadas: ${comp}`;
+        if (txtE) txtE.textContent = `Equipo: ${eq}`;
+        const barT = document.getElementById(`bar-t-${proyectoId}`);
+        const barC = document.getElementById(`bar-c-${proyectoId}`);
+        const barE = document.getElementById(`bar-e-${proyectoId}`);
+        if (barT) barT.style.width = `${Math.min(Math.max(tot*10, 8), 100)}%`;
+        if (barC) barC.style.width = `${Math.min(Math.max(comp*12, 8), 100)}%`;
+        if (barE) barE.style.width = `${Math.min(Math.max(eq*15, 8), 100)}%`;
+      }).catch(()=>{});
+    fetch(`/api/proyectos/${proyectoId}/documentos`, { credentials:'include' })
+      .then(r=>r.json()).then(docs=>{
+        const list = Array.isArray(docs.documentos)?docs.documentos:[];
+        const txtD = document.getElementById(`txt-d-${proyectoId}`);
+        const barD = document.getElementById(`bar-d-${proyectoId}`);
+        if (txtD) txtD.textContent = `Docs: ${list.length}`;
+        if (barD) barD.style.width = `${Math.min(Math.max(list.length*10, 8), 100)}%`;
+      }).catch(()=>{});
 }
 
 // Función para abrir detalles del proyecto
@@ -934,13 +1004,14 @@ function formatStatus(status) {
     const statusMap = {
         'pendiente': 'Pendiente',
         'en_progreso': 'En Progreso',
+        'en_ejecucion': 'En ejecuccion',
         'completada': 'Completada',
         'activo': 'Activo',
         'completado': 'Completado',
         'pausado': 'Pausado'
     };
     
-    return statusMap[status] || status;
+    return statusMap[status] || String(status || '').replace(/_/g,' ');
 }
 
 // Renderizar gráfico reutilizable (soporta plugin opcional)

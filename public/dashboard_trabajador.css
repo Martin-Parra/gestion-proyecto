@@ -108,7 +108,7 @@ body {
 .menu-bubble{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;line-height:20px;text-align:center;margin-left:6px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:700;vertical-align:middle;padding:0;box-sizing:border-box}
 
 .main-content {
-    margin-left: 250px;
+    margin-left: 0;
     padding: 1.5rem;
     min-height: 100vh;
     background: #f8f9fc;
@@ -639,32 +639,16 @@ label {
 }
 
 /* ---- Tarjetas de proyectos y progreso ---- */
-.projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
-}
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 
-.project-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    padding: 16px;
-    cursor: pointer;
-    transition: transform .1s ease, box-shadow .1s ease;
-    border-left: 0.25rem solid var(--p-700);
-}
-
+.project-card { background:#fff; border-radius:12px; box-shadow:0 6px 18px rgba(17,24,39,0.08); padding:16px; cursor:pointer; transition:transform .2s ease, box-shadow .2s ease; border:1px solid #e5e7eb; }
 .project-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    box-shadow: 0 10px 22px rgba(17,24,39,0.12);
 }
-
-.project-card h4 {
-    margin: 0 0 10px 0;
-    font-size: 16px;
-    color: var(--p-700);
-}
+.project-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.project-title{margin:0;font-size:1rem;color:#111827;font-weight:600}
+.project-badge{background:#eef2ff;color:#363955;border-radius:999px;padding:4px 10px;font-weight:700}
 
 .project-progress {
     display: flex;
@@ -672,18 +656,21 @@ label {
     gap: 8px;
 }
 
-.progress {
-    width: 100%;
-    height: 8px;
-    background: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-}
+.progress{width:100%;height:8px;background:#e9ecef;border-radius:999px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,#4e73df,#5A609B);}
 
-.progress-bar {
-        height: 100%;
-        background: var(--p-700);
-    }
+/* Toolbar de proyectos */
+.projects-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.project-meta{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.meta-line{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:10px}
+.meta-label{font-size:.85rem;color:#374151}
+.meta-bar{height:8px;background:#edf2f7;border-radius:999px;overflow:hidden}
+.meta-bar > span{display:block;height:100%;background:#5A609B;width:0;transition:width .3s ease}
+.projects-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.projects-toolbar .toolbar-spacer{flex:1}
+.section-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.section-time{display:inline-flex;align-items:center;gap:6px;color:#374151;background:#eef2ff;border:1px solid #e5e7eb;padding:6px 10px;border-radius:999px;font-weight:600}
+.section-time i{color:#5A609B}
 
     /* Badges para estados y prioridades */
     .badge {
@@ -1638,3 +1625,6 @@ label {
 .worker-topbar .sidebar-menu a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--p-700);border-radius:999px;color:var(--p-700);text-decoration:none;line-height:1;font-size:0.95rem}
 .worker-topbar .sidebar-menu a:hover{background:var(--p-700);color:#fff}
 .worker-topbar .sidebar-menu a.active{background:var(--p-800);color:#fff;border-color:var(--p-800)}
+.project-title{margin:0;text-align:center;font-size:1rem;color:#111827;font-weight:600}
+.status-pill{display:block;width:fit-content;margin:8px auto;background:#eef2ff;color:#363955;border-radius:999px;padding:6px 12px;font-weight:700;text-align:center}
+.project-time{margin-top:6px;text-align:right;color:#6b7280;font-size:.8rem}
