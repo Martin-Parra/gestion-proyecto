@@ -3,41 +3,12 @@ let currentUser = null;
 let currentProject = null;
 let allTasks = [];
 let currentFilter = 'todas';
-
-function formatDateTime(v){
-    if(!v) return '';
-    try{
-        const s = String(v).replace(' ', 'T');
-        let d = new Date(s);
-        if(isNaN(d)){
-            const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(v));
-            if (m){ d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])); }
-        }
-        if (isNaN(d)) return String(v);
-        const pad = (n)=>String(n).padStart(2,'0');
-        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }catch(_){ return String(v); }
-}
+let charts = { tareas: null, documentos: null, colaboradores: null };
 
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     setupEventListeners();
-
-    function updateTopCorreoBadge(){
-        const el = document.getElementById('topCorreoBadge');
-        if (!el) return;
-        fetch('/api/correos/unread_count')
-            .then(r=>r.json())
-            .then(d=>{
-                const cnt = Number((d && d.count) || 0);
-                if (cnt > 0){ el.textContent = String(cnt); el.style.display = 'inline-block'; }
-                else { el.style.display = 'none'; }
-            })
-            .catch(()=>{});
-    }
-    updateTopCorreoBadge();
-    setInterval(updateTopCorreoBadge, 30000);
 
     // --- Toggle del menú en el topbar ---
     const topbar = document.querySelector('.topbar');
@@ -159,13 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentUser) {
             perfilNombre.value = currentUser.nombre || '';
             perfilEmail.value = currentUser.email || '';
-            const lastLoginEl = document.getElementById('perfilLastLogin');
-            if (lastLoginEl) {
-                const raw = currentUser.last_login;
-                const fmt = raw ? formatDateTime(raw) : '—';
-                console.debug('Trabajador perfil: last_login (raw):', raw, '| (fmt):', fmt);
-                lastLoginEl.value = fmt;
-            }
             const url = currentUser.avatar_url;
             if (perfilAvatarPreview) {
                 if (url) {
@@ -310,6 +274,7 @@ function setupEventListeners() {
             if (section) {
                 e.preventDefault();
                 showSection(section);
+                if (section === 'dashboard') { cargarDashboardTrabajador(); }
             }
         });
     });
@@ -368,7 +333,10 @@ function showSection(sectionName) {
     localStorage.setItem('activeDashboardSection', sectionName);
     
     // Cargar contenido específico según la sección
-    if (sectionName === 'mi-proyecto') {
+    if (sectionName === 'dashboard') {
+        // datos del dashboard
+        cargarDashboardTrabajador();
+    } else if (sectionName === 'mi-proyecto') {
         loadProjectInfo();
     } else if (sectionName === 'mis-tareas') {
         loadTasks();
@@ -382,10 +350,11 @@ async function initializeDashboard() {
     try {
         await loadUserInfo();
         // Restaurar la sección activa desde localStorage o usar la primera por defecto
-        const savedSection = localStorage.getItem('activeDashboardSection');
-        const defaultSection = 'mi-proyecto';
-        const sectionToShow = savedSection && document.getElementById(savedSection) ? savedSection : defaultSection;
-        showSection(sectionToShow);
+    const savedSection = localStorage.getItem('activeDashboardSection');
+    const defaultSection = 'dashboard';
+    const sectionToShow = savedSection && document.getElementById(savedSection) ? savedSection : defaultSection;
+    showSection(sectionToShow);
+    if (sectionToShow === 'dashboard') { cargarDashboardTrabajador(); }
     } catch (error) {
         console.error('Error al inicializar dashboard:', error);
         Swal.fire({
@@ -972,4 +941,82 @@ function formatStatus(status) {
     };
     
     return statusMap[status] || status;
+}
+
+// Renderizar gráfico reutilizable (soporta plugin opcional)
+function renderChart(key, canvasId, type, data, options, plugin){
+    try{
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || typeof Chart==='undefined') return;
+        if (charts[key]) charts[key].destroy();
+        charts[key] = new Chart(ctx, { type, data, options: Object.assign({ responsive:true, maintainAspectRatio:false }, options||{}), plugins: plugin ? [plugin] : [] });
+    }catch(_){ }
+}
+
+// Cargar datos y dibujar dashboard del trabajador
+async function cargarDashboardTrabajador(){
+    try{
+        const [proyRes, taskRes] = await Promise.all([
+            fetch('/api/trabajador/proyectos', { credentials: 'include' }),
+            fetch('/api/trabajador/tareas', { credentials: 'include' })
+        ]);
+        const proyData = await proyRes.json().catch(()=>({}));
+        const taskData = await taskRes.json().catch(()=>({}));
+        const proyectos = Array.isArray(proyData.proyectos) ? proyData.proyectos : [];
+        const tareas = Array.isArray(taskData.tareas) ? taskData.tareas : [];
+        const totalCompletadas = tareas.filter(t=>String(t.estado).toLowerCase()==='completada').length;
+        const statProy = document.getElementById('statTrabProyectos');
+        const statTask = document.getElementById('statTrabTareas');
+        const statComp = document.getElementById('statTrabCompletadas');
+        if (statProy) statProy.textContent = String(proyectos.length);
+        if (statTask) statTask.textContent = String(tareas.length);
+        if (statComp) statComp.textContent = String(totalCompletadas);
+
+        const estadosMap = { pendiente:0, en_progreso:0, revisando:0, completada:0 };
+        tareas.forEach(t=>{ const e = String(t.estado||'').toLowerCase(); if (e in estadosMap) estadosMap[e]++; });
+        renderChart('tareas', 'chartTrabTareasEstados', 'bar', {
+            labels: ['Por hacer','En progreso','Revisando','Completadas'],
+            datasets: [{ label:'Tareas', data:[estadosMap.pendiente, estadosMap.en_progreso, estadosMap.revisando, estadosMap.completada], backgroundColor:['#f6c23e','#36b9cc','#858796','#1cc88a'] }]
+        }, { plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1, callback:(v)=>Number.isInteger(v)?v:'' } } } });
+
+        const ids = proyectos.map(p=>p.id);
+        const docsByProj = await Promise.all(ids.map(id=>fetch(`/api/proyectos/${id}/documentos`, { credentials:'include' }).then(r=>r.json()).catch(()=>({}))))
+        const ahora = Date.now();
+        let totalDocs = 0, soon = 0, overdue = 0;
+        docsByProj.forEach(d=>{
+            const list = Array.isArray(d.documentos)?d.documentos:[];
+            totalDocs += list.length;
+            list.forEach(doc=>{
+                const fv = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento).getTime() : null;
+                if (fv){
+                    const diff = fv - ahora;
+                    if (diff < 0) overdue++; else if (diff <= 1000*60*60*24*7) soon++;
+                }
+            });
+        });
+        const centerTextPlugin = { id:'centerText', afterDraw(chart){ const {ctx, chartArea:{left,right,top,bottom}} = chart; const cx=(left+right)/2; const cy=(top+bottom)/2; const total=(chart.data.datasets[0].data||[]).reduce((a,b)=>a+Number(b||0),0); ctx.save(); ctx.fillStyle='#363955'; ctx.font='bold 16px Segoe UI, Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(String(total), cx, cy); ctx.restore(); } };
+        renderChart('documentos', 'chartTrabDocumentos', 'doughnut', {
+            labels:['Total','Vencen pronto','Vencidos'],
+            datasets:[{ data:[totalDocs, soon, overdue], backgroundColor:['#4e73df','#f6c23e','#e74a3b'] }]
+        }, { plugins:{ legend:{ position:'bottom' } } }, centerTextPlugin);
+        const docsMeta = document.getElementById('docsMeta');
+        if (docsMeta){ docsMeta.innerHTML = `<span class="badge">Total: ${totalDocs}</span><span class="badge">Vencen pronto: ${soon}</span><span class="badge">Vencidos: ${overdue}</span>`; }
+
+        const collabNames = new Set();
+        await Promise.all(ids.map(id=>fetch(`/api/asignaciones?proyecto_id=${id}`, { credentials:'include' }).then(r=>r.json()).then(d=>{ const list = Array.isArray(d.asignaciones)?d.asignaciones:[]; list.forEach(a=>{ if (a.usuario_nombre) collabNames.add(a.usuario_nombre); }); }).catch(()=>{})));
+        const collabList = Array.from(collabNames);
+        const palette = ['#5A609B','#36b9cc','#f6c23e','#1cc88a','#e74a3b','#858796','#4e73df','#9CA3AF'];
+        const colors = collabList.map((_,i)=>palette[i%palette.length]);
+        renderChart('colaboradores', 'chartTrabColaboradores', 'doughnut', {
+            labels: collabList,
+            datasets:[{ data: collabList.map(()=>1), backgroundColor: colors }]
+        }, { plugins:{ legend:{ position:'bottom' } } });
+        const collabMeta = document.getElementById('collabMeta');
+        if (collabMeta){
+            if (collabList.length === 0){ collabMeta.textContent = 'Sin colaboradores'; }
+            else { collabMeta.innerHTML = '<ul class="legend-list">'+collabList.map((n,i)=>`<li><span class="legend-dot" style="background:${colors[i]}"></span>${n}</li>`).join('')+'</ul>'; }
+        }
+        const statColab = document.getElementById('statTrabColaboradores');
+        if (statColab) statColab.textContent = String(collabList.length);
+    }catch(err){ console.error('Dashboard trabajador:', err); }
 }

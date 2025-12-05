@@ -218,6 +218,17 @@ section h2::after {
     border-left-color: var(--p-700);
 }
 
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.chart-card { margin: 0; }
+.chart-box { position: relative; height: 280px; }
+@media (max-width: 768px){ .chart-box { height: 220px; } }
+.chart-meta{margin-top:10px;font-size:0.9rem;color:#858796;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;align-items:center}
+.chart-meta .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#363955;margin-right:6px}
+/* Leyenda colaboradores */
+.legend-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px;padding:0}
+.legend-list li{list-style:none;background:#eef2ff;color:#363955;border-radius:999px;padding:6px 10px;font-size:0.9rem;display:flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
 .stat-card h3 {
     color: #5a5c69;
     font-size: 0.875rem;

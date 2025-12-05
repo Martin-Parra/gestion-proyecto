@@ -11,6 +11,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <header class="worker-topbar">
@@ -18,8 +19,9 @@
             <div class="wt-left">
                 <h2>TRABAJADOR</h2>
                 <ul class="sidebar-menu">
-                    <li><a href="#mi-proyecto" data-section="mi-proyecto" class="active">Mi Proyecto</a></li>
-                    <li><a href="/correo">Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
+                    <li><a href="#dashboard" data-section="dashboard" class="active">Dashboard</a></li>
+                    <li><a href="#mi-proyecto" data-section="mi-proyecto">Mi Proyecto</a></li>
+                    <li><a href="/correo">Correo</a></li>
                 </ul>
             </div>
             <div class="wt-right">
@@ -30,27 +32,53 @@
     </header>
     
     <main class="main-content">
+        <section id="dashboard" class="dashboard-section">
+            <h2>Dashboard</h2>
+            <div class="stat-cards">
+                <div class="stat-card primary">
+                    <h3><i class="fas fa-diagram-project"></i> Proyectos</h3>
+                    <h2 id="statTrabProyectos">0</h2>
+                </div>
+                <div class="stat-card success">
+                    <h3><i class="fas fa-tasks"></i> Tareas</h3>
+                    <h2 id="statTrabTareas">0</h2>
+                </div>
+                <div class="stat-card info">
+                    <h3><i class="fas fa-check-circle"></i> Completadas</h3>
+                    <h2 id="statTrabCompletadas">0</h2>
+                </div>
+                <div class="stat-card warning">
+                    <h3><i class="fas fa-users"></i> Colaboradores</h3>
+                    <h2 id="statTrabColaboradores">0</h2>
+                </div>
+            </div>
+            <div class="charts-grid">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Tareas por estado</h3>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="chartTrabTareasEstados"></canvas></div></div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-doughnut"></i> Documentos</h3>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="chartTrabDocumentos"></canvas></div><div class="chart-meta" id="docsMeta"></div></div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-users"></i> Colaboradores</h3>
+                    </div>
+                    <div class="card-body"><div class="chart-box"><canvas id="chartTrabColaboradores"></canvas></div><div class="chart-meta" id="collabMeta"></div></div>
+                </div>
+            </div>
+        </section>
+
         <!-- Sección Mis Proyectos -->
         <section id="mi-proyecto" class="dashboard-section">
             <h2>Mis Proyectos Asignados</h2>
             
-            <!-- Tarjetas de Estadísticas -->
-            <div class="stat-cards">
-                <div class="stat-card primary">
-                    <h3><i class="fas fa-project-diagram"></i> Mis Proyectos</h3>
-                    <h2 id="miProyecto">0</h2>
-                </div>
-                
-                <div class="stat-card success">
-                    <h3><i class="fas fa-tasks"></i> Mis Tareas</h3>
-                    <h2 id="misTareas">0</h2>
-                </div>
-                
-                <div class="stat-card info">
-                    <h3><i class="fas fa-check-circle"></i> Completadas</h3>
-                    <h2 id="tareasCompletadas">0</h2>
-                </div>
-            </div>
+            
             
             <!-- Tarjeta de Proyectos Asignados -->
             <div class="card mb-4">
@@ -171,10 +199,6 @@
                     <div class="form-group">
                         <label for="perfilEmail"><i class="fas fa-envelope"></i> Correo</label>
                         <input type="email" id="perfilEmail" class="form-control" placeholder="tu@correo.com" />
-                    </div>
-                    <div class="form-group">
-                        <label for="perfilLastLogin"><i class="fas fa-clock"></i> Último ingreso</label>
-                        <input type="text" id="perfilLastLogin" class="form-control" placeholder="—" disabled />
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="cancelarPerfil">Cancelar</button>
