@@ -521,7 +521,8 @@ body {
     border-radius: 15px;
     font-size: 0.8rem;
     font-weight: 500;
-    cursor: pointer;
+    cursor: default;
+    pointer-events: none;
     transition: all 0.3s ease;
     border: none;
     outline: none;
@@ -543,8 +544,8 @@ body {
 }
 
 .task-status:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transform: none;
+    box-shadow: none;
 }
 
 /* Loading Message */
@@ -1455,3 +1456,10 @@ body {
   align-items: center; 
 }
 .meta-badge.dates .date-item { white-space: nowrap; }
+.sw-popup{border-radius:16px}
+#swal2-html-container .sw-request{display:grid;gap:12px}
+#swal2-html-container .sw-request .sw-header{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--p-800);background:linear-gradient(180deg, rgba(120,134,185,.10) 0%, rgba(102,112,170,.10) 100%);border:1px solid #e5e7eb;border-radius:12px;padding:10px}
+#swal2-html-container .sw-request .form-row{display:grid;grid-template-columns:100px 1fr;align-items:center;gap:10px}
+#swal2-html-container .sw-request .form-control{border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px}
+#swal2-html-container .sw-request .form-row label{font-weight:600;color:#374151}
+#swal2-html-container .sw-request .form-row .form-control:focus{outline:none;border-color:#c7d2fe;box-shadow:0 0 0 3px rgba(199,210,254,.4)}

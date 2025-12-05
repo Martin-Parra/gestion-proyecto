@@ -106,3 +106,12 @@ input[type="file"].form-control:hover::file-selector-button{background:var(--pri
 
 /* Estado leído */
 tr.unread td{font-weight:600}
+.mail-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.mail-title{font-size:1.1rem;font-weight:700;color:#111827;margin-bottom:6px}
+.mail-meta{color:#4b5563;margin-bottom:10px}
+.mail-body{color:#1f2937;line-height:1.6}
+.mail-date{margin-top:10px}
+.action-panel{margin-top:16px}
+.action-box{border:1px dashed #c7d2fe;background:#f8fafc;border-radius:12px;padding:14px}
+.action-box h4{margin:0 0 8px 0;color:#111827}
+.action-box .actions{margin-top:10px}

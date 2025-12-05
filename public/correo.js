@@ -92,6 +92,71 @@
         ${adjHtml}
         <div class=\"muted\" style=\"margin-top:10px;color:#6b7280\">${fecha}</div>
       `;
+      // Acción especial: solicitud de estado de proyecto
+      try {
+        const marker = String(m.cuerpo||'').match(/\[\[REQUEST_PROJECT_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);
+        const role = (state.user?.rol||'').toLowerCase();
+        if (marker && role === 'jefe_proyecto'){
+          const projectId = marker[1];
+          const nuevoEstado = marker[2];
+          const requesterEmail = marker[3] || '';
+          const labels = { en_ejecucion:'En ejecución', en_pausa:'En pausa', finalizado:'Finalizado' };
+          const panel = document.createElement('div');
+          panel.className = 'action-panel';
+          panel.innerHTML = `
+            <div class="action-box">
+              <h4><i class="fas fa-flag"></i> Solicitud de estado de proyecto</h4>
+              <p>Aplicar estado: <strong>${labels[nuevoEstado]||nuevoEstado}</strong> al proyecto #${projectId}.</p>
+              <div class="actions">
+                <button id="btnAplicarEstado" class="btn btn-primary"><i class="fas fa-check"></i> Aplicar y notificar</button>
+              </div>
+            </div>`;
+          cont.appendChild(panel);
+          document.getElementById('btnAplicarEstado')?.addEventListener('click', async ()=>{
+            try {
+              const upd = await fetch(`/api/proyectos/${encodeURIComponent(projectId)}/estado`, { method:'PUT', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ estado: nuevoEstado }) });
+              const updData = await upd.json().catch(()=>({}));
+              if (!upd.ok || !updData.success){ throw new Error(updData.message||'No se pudo actualizar el estado'); }
+              // Notificar al solicitante por correo
+              if (requesterEmail){
+                const fd = new FormData();
+                fd.append('to_emails', requesterEmail);
+                fd.append('asunto', `Estado del proyecto actualizado (#${projectId})`);
+                fd.append('cuerpo', `El estado del proyecto ha sido actualizado a "${labels[nuevoEstado]||nuevoEstado}".`);
+                await fetch('/api/correos', { method:'POST', body: fd }).catch(()=>{});
+              }
+              alert('Estado aplicado y notificación enviada');
+              load('inbox');
+            } catch (e) {
+              alert(String(e.message||e));
+            }
+          });
+        }
+        // Acción especial: solicitud de estado de tarea
+        const tMarker = String(m.cuerpo||'').match(/\[\[REQUEST_TASK_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);
+        if (tMarker && role === 'jefe_proyecto'){
+          const projectId = tMarker[1];
+          const tareaId = tMarker[2];
+          const solicitado = tMarker[3];
+          const requesterEmail = tMarker[4] || '';
+          const labels = { pendiente:'Por Hacer', en_progreso:'En Progreso', revisando:'Revisando', completada:'Completada' };
+          const panel = document.createElement('div');
+          panel.className = 'action-panel';
+          panel.innerHTML = `
+            <div class="action-box">
+              <h4><i class="fas fa-flag"></i> Solicitud de estado de tarea</h4>
+              <p>Proyecto #${projectId} · Tarea #${tareaId}</p>
+              <p>Estado solicitado: <strong>${labels[solicitado]||solicitado}</strong></p>
+              <div class="actions">
+                <button id="btnIrAsignacionTareas" class="btn btn-primary"><i class="fas fa-arrow-right"></i> Redirigir a Asignación de Tareas</button>
+              </div>
+            </div>`;
+          cont.appendChild(panel);
+          document.getElementById('btnIrAsignacionTareas')?.addEventListener('click', ()=>{
+            window.location.href = '/dashboard/lider/areas';
+          });
+        }
+      } catch(_){ }
       // marcar leído si aplica (inbox)
       if(state.box==='inbox' && !m.leido){ fetch(`/api/correos/${id}/leido`, {method:'PATCH'}).then(()=>{ load('inbox'); updateUnreadBadge(); }); }
     });

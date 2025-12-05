@@ -196,7 +196,7 @@ app.get('/reset-password', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/reset_password.html'));
 });
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3001);
 app.listen(PORT, () => {
     console.log(`Servidor iniciado en http://localhost:${PORT}`);
 });

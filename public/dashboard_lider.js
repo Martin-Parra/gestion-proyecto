@@ -421,6 +421,7 @@
               <button class="btn btn-light btn-compact" data-task-status="en_progreso" data-id="${t.id}"><i class="fas fa-play"></i> Progreso</button>
               <button class="btn btn-light btn-compact" data-task-status="revisando" data-id="${t.id}"><i class="fas fa-search"></i> Revisar</button>
               <button class="btn btn-light btn-compact" data-task-status="completada" data-id="${t.id}"><i class="fas fa-check"></i> Done</button>
+              <button class="btn btn-light btn-compact" data-task-email="${t.id}" data-proyecto="${proyectoId}" data-task-title="${escapeHtml(t.titulo)}" data-task-estado="${t.estado}" title="Informar estado por correo"><i class="fas fa-envelope"></i></button>
               <button class="btn btn-outline btn-compact" data-task-del="${t.id}"><i class="fas fa-trash"></i></button>
             </div>
           </td>`;
@@ -434,6 +435,32 @@
             .then(r => r.json()).then(() => cargarTareasDelProyecto(proyectoId));
         });
       });
+      tbody.querySelectorAll('button[data-task-email]')?.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const prId = btn.getAttribute('data-proyecto');
+          const tareaTitulo = btn.getAttribute('data-task-title') || 'Tarea';
+          const tareaEstado = btn.getAttribute('data-task-estado') || 'pendiente';
+          const estados = { pendiente:'Pendiente', en_progreso:'En progreso', revisando:'Revisando', completada:'Completada' };
+          try {
+            const pRes = await fetchJSON(`/api/proyectos/${prId}`);
+            const proyecto = pRes?.proyecto || {};
+            const miembros = proyecto.miembros || [];
+            const trabajadores = miembros.filter(m => String(m.rol).toLowerCase().includes('trab'));
+            if (!trabajadores.length){ Swal.fire({ icon:'info', title:'Sin trabajadores', text:'El proyecto no tiene trabajadores asignados.' }); return; }
+            const toList = trabajadores.map(m=>m.email).join(',');
+            const fd = new FormData();
+            fd.append('to_emails', toList);
+            fd.append('asunto', `Estado de tarea: ${tareaTitulo} · ${proyecto.nombre}`);
+            fd.append('cuerpo', `El estado actual de la tarea "${tareaTitulo}" es "${estados[tareaEstado]||tareaEstado}".`);
+            const r = await fetch('/api/correos', { method:'POST', body: fd });
+            const d = await r.json().catch(()=>({}));
+            if (!r.ok || !d.ok) throw new Error('No se pudo enviar el correo');
+            Swal.fire({ icon:'success', title:'Estado de la tarea enviado correctamente a', text: toList, timer:1600, showConfirmButton:false });
+            updateTopCorreoBadge();
+          } catch(e){ Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) }); }
+        });
+      });
+
       tbody.querySelectorAll('button[data-task-del]')?.forEach(btn => {
         btn.addEventListener('click', () => {
           const tarea_id = btn.getAttribute('data-task-del');

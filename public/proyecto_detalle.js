@@ -3,6 +3,7 @@ $(document).ready(function() {
     let currentProject = null;
     let currentTasks = [];
     let currentFilter = 'all';
+    let currentUser = null;
 
     // Inicializar la página
     init();
@@ -16,7 +17,7 @@ $(document).ready(function() {
         setInterval(updateTopCorreoBadge, 30000);
     }
 
-    function setupEventListeners() {
+function setupEventListeners() {
         // Logout
         $('#logoutBtn').click(function(e) {
             e.preventDefault();
@@ -44,12 +45,66 @@ $(document).ready(function() {
             filterTasks();
         });
 
-        // Cambio de estado de tareas
-        $(document).on('click', '.task-status', function() {
-            const taskId = $(this).data('task-id');
-            const currentStatus = $(this).data('current-status');
-            showStatusChangeModal(taskId, currentStatus);
-        });
+        const btnSolicitar = document.getElementById('btnSolicitarEstadoTarea');
+        if (btnSolicitar) {
+            btnSolicitar.addEventListener('click', async function(){
+                if (!currentProject || !currentProject.id) { return; }
+                const tareas = Array.isArray(currentTasks) ? currentTasks : [];
+                if (tareas.length === 0) { Swal.fire({ icon:'info', title:'Sin tareas', text:'No hay tareas para solicitar cambio de estado.' }); return; }
+                const estados = { pendiente:'Por Hacer', en_progreso:'En Progreso', revisando:'Revisando', completada:'Completada' };
+                const html = `
+                    <div class="sw-request">
+                        <div class="sw-header"><i class="fas fa-clipboard-check"></i> Selecciona tarea y estado</div>
+                        <div class="form-row">
+                            <label>Tarea</label>
+                            <select id="swTareaSelect" class="form-control">
+                                ${tareas.map(t=>`<option value="${t.id}">${(t.titulo||'Tarea')} (${estados[t.estado]||t.estado})</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label>Estado</label>
+                            <select id="swTareaEstado" class="form-control">
+                                ${Object.entries(estados).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label>Mensaje</label>
+                            <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Justificación (opcional)"></textarea>
+                        </div>
+                    </div>`;
+                const res = await Swal.fire({ title: 'Solicitar estado de tarea', html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', customClass: { popup: 'sw-popup', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }, focusConfirm: false, preConfirm: () => {
+                    const tareaSel = document.getElementById('swTareaSelect');
+                    const estadoSel = document.getElementById('swTareaEstado');
+                    if (!tareaSel || !tareaSel.value) { Swal.showValidationMessage('Debes seleccionar una tarea'); return false; }
+                    if (!estadoSel || !estadoSel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
+                    return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim() };
+                }});
+                if (!res.isConfirmed) return;
+                const tareaId = res.value.tareaId;
+                const estadoSolicitado = res.value.estado;
+                const msg = res.value.mensaje || '';
+                try {
+                    const jefeEmail = currentProject.jefe_email || '';
+                    if (!jefeEmail) { throw new Error('No se encontró correo del líder'); }
+                    const tarea = tareas.find(t=>String(t.id)===String(tareaId));
+                    const fd = new FormData();
+                    fd.append('to_emails', jefeEmail);
+                    const asunto = `Solicitud de estado de tarea: ${(tarea?.titulo||'Tarea')} · ${currentProject.nombre}`;
+                    const estadosTxt = estados;
+                    const cuerpo = `El trabajador ${(currentUser?.nombre||currentUser?.email||'')} solicita cambiar el estado de la tarea \"${tarea?.titulo||''}\" a \"${estadosTxt[estadoSolicitado]||estadoSolicitado}\" en el proyecto \"${currentProject.nombre}\".\n\n${msg}\n\n[[REQUEST_TASK_STATUS:${currentProject.id}|${tareaId}|${estadoSolicitado}|${currentUser?.email||''}]]`;
+                    fd.append('asunto', asunto);
+                    fd.append('cuerpo', cuerpo);
+                    const r = await fetch('/api/correos', { method: 'POST', body: fd });
+                    const d = await r.json().catch(()=>({}));
+                    if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }
+                    Swal.fire({ icon: 'success', title: 'Solicitud enviada', text: 'El líder recibirá tu solicitud por correo.', timer: 1800, showConfirmButton: false });
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: String(err.message||err) });
+                }
+            });
+        }
+
+        // Estado de tareas no clickeable (visual únicamente)
 
         // Ajuste de offset según barra worker-topbar
         const main = document.querySelector('.main-content');
@@ -155,6 +210,7 @@ $(document).ready(function() {
         $.get('/api/auth/me')
             .done(function(response) {
                 if (response.success && response.user) {
+                    currentUser = response.user;
                     const $avatar = $('#profileAvatar');
                     const url = response.user.avatar_url;
                     if ($avatar.length) {
@@ -482,11 +538,7 @@ $(document).ready(function() {
                     </div>
                     <div class="task-meta">
                         <div class="task-priority ${priority}">${priorityText}</div>
-                        <button class="task-status ${task.estado}" 
-                                data-task-id="${task.id}" 
-                                data-current-status="${task.estado}">
-                            ${statusText}
-                        </button>
+                        <span class="task-status ${task.estado}">${statusText}</span>
                     </div>
                 </div>
             `;
@@ -893,3 +945,50 @@ $(document).ready(function() {
         });
     }
 });
+        // Solicitud de estado de proyecto (envía correo al líder)
+        const btnSolicitar = document.getElementById('btnSolicitarEstadoProyecto');
+        if (btnSolicitar) {
+            btnSolicitar.addEventListener('click', async function(){
+                if (!currentProject || !currentProject.id) { return; }
+                const opts = {
+                    'en_ejecucion': 'En ejecución',
+                    'en_pausa': 'En pausa',
+                    'finalizado': 'Finalizado'
+                };
+                const html = `
+                    <div class="form-group">
+                        <label>Selecciona estado solicitado</label>
+                        <select id="swEstadoProyecto" class="form-control">
+                            ${Object.entries(opts).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensaje (opcional)</label>
+                        <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Ej.: Justificación de la solicitud"></textarea>
+                    </div>`;
+                const res = await Swal.fire({ title: 'Solicitud de estado de proyecto', html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', focusConfirm: false, preConfirm: () => {
+                    const sel = document.getElementById('swEstadoProyecto');
+                    if (!sel || !sel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
+                    return { estado: sel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim() };
+                }});
+                if (!res.isConfirmed) return;
+                const estadoSolicitado = res.value.estado;
+                const msg = res.value.mensaje || '';
+                try {
+                    const jefeEmail = currentProject.jefe_email || '';
+                    if (!jefeEmail) { throw new Error('No se encontró correo del líder'); }
+                    const fd = new FormData();
+                    fd.append('to_emails', jefeEmail);
+                    const asunto = `Solicitud de estado de proyecto: ${currentProject.nombre}`;
+                    const cuerpo = `El trabajador ${(currentUser?.nombre||currentUser?.email||'')} solicita cambiar el estado del proyecto "${currentProject.nombre}" a "${opts[estadoSolicitado]}".\n\n${msg}\n\n[[REQUEST_PROJECT_STATUS:${currentProject.id}|${estadoSolicitado}|${currentUser?.email||''}]]`;
+                    fd.append('asunto', asunto);
+                    fd.append('cuerpo', cuerpo);
+                    const r = await fetch('/api/correos', { method: 'POST', body: fd });
+                    const d = await r.json().catch(()=>({}));
+                    if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }
+                    Swal.fire({ icon: 'success', title: 'Solicitud enviada', text: 'El líder recibirá tu solicitud por correo.', timer: 1800, showConfirmButton: false });
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: String(err.message||err) });
+                }
+            });
+        }
