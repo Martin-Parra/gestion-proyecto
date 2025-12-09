@@ -13,7 +13,7 @@
         showCancelButton: true,
         confirmButtonText: 'Sí, cerrar sesión',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#4e73df',
+        confirmButtonColor: '#4D5180',
         cancelButtonColor: '#6c757d'
       }).then((result) => {
         if (result.isConfirmed) {

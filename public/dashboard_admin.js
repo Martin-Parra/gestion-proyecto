@@ -2060,7 +2060,7 @@ function setupLogout(){
             showCancelButton: true,
             confirmButtonText: 'Sí, cerrar sesión',
             cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#4e73df',
+            confirmButtonColor: '#4D5180',
             cancelButtonColor: '#6c757d'
         }).then(async (result) => {
             if(result.isConfirmed){
@@ -2606,6 +2606,7 @@ function setupNavLoader(){
     const form = document.getElementById('perfilForm');
     const nombreInput = document.getElementById('perfilNombre');
     const emailInput = document.getElementById('perfilEmail');
+    const rolInput = document.getElementById('perfilRol');
     const fotoInput = document.getElementById('perfilFoto');
     const avatarPreview = document.getElementById('perfilAvatarPreview');
     const pwdActualInput = document.getElementById('perfilPwdActual');
@@ -2653,6 +2654,7 @@ function setupNavLoader(){
             console.debug('Perfil: last_login recibido (raw)', currentUser.last_login);
             if (nombreInput) nombreInput.value = currentUser.nombre || '';
             if (emailInput) emailInput.value = currentUser.email || '';
+            if (rolInput) rolInput.value = currentUser.rol || '';
             setLastLoginUI(currentUser.last_login);
             const initials = getInitials(currentUser.nombre);
             const defaultAvatar = '/assets/default-avatar.svg';
@@ -2703,6 +2705,7 @@ function setupNavLoader(){
                 setLastLoginUI(currentUser?.last_login);
                 if (nombreInput) nombreInput.value = currentUser?.nombre || '';
                 if (emailInput) emailInput.value = currentUser?.email || '';
+                if (rolInput) rolInput.value = currentUser?.rol || '';
             }catch(_){}
         }
     }

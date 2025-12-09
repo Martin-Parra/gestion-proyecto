@@ -914,7 +914,7 @@ function setupEventListeners() {
             showCancelButton: true,
             confirmButtonText: 'Sí, cerrar sesión',
             cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#4CAF50',
+            confirmButtonColor: '#4D5180',
             cancelButtonColor: '#6c757d'
         }).then((result) => {
             if (result.isConfirmed) {

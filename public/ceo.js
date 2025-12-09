@@ -60,7 +60,7 @@
         showCancelButton: true,
         confirmButtonText: 'Sí, cerrar sesión',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#4e73df',
+        confirmButtonColor: '#4D5180',
         cancelButtonColor: '#6c757d'
       });
       if (!result.isConfirmed) return;
@@ -93,7 +93,7 @@
 
     function openModal(){ if (modal) { modal.classList.add('show'); modal.style.display = 'block'; populateForm(); } }
     function closeModal(){ if (modal) { modal.classList.remove('show'); modal.style.display = 'none'; } }
-    function populateForm(){ if (!currentUser) return; if (nombreInput) nombreInput.value = currentUser.nombre || ''; if (emailInput) emailInput.value = currentUser.email || ''; const url = currentUser.avatar_url || ''; if (avatarPreview){ if (url){ avatarPreview.style.backgroundImage = `url('${url}')`; avatarPreview.style.backgroundSize='cover'; avatarPreview.style.backgroundPosition='center'; avatarPreview.textContent=''; } else { avatarPreview.style.backgroundImage=''; avatarPreview.textContent = (currentUser.nombre||'U').trim().charAt(0).toUpperCase(); } } }
+    function populateForm(){ if (!currentUser) return; if (nombreInput) nombreInput.value = currentUser.nombre || ''; if (emailInput) emailInput.value = currentUser.email || ''; const rolInput = document.getElementById('perfilRol'); if (rolInput) rolInput.value = currentUser.rol || ''; const url = currentUser.avatar_url || ''; if (avatarPreview){ if (url){ avatarPreview.style.backgroundImage = `url('${url}')`; avatarPreview.style.backgroundSize='cover'; avatarPreview.style.backgroundPosition='center'; avatarPreview.textContent=''; } else { avatarPreview.style.backgroundImage=''; avatarPreview.textContent = (currentUser.nombre||'U').trim().charAt(0).toUpperCase(); } } }
     function populateLastLogin(){ if (!currentUser) return; const el = document.getElementById('perfilLastLogin'); const raw = currentUser.last_login; const fmt = raw ? formatDateTime(raw) : '—'; console.debug('CEO perfil: last_login (raw):', raw, '| (fmt):', fmt); if (el){ el.value = fmt; } }
 
     profileBtn && profileBtn.addEventListener('click', openModal);
@@ -190,12 +190,35 @@
     } catch (_) { return null; }
   }
 
-  function renderEstadosProyectos(estados) {
-    const labels = ['En ejecución', 'En pausa', 'Finalizado'];
-    const data = [estados.en_ejecucion || 0, estados.en_pausa || 0, estados.finalizado || 0];
-    ensureChart('chartEstadosProyectos', 'pie', {
-      labels,
-      datasets: [{ data, backgroundColor: ['#4e73df','#f6c23e','#1cc88a'] }]
+  function renderDocumentosOverview(total, vigente, vencidos) {
+    const canvas = document.getElementById('chartDocumentos');
+    const box = canvas ? canvas.parentElement : null;
+    const meta = document.getElementById('ceoDocsMeta');
+    if (meta) { meta.innerHTML = `<span class="badge">Total: ${total}</span><span class="badge">Vigente: ${vigente}</span><span class="badge">Vencidos: ${vencidos}</span>`; }
+    const empty = box ? box.querySelector('.empty-docs') : null;
+    if (total <= 0) {
+      if (charts.documentos) { try { charts.documentos.destroy(); } catch(_){} charts.documentos = null; }
+      if (canvas) canvas.style.display = 'none';
+      if (empty) { empty.style.display = 'flex'; }
+      else if (box) {
+        const el = document.createElement('div');
+        el.className = 'empty-docs';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.height = '100%';
+        el.style.color = '#858796';
+        el.innerHTML = `<i class="fas fa-folder-open" style="font-size:32px; margin-right:8px;"></i> No hay documentos`;
+        box && box.appendChild(el);
+      }
+      return;
+    } else {
+      if (empty) empty.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+    }
+    ensureChart('chartDocumentos', 'doughnut', {
+      labels: ['Total', 'Vigente', 'Vencidos'],
+      datasets: [{ data: [total, vigente, vencidos], backgroundColor: ['#4e73df','#1cc88a','#e74a3b'] }]
     }, { plugins: { legend: { position: 'bottom' } } });
   }
 
@@ -250,8 +273,26 @@
       opt.textContent = p.nombre || `Proyecto ${p.id}`;
       sel.appendChild(opt);
     });
-    const estados = contarEstadosProyectos(proyectos);
-    renderEstadosProyectos(estados);
+    // Documentos (overview como en Trabajador)
+    const ids = proyectos.map(p => p.id);
+    let totalDocs = 0, vigente = 0, vencidos = 0;
+    if (ids.length > 0) {
+      const docsByProj = await Promise.all(ids.map(id => fetch(`/api/proyectos/${id}/documentos`).then(r=>r.json()).catch(()=>({}))));
+      const ahora = Date.now();
+      docsByProj.forEach(d => {
+        const list = Array.isArray(d.documentos) ? d.documentos : [];
+        totalDocs += list.length;
+        list.forEach(doc => {
+          const fv = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento).getTime() : null;
+          if (fv == null) { vigente++; }
+          else {
+            const diff = fv - ahora;
+            if (diff < 0) vencidos++; else vigente++;
+          }
+        });
+      });
+    }
+    renderDocumentosOverview(totalDocs, vigente, vencidos);
     actualizarStatCards(proyectos.length, 0, 0, promedioAvance(proyectos));
     if (proyectos.length > 0) {
       sel.value = proyectos[0].id;
@@ -283,6 +324,23 @@
     actualizarStatCards(proyectos.length, totalTareas, completadas, promedioAvance(proyectos));
   }
 
+  async function cargarDocumentosProyecto(id) {
+    if (!id) { renderDocumentosOverview(0, 0, 0); return; }
+    try {
+      const r = await fetch(`/api/proyectos/${id}/documentos`);
+      const d = await r.json().catch(()=>({}));
+      const list = Array.isArray(d.documentos) ? d.documentos : [];
+      const ahora = Date.now();
+      let total = list.length, vigente = 0, vencidos = 0;
+      list.forEach(doc => {
+        const fv = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento).getTime() : null;
+        if (fv == null) { vigente++; }
+        else { const diff = fv - ahora; if (diff < 0) vencidos++; else vigente++; }
+      });
+      renderDocumentosOverview(total, vigente, vencidos);
+    } catch (_) { renderDocumentosOverview(0, 0, 0); }
+  }
+
   async function cargarEquipoProyecto(id) {
     if (!id) { renderEquipoProyecto({}); return; }
     try {
@@ -308,6 +366,7 @@
   async function cargarProyectoCompleto(id) {
     await cargarTareasProyecto(id);
     await cargarEquipoProyecto(id);
+    await cargarDocumentosProyecto(id);
   }
 
   function configurarFiltro() {

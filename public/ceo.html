@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <style>
+  <style>
       html, body { overflow-y: auto; }
       .main-content { height: auto; min-height: 100vh; overflow-y: auto; }
       .dashboard-section { padding-bottom: 24px; }
@@ -20,13 +20,15 @@
       .chart-card { margin: 0; }
       .chart-box { position: relative; height: 280px; }
       @media (max-width: 768px){ .chart-box { height: 220px; } }
+      .chart-meta { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+      .chart-meta .badge { background: #f1f3f5; color: #363955; border-radius: 999px; padding: 4px 10px; font-weight: 600; }
     </style>
 </head>
 <body>
     <header class="topbar">
         <div class="topbar-inner">
             <div class="sidebar-header">
-                <h2>CEO</h2>
+                <h2>Nexxuz</h2>
             </div>
             <ul class="sidebar-menu">
                 <li><a href="#dashboard" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
@@ -77,10 +79,11 @@
             <div class="charts-grid">
                 <div class="card chart-card">
                     <div class="card-header">
-                        <h3><i class="fas fa-chart-pie"></i> Estados de proyectos</h3>
+                        <h3><i class="fas fa-folder-open"></i> Documentos</h3>
                     </div>
                     <div class="card-body">
-                        <div class="chart-box"><canvas id="chartEstadosProyectos"></canvas></div>
+                        <div class="chart-box"><canvas id="chartDocumentos"></canvas></div>
+                        <div class="chart-meta" id="ceoDocsMeta"></div>
                     </div>
                 </div>
                 <div class="card chart-card">
@@ -131,6 +134,10 @@
             <div class="form-group">
               <label for="perfilEmail"><i class="fas fa-envelope"></i> Correo</label>
               <input type="email" id="perfilEmail" class="form-control" placeholder="tu@correo.com" />
+            </div>
+            <div class="form-group">
+              <label for="perfilRol"><i class="fas fa-user-tag"></i> Rol</label>
+              <input type="text" id="perfilRol" class="form-control" placeholder="—" disabled />
             </div>
             <div class="form-group">
               <label for="perfilLastLogin"><i class="fas fa-clock"></i> Último ingreso</label>

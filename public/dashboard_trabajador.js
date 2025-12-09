@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelarPerfil = document.getElementById('cancelarPerfil');
     const perfilNombre = document.getElementById('perfilNombre');
     const perfilEmail = document.getElementById('perfilEmail');
+    const perfilRol = document.getElementById('perfilRol');
     const perfilAvatarPreview = document.getElementById('perfilAvatarPreview');
     const profileAvatar = document.getElementById('profileAvatar');
 
@@ -131,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentUser) {
             perfilNombre.value = currentUser.nombre || '';
             perfilEmail.value = currentUser.email || '';
+            if (perfilRol) perfilRol.value = currentUser.rol || '';
             const url = currentUser.avatar_url;
             if (perfilAvatarPreview) {
                 if (url) {
@@ -693,7 +695,7 @@ async function logout() {
         text: '¿Deseas cerrar sesión?',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#28a745',
+        confirmButtonColor: '#4D5180',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, cerrar sesión',
         cancelButtonText: 'Cancelar'
@@ -1053,25 +1055,27 @@ async function cargarDashboardTrabajador(){
         const ids = proyectos.map(p=>p.id);
         const docsByProj = await Promise.all(ids.map(id=>fetch(`/api/proyectos/${id}/documentos`, { credentials:'include' }).then(r=>r.json()).catch(()=>({}))))
         const ahora = Date.now();
-        let totalDocs = 0, soon = 0, overdue = 0;
+        let totalDocs = 0, vigente = 0, overdue = 0;
         docsByProj.forEach(d=>{
             const list = Array.isArray(d.documentos)?d.documentos:[];
             totalDocs += list.length;
             list.forEach(doc=>{
                 const fv = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento).getTime() : null;
-                if (fv){
+                if (fv == null){
+                    vigente++;
+                } else {
                     const diff = fv - ahora;
-                    if (diff < 0) overdue++; else if (diff <= 1000*60*60*24*7) soon++;
+                    if (diff < 0) overdue++; else vigente++;
                 }
             });
         });
         const centerTextPlugin = { id:'centerText', afterDraw(chart){ const {ctx, chartArea:{left,right,top,bottom}} = chart; const cx=(left+right)/2; const cy=(top+bottom)/2; const total=(chart.data.datasets[0].data||[]).reduce((a,b)=>a+Number(b||0),0); ctx.save(); ctx.fillStyle='#363955'; ctx.font='bold 16px Segoe UI, Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(String(total), cx, cy); ctx.restore(); } };
         renderChart('documentos', 'chartTrabDocumentos', 'doughnut', {
-            labels:['Total','Vencen pronto','Vencidos'],
-            datasets:[{ data:[totalDocs, soon, overdue], backgroundColor:['#4e73df','#f6c23e','#e74a3b'] }]
+            labels:['Total','Vigente','Vencidos'],
+            datasets:[{ data:[totalDocs, vigente, overdue], backgroundColor:['#4e73df','#1cc88a','#e74a3b'] }]
         }, { plugins:{ legend:{ position:'bottom' } } }, centerTextPlugin);
         const docsMeta = document.getElementById('docsMeta');
-        if (docsMeta){ docsMeta.innerHTML = `<span class="badge">Total: ${totalDocs}</span><span class="badge">Vencen pronto: ${soon}</span><span class="badge">Vencidos: ${overdue}</span>`; }
+        if (docsMeta){ docsMeta.innerHTML = `<span class="badge">Total: ${totalDocs}</span><span class="badge">Vigente: ${vigente}</span><span class="badge">Vencidos: ${overdue}</span>`; }
 
         const collabNames = new Set();
         await Promise.all(ids.map(id=>fetch(`/api/asignaciones?proyecto_id=${id}`, { credentials:'include' }).then(r=>r.json()).then(d=>{ const list = Array.isArray(d.asignaciones)?d.asignaciones:[]; list.forEach(a=>{ if (a.usuario_nombre) collabNames.add(a.usuario_nombre); }); }).catch(()=>{})));
