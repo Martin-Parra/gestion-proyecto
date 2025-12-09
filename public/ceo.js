@@ -3,6 +3,17 @@
   let charts = { estados: null, tareas: null, avance: null };
   let pluginRegistered = false;
   let currentUser = null;
+  (function(){
+    try{ history.pushState(null,'',location.href); }catch(_){}
+    window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });
+    window.addEventListener('hashchange', function(e){ if (e && e.preventDefault) e.preventDefault(); try{ history.pushState(null,'',location.href); }catch(_){} });
+    window.addEventListener('keydown', function(e){
+      if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) || e.key === 'BrowserBack' || e.key === 'BrowserForward') {
+        e.preventDefault();
+      }
+    });
+    try { history.back = function(){ return false; }; history.forward = function(){ return false; }; } catch(_){}
+  })();
   function formatDateTime(v){
     if(!v) return '';
     try{

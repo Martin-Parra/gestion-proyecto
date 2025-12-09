@@ -1,3 +1,6 @@
+try{ history.pushState(null,'',location.href); }catch(_){}
+window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });
+window.addEventListener('keydown', function(e){ if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) || e.key === 'BrowserBack' || e.key === 'BrowserForward') { e.preventDefault(); } });
 $(document).ready(function() {
     // Variables globales
     let currentProject = null;

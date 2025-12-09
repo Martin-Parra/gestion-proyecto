@@ -4,6 +4,15 @@
   const menuBtn = document.querySelector('.menu-toggle');
   const icon = menuBtn?.querySelector('i');
   let currentUser = null;
+  (function(){
+    try{ history.pushState(null,'',location.href); }catch(_){}
+    window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });
+    window.addEventListener('keydown', function(e){
+      if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) || e.key === 'BrowserBack' || e.key === 'BrowserForward') {
+        e.preventDefault();
+      }
+    });
+  })();
   function formatDateTime(v){
     if(!v) return '';
     try{
@@ -576,6 +585,7 @@
         <div>
           <div class="form-group" style="margin-bottom:12px;"><label style="font-weight:600;color:#363955;">Nombre</label><input id="swPerfilNombre" class="form-control" value="${currentUser?.nombre||''}" /></div>
           <div class="form-group"><label style="font-weight:600;color:#363955;">Correo</label><input id="swPerfilEmail" class="form-control" value="${currentUser?.email||''}" /></div>
+          <div class="form-group"><label style="font-weight:600;color:#363955;">Rol</label><input id="swPerfilRol" class="form-control" value="${roleLabel(currentUser?.rol||'')}" disabled /></div>
           <div class="form-group"><label style="font-weight:600;color:#363955;">Último ingreso</label><input id="swPerfilLastLogin" class="form-control" value="${last}" disabled /></div>
         </div>
       </div>`;

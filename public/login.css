@@ -137,6 +137,24 @@ body.login-body {
   background: var(--card-bg);
   border-radius: 10px;
 }
+/* Soporte para autofill del navegador */
+.floating-label input:-webkit-autofill + label {
+  top: 0;
+  transform: translateY(-50%) scale(0.96);
+  font-size: 12px;
+  color: var(--color-primary);
+  background: var(--card-bg);
+  border-radius: 10px;
+}
+/* Fallback por clase cuando se detecta valor vía JS */
+.floating-label.has-value label {
+  top: 0;
+  transform: translateY(-50%) scale(0.96);
+  font-size: 12px;
+  color: var(--color-primary);
+  background: var(--card-bg);
+  border-radius: 10px;
+}
 
 /* Extras del formulario */
 .form-extras {
@@ -260,6 +278,24 @@ body.login-body {
 }
 .floating-label .password-wrapper input:focus + label,
 .floating-label .password-wrapper input:not(:placeholder-shown) + label {
+  top: 0;
+  transform: translateY(-50%) scale(0.96);
+  font-size: 12px;
+  color: var(--color-primary);
+  background: var(--card-bg);
+  border-radius: 10px;
+}
+/* Soporte para autofill del navegador en password */
+.floating-label .password-wrapper input:-webkit-autofill + label {
+  top: 0;
+  transform: translateY(-50%) scale(0.96);
+  font-size: 12px;
+  color: var(--color-primary);
+  background: var(--card-bg);
+  border-radius: 10px;
+}
+/* Fallback por clase aplicada al wrapper */
+.floating-label .password-wrapper.has-value label {
   top: 0;
   transform: translateY(-50%) scale(0.96);
   font-size: 12px;

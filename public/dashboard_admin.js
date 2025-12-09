@@ -5,6 +5,16 @@ let cantidadPorPagina = 7; // Por defecto mostrar 7 registros
 let paginaActual = 1;
 let terminoBusqueda = '';
 
+(function(){
+  try{ history.pushState(null,'',location.href); }catch(_){}
+  window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });
+  window.addEventListener('keydown', function(e){
+    if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) || e.key === 'BrowserBack' || e.key === 'BrowserForward') {
+      e.preventDefault();
+    }
+  });
+})();
+
 // Variables globales para la gestión de proyectos
 let jefesProyecto = [];
 let jefeSeleccionadoId = null;
@@ -2530,11 +2540,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 })();
 // Bandera para controlar si se debe mostrar el loader
-window.__suppressLoader = window.__suppressLoader || false;
+window.__suppressLoader = true;
 function showPageLoader(){
-  if (window.__suppressLoader) return;
-  const el = document.getElementById('pageLoader');
-  if (el) el.classList.add('visible');
+  return;
 }
 
 function hidePageLoader(){
@@ -2553,42 +2561,33 @@ function animateSectionById(id){
 }
 
 function setupNavLoader(){
-  const LOADER_MS = 1000;
   const anchors = Array.from(document.querySelectorAll('a[href]:not([target])'));
   anchors.forEach(a => {
     a.addEventListener('click', (e) => {
-      // Evitar loader para elementos marcados o el botón de logout
       if (a.id === 'logoutBtn' || a.dataset.noLoader === 'true') {
-        return; // El flujo específico manejará navegación/confirmación
+        return;
       }
       const href = a.getAttribute('href');
       if (!href) return;
-      // Hash navigation (in-page sections)
       if (href.startsWith('#')){
         e.preventDefault();
         const targetId = href.slice(1);
-        if (!window.__suppressLoader) showPageLoader();
-        setTimeout(() => {
-          hidePageLoader();
-          if (typeof window.activateDashboardSection === 'function') {
-            window.activateDashboardSection(targetId);
-          } else {
-            document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-          animateSectionById(targetId);
-        }, LOADER_MS);
+        if (typeof window.activateDashboardSection === 'function') {
+          window.activateDashboardSection(targetId);
+        } else {
+          document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        animateSectionById(targetId);
         return;
       }
-      // Internal page navigation
       const isInternal = href.startsWith('/') || href.startsWith(window.location.origin);
       if (isInternal){
         e.preventDefault();
-        if (!window.__suppressLoader) showPageLoader();
-        setTimeout(() => { window.location.href = href; }, LOADER_MS);
+        window.location.href = href;
       }
     });
   });
-  window.addEventListener('beforeunload', () => { if (!window.__suppressLoader) showPageLoader(); });
+  window.addEventListener('beforeunload', () => {});
 }
 
 // ===== Perfil de Usuario (avatar y modal) =====

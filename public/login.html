@@ -110,6 +110,25 @@
             acceptCheckbox.addEventListener('change', updateSubmitState);
             updateSubmitState();
 
+            // Arreglar solapamiento de labels con autofill del navegador
+            const usr = document.getElementById('username');
+            const pwd = document.getElementById('password');
+            const applyHasValue = (input) => {
+                if (!input) return;
+                const parent = input.closest('.floating-label');
+                const pwdWrap = input.closest('.password-wrapper');
+                const hasVal = !!(input.value && String(input.value).trim().length);
+                if (parent) parent.classList.toggle('has-value', hasVal);
+                if (pwdWrap) pwdWrap.classList.toggle('has-value', hasVal);
+            };
+            ['input','change','blur'].forEach(evt => {
+                usr && usr.addEventListener(evt, () => applyHasValue(usr));
+                pwd && pwd.addEventListener(evt, () => applyHasValue(pwd));
+            });
+            // Chequeo inicial y post-autofill
+            setTimeout(() => { applyHasValue(usr); applyHasValue(pwd); }, 50);
+            setTimeout(() => { applyHasValue(usr); applyHasValue(pwd); }, 400);
+        
             // Modal olvidaste tu contraseña
             const forgotLink = document.getElementById('forgot-link');
             const modal = document.getElementById('forgot-modal');
@@ -149,5 +168,10 @@
             });
         });
     </script>
-</body>
+    <script>
+      try{ history.pushState(null,'',location.href); }catch(_){}
+      window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });
+      window.addEventListener('keydown', function(e){ if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) || e.key === 'BrowserBack' || e.key === 'BrowserForward') { e.preventDefault(); } });
+    </script>
+  </body>
 </html>
