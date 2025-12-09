@@ -77,10 +77,9 @@ exports.requestReset = async (req, res) => {
     const user = await getUserByEmail(email);
     console.log('Usuario encontrado:', user ? 'Sí' : 'No');
     
-    // Responder siempre éxito (para no revelar existencia del correo)
     if (!user) {
-      console.log('Usuario no encontrado, respondiendo éxito por seguridad');
-      return res.json({ success: true, message: 'Si el correo existe, enviamos un enlace de restablecimiento.' });
+      console.log('Usuario no encontrado');
+      return res.json({ success: false, message: 'El correo que se introdujo no existe o no es valido' });
     }
 
     console.log('Generando token...');

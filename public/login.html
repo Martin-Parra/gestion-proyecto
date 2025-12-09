@@ -147,8 +147,9 @@
                 e.preventDefault();
                 feedback.textContent = '';
                 feedback.classList.remove('success');
+                feedback.classList.remove('error');
                 const email = document.getElementById('forgot-email').value.trim();
-                if (!email) { feedback.textContent = 'Por favor, ingresa tu correo.'; return; }
+                if (!email) { feedback.classList.add('error'); feedback.textContent = 'Por favor, ingresa tu correo.'; return; }
                 try {
                     const res = await fetch('/api/password/forgot', {
                         method: 'POST',
@@ -157,12 +158,15 @@
                     });
                     const data = await res.json().catch(() => ({}));
                     if (res.ok && data.success) {
+                        feedback.classList.remove('error');
                         feedback.classList.add('success');
                         feedback.textContent = '¡Correo enviado correctamente! Revisa tu bandeja y spam.';
                     } else {
-                        feedback.textContent = data.message || 'No pudimos procesar la solicitud. Inténtalo más tarde.';
+                        feedback.classList.add('error');
+                        feedback.textContent = (data && data.message) ? data.message : 'No pudimos procesar la solicitud. Inténtalo más tarde.';
                     }
                 } catch (err) {
+                    feedback.classList.add('error');
                     feedback.textContent = 'Error de red. Inténtalo nuevamente.';
                 }
             });
