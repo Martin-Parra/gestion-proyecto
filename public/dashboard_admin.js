@@ -968,10 +968,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 const usuario = data.usuario;
-                const nombreUsuario = document.querySelector('.sidebar-header h2');
-                if (nombreUsuario) {
-                    nombreUsuario.textContent = usuario.nombre;
-                }
                 
                 // Verificar si el usuario es administrador (aceptar 'administrador' o 'admin')
                 if (usuario.rol !== 'administrador' && usuario.rol !== 'admin') {
