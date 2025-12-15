@@ -1172,6 +1172,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurar evento para el formulario de editar usuario
     const formEditarUsuario = document.getElementById('formEditarUsuario');
     if (formEditarUsuario) {
+        const editarNombreInput = document.getElementById('editarNombre');
+        if (editarNombreInput){
+            const handler = function(){
+                const v = this.value || '';
+                const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+                if (filtered !== v) this.value = filtered;
+            };
+            editarNombreInput.addEventListener('input', handler);
+            editarNombreInput.addEventListener('blur', handler);
+        }
         formEditarUsuario.addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -1194,6 +1204,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Validar que los campos requeridos no estén vacíos
             if (!nombre.trim()) {
                 throw new Error('El nombre es requerido');
+            }
+            const nameRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/;
+            if (!nameRegex.test(nombre.trim())) {
+                throw new Error('El nombre solo debe contener letras y espacios');
             }
             if (!email.trim()) {
                 throw new Error('El email es requerido');
@@ -1386,24 +1400,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const nombre = document.getElementById('editarNombreProyecto').value;
             const fechaInicio = document.getElementById('editarFechaInicio').value;
             const fechaTermino = document.getElementById('editarFechaTermino').value;
-            const responsableId = document.getElementById('editarJefeProyectoId').value;
+            const responsableId = document.getElementById('editarJefeProyectoId').value || null;
+            const normalizado = String(nombre || '').trim().toLowerCase();
             
-            const proyectoData = {
-                nombre_proyecto: nombre,
-                descripcion_proyecto: "",
-                fecha_inicio: fechaInicio,
-                fecha_fin: fechaTermino,
-                responsable_id: responsableId || null
-            };
-            
-            console.log('Enviando datos para actualizar proyecto:', proyectoData);
-            
-            fetch(`/api/proyectos/${proyectoId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(proyectoData)
+            fetch('/api/proyectos', { method: 'GET' })
+            .then(r => r.json())
+            .then(data => {
+                const lista = Array.isArray(data.proyectos) ? data.proyectos : [];
+                const existe = lista.some(p => String(p.nombre || '').trim().toLowerCase() === normalizado && String(p.responsable_id ?? '') === String(responsableId ?? '') && String(p.id) !== String(proyectoId));
+                if (existe) {
+                    throw new Error('Ya existe un proyecto con el mismo nombre para el mismo jefe de proyecto');
+                }
+                const proyectoData = {
+                    nombre_proyecto: nombre,
+                    descripcion_proyecto: "",
+                    fecha_inicio: fechaInicio,
+                    fecha_fin: fechaTermino,
+                    responsable_id: responsableId
+                };
+                
+                console.log('Enviando datos para actualizar proyecto:', proyectoData);
+                
+                return fetch(`/api/proyectos/${proyectoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(proyectoData)
+                });
             })
             .then(response => {
                 console.log('Respuesta del servidor:', response.status);
@@ -2610,6 +2634,18 @@ function setupNavLoader(){
     const btnVerificarPwd = document.getElementById('btnVerificarPwd');
     const msgVerificacionPwd = document.getElementById('msgVerificacionPwd');
     let pwdVerificada = false;
+    if (nombreInput){
+        nombreInput.addEventListener('input', function(){
+            const v = this.value || '';
+            const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+            if (filtered !== v) this.value = filtered;
+        });
+        nombreInput.addEventListener('blur', function(){
+            const v = this.value || '';
+            const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+            if (filtered !== v) this.value = filtered;
+        });
+    }
     function formatDateTime(v){
         if(!v) return '';
         try{

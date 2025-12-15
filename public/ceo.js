@@ -101,6 +101,18 @@
     const emailInput = document.getElementById('perfilEmail');
     const fotoInput = document.getElementById('perfilFoto');
     const avatarPreview = document.getElementById('perfilAvatarPreview');
+    if (nombreInput){
+      nombreInput.addEventListener('input', function(){
+        const v = this.value || '';
+        const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+        if (filtered !== v) this.value = filtered;
+      });
+      nombreInput.addEventListener('blur', function(){
+        const v = this.value || '';
+        const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+        if (filtered !== v) this.value = filtered;
+      });
+    }
 
     function openModal(){ if (modal) { modal.classList.add('show'); modal.style.display = 'block'; populateForm(); } }
     function closeModal(){ if (modal) { modal.classList.remove('show'); modal.style.display = 'none'; } }

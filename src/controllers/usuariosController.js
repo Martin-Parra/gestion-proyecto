@@ -23,6 +23,9 @@ exports.crearUsuario = (req, res) => {
             message: 'Todos los campos son obligatorios' 
         });
     }
+    if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(nombreSan)) {
+        return res.status(400).json({ success: false, message: 'El nombre solo debe contener letras' });
+    }
     
     pool.query('SELECT * FROM usuarios WHERE LOWER(TRIM(email)) = ?', [emailSan], (err, results) => {
         if (err) {
@@ -141,6 +144,9 @@ exports.actualizarUsuario = (req, res) => {
     const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro', 'admin', 'trabajador', 'ceo'];
     if (!rolesPermitidos.includes(rolSan)) {
         return res.status(400).json({ success: false, message: 'El rol seleccionado no es válido' });
+    }
+    if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(nombreSan)) {
+        return res.status(400).json({ success: false, message: 'El nombre solo debe contener letras' });
     }
     
     if (password) {

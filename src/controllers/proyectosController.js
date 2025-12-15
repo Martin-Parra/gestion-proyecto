@@ -116,9 +116,16 @@ exports.crearProyecto = async (req, res) => {
             error: 'Nombre del proyecto, fecha de inicio y fecha de finalización son obligatorios'
         });
     }
+    const nombreNormalizado = String(nombre_proyecto).trim();
+    if (!nombreNormalizado) {
+        return res.status(400).json({
+            success: false,
+            error: 'El nombre del proyecto no puede estar vacío'
+        });
+    }
     
-    // Si no se proporciona responsable_id, establecer como null
-    const responsable = responsable_id || null;
+    // Si no se proporciona responsable_id, establecer como null (coerción a número si existe)
+    const responsable = responsable_id ? Number(responsable_id) : null;
     
     // Verificar que la fecha de fin sea posterior a la fecha de inicio
     try {
@@ -137,6 +144,31 @@ exports.crearProyecto = async (req, res) => {
     }
     
     try {
+        // Validar nombre único para el mismo responsable (insensible a mayúsculas/minúsculas)
+        if (responsable !== null) {
+            const [duplicados] = await pool.promise().query(
+                'SELECT id FROM proyectos WHERE LOWER(nombre) = LOWER(?) AND responsable_id = ?',
+                [nombreNormalizado, responsable]
+            );
+            if (duplicados.length > 0) {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Ya existe un proyecto con el mismo nombre para el mismo jefe de proyecto'
+                });
+            }
+        } else {
+            const [duplicados] = await pool.promise().query(
+                'SELECT id FROM proyectos WHERE LOWER(nombre) = LOWER(?) AND responsable_id IS NULL',
+                [nombreNormalizado]
+            );
+            if (duplicados.length > 0) {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Ya existe un proyecto con el mismo nombre sin jefe asignado'
+                });
+            }
+        }
+        
         // Si se proporciona un responsable_id, verificar que exista y sea jefe de proyecto
         if (responsable) {
             const [responsables] = await pool.promise().query(
@@ -155,7 +187,7 @@ exports.crearProyecto = async (req, res) => {
         // Insertar el proyecto (estado por defecto lo define la DB)
         const [result] = await pool.promise().query(
             'INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_fin, responsable_id) VALUES (?, ?, ?, ?, ?)',
-            [nombre_proyecto, descripcion_proyecto, fecha_inicio, fecha_fin, responsable]
+            [nombreNormalizado, descripcion_proyecto, fecha_inicio, fecha_fin, responsable]
         );
         
         res.status(201).json({
@@ -296,6 +328,10 @@ exports.actualizarProyecto = async (req, res) => {
             message: 'Nombre, fecha de inicio y fecha de fin son requeridos'
         });
     }
+    const nombreNormalizado = String(nombre_proyecto).trim();
+    if (!nombreNormalizado) {
+        return res.status(400).json({ success: false, message: 'El nombre del proyecto no puede estar vacío' });
+    }
 
     try {
         const inicio = new Date(fecha_inicio);
@@ -327,15 +363,34 @@ exports.actualizarProyecto = async (req, res) => {
         if (exists.length === 0) {
             return res.status(404).json({ success: false, message: 'Proyecto no encontrado' });
         }
+        // Validar nombre único contra otros proyectos, para el mismo responsable
+        const nuevoResponsable = responsable_id ? Number(responsable_id) : null;
+        if (nuevoResponsable !== null) {
+            const [dupes] = await pool.promise().query(
+                'SELECT id FROM proyectos WHERE LOWER(nombre) = LOWER(?) AND responsable_id = ? AND id <> ?',
+                [nombreNormalizado, nuevoResponsable, id]
+            );
+            if (dupes.length > 0) {
+                return res.status(409).json({ success: false, message: 'Ya existe un proyecto con el mismo nombre para el mismo jefe de proyecto' });
+            }
+        } else {
+            const [dupes] = await pool.promise().query(
+                'SELECT id FROM proyectos WHERE LOWER(nombre) = LOWER(?) AND responsable_id IS NULL AND id <> ?',
+                [nombreNormalizado, id]
+            );
+            if (dupes.length > 0) {
+                return res.status(409).json({ success: false, message: 'Ya existe un proyecto con el mismo nombre sin jefe asignado' });
+            }
+        }
 
         const [result] = await pool.promise().query(
             'UPDATE proyectos SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?, responsable_id = ? WHERE id = ?',
             [
-                nombre_proyecto,
+                nombreNormalizado,
                 descripcion_proyecto || '',
                 fecha_inicio,
                 fecha_fin,
-                responsable_id || null,
+                nuevoResponsable,
                 id
             ]
         );

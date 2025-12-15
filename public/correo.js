@@ -82,19 +82,24 @@
       const cont = document.getElementById('visor');
       const fecha = m.fecha_envio ? new Date(m.fecha_envio).toLocaleString() : '';
       const adjuntos = Array.isArray(m.adjuntos)? m.adjuntos: [];
+      const rawBody = String(m.cuerpo||'');
+      const displayBody = rawBody
+        .replace(/\n/g,'<br/>')
+        .replace(/\[\[REQUEST_TASK_STATUS:[^\]]+\]\]/g, '')
+        .replace(/\[\[REQUEST_PROJECT_STATUS:[^\]]+\]\]/g, '');
       const adjHtml = adjuntos.length ? `
         <div class=\"attachments\">\n          <strong>Adjuntos (${adjuntos.length}):</strong>\n          <ul>\n            ${adjuntos.map(a=>`<li><a href="${a.url}" download="${(a.nombre||a.nombre_original||'archivo')}">${a.nombre||a.nombre_original||'archivo'}</a> <span class=\"muted\">(${a.tamano ? (Math.round(a.tamano/1024))+' KB' : a.mime||''})</span></li>`).join('')}\n          </ul>\n        </div>` : '';
       cont.innerHTML = `
         <h3>${m.asunto||'(Sin asunto)'}</h3>
         <div class=\"meta\"><strong>De:</strong> ${m.remitente_nombre||m.remitente} &nbsp; <strong>Para:</strong> ${m.para} ${m.cc? `&nbsp; <strong>CC:</strong> ${m.cc}`:''}</div>
         <hr/>
-        <div class=\"body\">${(m.cuerpo||'').replace(/\n/g,'<br/>')}</div>
+        <div class=\"body\">${displayBody}</div>
         ${adjHtml}
         <div class=\"muted\" style=\"margin-top:10px;color:#6b7280\">${fecha}</div>
       `;
       // Acción especial: solicitud de estado de proyecto
       try {
-        const marker = String(m.cuerpo||'').match(/\[\[REQUEST_PROJECT_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);
+        const marker = rawBody.match(/\[\[REQUEST_PROJECT_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);
         const role = (state.user?.rol||'').toLowerCase();
         if (marker && role === 'jefe_proyecto'){
           const projectId = marker[1];
@@ -133,7 +138,7 @@
           });
         }
         // Acción especial: solicitud de estado de tarea
-        const tMarker = String(m.cuerpo||'').match(/\[\[REQUEST_TASK_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);
+        const tMarker = rawBody.match(/\[\[REQUEST_TASK_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);
         if (tMarker && role === 'jefe_proyecto'){
           const projectId = tMarker[1];
           const tareaId = tMarker[2];

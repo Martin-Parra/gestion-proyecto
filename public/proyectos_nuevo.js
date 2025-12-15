@@ -38,6 +38,22 @@
       .catch(() => { jefes = []; });
   }
 
+  function poblarSelect(){
+    const sel = document.getElementById('selectJefe');
+    const hidden = document.getElementById('jefeProyectoId');
+    if (!sel) return;
+    sel.innerHTML = '<option value=\"\">Seleccione un jefe de proyecto...</option>';
+    (jefes || []).sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''))).forEach(j => {
+      const opt = document.createElement('option');
+      opt.value = j.id;
+      opt.textContent = `${j.nombre} (${j.email})`;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function(){
+      if (hidden) hidden.value = this.value || '';
+    });
+  }
+
   function mostrarResultadosJefes(lista){
     const cont = document.getElementById('resultadosJefe');
     if (!cont) return;
@@ -111,37 +127,50 @@
   document.addEventListener('DOMContentLoaded', async () => {
     setupLogout();
     await cargarJefes();
-    setupBuscador();
+    poblarSelect();
 
     const form = document.getElementById('formCrearProyecto');
     if (!form) return;
 
     form.addEventListener('submit', function(e){
       e.preventDefault();
-      const payload = {
-        nombre_proyecto: document.getElementById('nombreProyecto').value,
-        descripcion_proyecto: "",
-        fecha_inicio: document.getElementById('fechaInicio').value,
-        fecha_fin: document.getElementById('fechaTermino').value,
-        responsable_id: document.getElementById('jefeProyectoId').value || null
-      };
-
-      fetch('/api/proyectos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(r => {
-        if (!r.ok) return r.json().then(err => { throw new Error(err.error || 'Error al crear proyecto'); });
-        return r.json();
-      })
-      .then(data => {
-        Swal.fire({ icon: 'success', title: 'Proyecto creado', timer: 1500, showConfirmButton: false });
-        window.location.href = '/dashboard/admin#proyectos';
-      })
-      .catch(err => {
-        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Falló la creación' });
-      });
+      const nombre = document.getElementById('nombreProyecto').value;
+      const fechaInicio = document.getElementById('fechaInicio').value;
+      const fechaFin = document.getElementById('fechaTermino').value;
+      const responsableId = document.getElementById('selectJefe').value || null;
+      const normalizado = String(nombre || '').trim().toLowerCase();
+      fetch('/api/proyectos', { method: 'GET' })
+        .then(r => r.json())
+        .then(data => {
+          const lista = Array.isArray(data.proyectos) ? data.proyectos : [];
+          const existe = lista.some(p => String(p.nombre || '').trim().toLowerCase() === normalizado && String(p.responsable_id ?? '') === String(responsableId ?? ''));
+          if (existe) {
+            throw new Error('Ya existe un proyecto con el mismo nombre para el mismo jefe de proyecto');
+          }
+          const payload = {
+            nombre_proyecto: nombre,
+            descripcion_proyecto: "",
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin,
+            responsable_id: responsableId
+          };
+          return fetch('/api/proyectos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        })
+        .then(r => {
+          if (!r.ok) return r.json().then(err => { throw new Error(err.error || 'Error al crear proyecto'); });
+          return r.json();
+        })
+        .then(() => {
+          Swal.fire({ icon: 'success', title: 'Proyecto creado', timer: 1500, showConfirmButton: false });
+          window.location.href = '/dashboard/admin#proyectos';
+        })
+        .catch(err => {
+          Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Falló la creación' });
+        });
     });
   });
 })();

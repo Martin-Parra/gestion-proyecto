@@ -11,6 +11,52 @@ $(document).ready(function() {
     // Inicializar la página
     init();
 
+    function generateSolicitudPDF(proyecto, tarea, estadoActual, estadoSolicitado, trabajador, email, rol, motivo){
+        const jsPDFRef = window.jspdf && window.jspdf.jsPDF;
+        if (!jsPDFRef) throw new Error('PDF no disponible');
+        const doc = new jsPDFRef({ unit: 'pt', format: 'a4' });
+        const margin = 40;
+        let y = margin;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('Informe de Solicitud de Cambio de Estado de Tarea', margin, y);
+        y += 30;
+        doc.setFontSize(12);
+        doc.text('1. Información General', margin, y);
+        y += 18;
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Proyecto: ${proyecto?.nombre||''}`, margin, y);
+        y += 16;
+        doc.text(`Tarea: ${tarea?.titulo||''}`, margin, y);
+        y += 16;
+        doc.text(`Estado Actual: ${estadoActual||''}`, margin, y);
+        y += 16;
+        doc.text(`Estado Solicitado: ${estadoSolicitado||''}`, margin, y);
+        y += 24;
+        doc.setFont('helvetica', 'bold');
+        doc.text('2. Datos del Solicitante', margin, y);
+        y += 18;
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Nombre del Trabajador: ${trabajador||''}`, margin, y);
+        y += 16;
+        doc.text(`Correo Electrónico: ${email||''}`, margin, y);
+        y += 16;
+        doc.text(`Rol / Cargo: ${rol||''}`, margin, y);
+        y += 24;
+        doc.setFont('helvetica', 'bold');
+        doc.text('3. Detalle de la Solicitud', margin, y);
+        y += 18;
+        doc.setFont('helvetica', 'normal');
+        const fecha = new Date().toLocaleString('es-ES');
+        doc.text(`Fecha y Hora de la Solicitud: ${fecha}`, margin, y);
+        y += 16;
+        doc.text('Motivo del Cambio de Estado:', margin, y);
+        y += 16;
+        const split = doc.splitTextToSize(motivo || '—', 520);
+        split.forEach(line => { doc.text(line, margin + 20, y); y += 14; });
+        return doc.output('blob');
+    }
+
     function init() {
         loadUserInfo();
         loadProjectDetails();
@@ -74,13 +120,18 @@ function setupEventListeners() {
                             <label>Mensaje</label>
                             <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Justificación (opcional)"></textarea>
                         </div>
+                        <div class="form-row" style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="swAdjuntarInforme" />
+                            <label for="swAdjuntarInforme" style="margin:0;">Adjuntar informe PDF de la solicitud</label>
+                        </div>
                     </div>`;
                 const res = await Swal.fire({ title: 'Solicitar estado de tarea', html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', customClass: { popup: 'sw-popup', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }, focusConfirm: false, preConfirm: () => {
                     const tareaSel = document.getElementById('swTareaSelect');
                     const estadoSel = document.getElementById('swTareaEstado');
+                    const adj = document.getElementById('swAdjuntarInforme');
                     if (!tareaSel || !tareaSel.value) { Swal.showValidationMessage('Debes seleccionar una tarea'); return false; }
                     if (!estadoSel || !estadoSel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
-                    return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim() };
+                    return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim(), adjuntar: !!(adj && adj.checked) };
                 }});
                 if (!res.isConfirmed) return;
                 const tareaId = res.value.tareaId;
@@ -97,6 +148,13 @@ function setupEventListeners() {
                     const cuerpo = `El trabajador ${(currentUser?.nombre||currentUser?.email||'')} solicita cambiar el estado de la tarea \"${tarea?.titulo||''}\" a \"${estadosTxt[estadoSolicitado]||estadoSolicitado}\" en el proyecto \"${currentProject.nombre}\".\n\n${msg}\n\n[[REQUEST_TASK_STATUS:${currentProject.id}|${tareaId}|${estadoSolicitado}|${currentUser?.email||''}]]`;
                     fd.append('asunto', asunto);
                     fd.append('cuerpo', cuerpo);
+                    if (res.value.adjuntar) {
+                        const estadoAct = estadosTxt[tarea?.estado] || tarea?.estado || '';
+                        const estadoSol = estadosTxt[estadoSolicitado] || estadoSolicitado;
+                        const blob = generateSolicitudPDF(currentProject, tarea, estadoAct, estadoSol, currentUser?.nombre||currentUser?.email||'', currentUser?.email||'', currentUser?.rol||'', msg);
+                        const fname = `Informe_Solicitud_Tarea_${tareaId}.pdf`;
+                        fd.append('adjuntos', blob, fname);
+                    }
                     const r = await fetch('/api/correos', { method: 'POST', body: fd });
                     const d = await r.json().catch(()=>({}));
                     if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }

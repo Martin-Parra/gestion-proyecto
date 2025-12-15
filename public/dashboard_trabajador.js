@@ -134,6 +134,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const perfilRol = document.getElementById('perfilRol');
     const perfilAvatarPreview = document.getElementById('perfilAvatarPreview');
     const profileAvatar = document.getElementById('profileAvatar');
+    if (perfilNombre){
+        perfilNombre.addEventListener('input', function(){
+            const v = this.value || '';
+            const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+            if (filtered !== v) this.value = filtered;
+        });
+        perfilNombre.addEventListener('blur', function(){
+            const v = this.value || '';
+            const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+            if (filtered !== v) this.value = filtered;
+        });
+    }
 
     const openPerfil = () => {
         if (!perfilModal) return;
@@ -1016,11 +1028,10 @@ function formatStatus(status) {
     const statusMap = {
         'pendiente': 'Pendiente',
         'en_progreso': 'En Progreso',
-        'en_ejecucion': 'En ejecuccion',
+        'en_ejecucion': 'En ejecución',
         'completada': 'Completada',
-        'activo': 'Activo',
-        'completado': 'Completado',
-        'pausado': 'Pausado'
+        'en_pausa': 'En pausa',
+        'finalizado': 'Finalizado'
     };
     
     return statusMap[status] || String(status || '').replace(/_/g,' ');

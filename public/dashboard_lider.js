@@ -323,19 +323,30 @@
     }).catch(err => console.error('Error cargando usuarios', err));
   }
 
-  btnAsignarMiembro?.addEventListener('click', () => {
+  btnAsignarMiembro?.addEventListener('click', async () => {
     const proyecto_id = selProyectoAsignacion?.value;
     const usuario_id = selMiembroAsignacion?.value;
-    if (!proyecto_id || !usuario_id){ return alert('Seleccione proyecto y miembro'); }
-    fetch('/api/asignaciones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proyecto_id, usuario_id }) })
-      .then(r => r.json()).then(res => {
-        if (res.success){
-          alert('Miembro asignado');
-          cargarMiembrosDelProyecto(proyecto_id);
-        } else {
-          alert(res.error || 'No se pudo asignar');
-        }
-      }).catch(()=> alert('Error en la asignación'));
+    if (!proyecto_id || !usuario_id){
+      await Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Seleccione proyecto y miembro', confirmButtonColor: '#4e73df' });
+      return;
+    }
+    try {
+      const lista = await fetchJSON(`/api/asignaciones?proyecto_id=${proyecto_id}`);
+      const yaAsignado = Array.isArray(lista.asignaciones) && lista.asignaciones.some(a => String(a.usuario_id) === String(usuario_id));
+      if (yaAsignado){
+        await Swal.fire({ icon: 'info', title: 'Ya asignado', text: 'El usuario ya está asignado a este proyecto', confirmButtonColor: '#4e73df' });
+        return;
+      }
+      const res = await fetch('/api/asignaciones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proyecto_id, usuario_id }) }).then(r=>r.json());
+      if (res.success){
+        await Swal.fire({ icon: 'success', title: 'Asignado', text: 'Miembro asignado al proyecto', confirmButtonColor: '#4e73df' });
+        cargarMiembrosDelProyecto(proyecto_id);
+      } else {
+        await Swal.fire({ icon: 'error', title: 'No se pudo asignar', text: res.error || 'Intente nuevamente', confirmButtonColor: '#4e73df' });
+      }
+    } catch (e) {
+      await Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo procesar la asignación', confirmButtonColor: '#4e73df' });
+    }
   });
 
   function cargarMiembrosDelProyecto(proyectoId){
@@ -471,11 +482,28 @@
       });
 
       tbody.querySelectorAll('button[data-task-del]')?.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const tarea_id = btn.getAttribute('data-task-del');
-          if (!confirm('¿Eliminar tarea?')) return;
-          fetch(`/api/tareas/${tarea_id}`, { method: 'DELETE' })
-            .then(r => r.json()).then(() => cargarTareasDelProyecto(proyectoId));
+          try {
+            const confirmRes = await Swal.fire({
+              icon: 'question',
+              title: '¿Eliminar tarea?',
+              text: 'Esta acción eliminará la tarea del proyecto.',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, eliminar',
+              cancelButtonText: 'Cancelar',
+              confirmButtonColor: '#e74a3b',
+              cancelButtonColor: '#6c757d'
+            });
+            if (!confirmRes.isConfirmed) return;
+            const r = await fetch(`/api/tareas/${tarea_id}`, { method: 'DELETE' });
+            const d = await r.json().catch(()=>({}));
+            if (!r.ok) throw new Error(d?.error || 'No se pudo eliminar la tarea');
+            await Swal.fire({ icon: 'success', title: 'Tarea eliminada', text: 'Se eliminó correctamente', timer: 1400, showConfirmButton: false });
+            cargarTareasDelProyecto(proyectoId);
+          } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+          }
         });
       });
     }).catch(() => { if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error al cargar tareas</td></tr>'; });
@@ -601,6 +629,16 @@
         reader.onload = e => { prev.style.backgroundImage = `url('${e.target.result}')`; prev.style.backgroundSize='cover'; prev.style.backgroundPosition='center'; prev.textContent=''; };
         reader.readAsDataURL(f);
       });
+      const nombreEl = document.getElementById('swPerfilNombre');
+      if (nombreEl){
+        const handler = function(){
+          const v = this.value || '';
+          const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+          if (filtered !== v) this.value = filtered;
+        };
+        nombreEl.addEventListener('input', handler);
+        nombreEl.addEventListener('blur', handler);
+      }
     } });
     if (result && result.isConfirmed){
       try {

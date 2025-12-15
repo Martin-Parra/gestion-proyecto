@@ -66,6 +66,16 @@
   document.addEventListener('DOMContentLoaded', () => {
     setupLogout();
     setupTogglePassword();
+    const nombreInput = document.getElementById('nombre');
+    if (nombreInput){
+      const handler = function(){
+        const v = this.value || '';
+        const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+        if (filtered !== v) this.value = filtered;
+      };
+      nombreInput.addEventListener('input', handler);
+      nombreInput.addEventListener('blur', handler);
+    }
 
     // Interceptar navegación interna para mostrar overlay sólo al cambiar de sección/página
     const LOADER_MS = 800;
@@ -102,6 +112,11 @@
         password: document.getElementById('password').value,
         rol: document.getElementById('rol').value
       };
+      const nameRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/;
+      if (!nameRegex.test(String(formData.nombre || '').trim())){
+        Swal.fire({ icon: 'warning', title: 'Nombre inválido', text: 'El nombre solo debe contener letras y espacios.' });
+        return;
+      }
 
       fetch('/api/usuarios', {
         method: 'POST',
