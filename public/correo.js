@@ -83,10 +83,11 @@
       const fecha = m.fecha_envio ? new Date(m.fecha_envio).toLocaleString() : '';
       const adjuntos = Array.isArray(m.adjuntos)? m.adjuntos: [];
       const rawBody = String(m.cuerpo||'');
-      const displayBody = rawBody
-        .replace(/\n/g,'<br/>')
+      const stripped = rawBody
         .replace(/\[\[REQUEST_TASK_STATUS:[^\]]+\]\]/g, '')
         .replace(/\[\[REQUEST_PROJECT_STATUS:[^\]]+\]\]/g, '');
+      const hasHtml = /<[^>]+>/.test(stripped.trim());
+      const displayBody = hasHtml ? stripped : stripped.replace(/\n/g,'<br/>');
       const adjHtml = adjuntos.length ? `
         <div class=\"attachments\">\n          <strong>Adjuntos (${adjuntos.length}):</strong>\n          <ul>\n            ${adjuntos.map(a=>`<li><a href="${a.url}" download="${(a.nombre||a.nombre_original||'archivo')}">${a.nombre||a.nombre_original||'archivo'}</a> <span class=\"muted\">(${a.tamano ? (Math.round(a.tamano/1024))+' KB' : a.mime||''})</span></li>`).join('')}\n          </ul>\n        </div>` : '';
       cont.innerHTML = `

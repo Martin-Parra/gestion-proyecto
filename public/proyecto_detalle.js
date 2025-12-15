@@ -1,6 +1,4 @@
-try{ history.pushState(null,'',location.href); }catch(_){}
-window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });
-window.addEventListener('keydown', function(e){ if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) || e.key === 'BrowserBack' || e.key === 'BrowserForward') { e.preventDefault(); } });
+ 
 $(document).ready(function() {
     // Variables globales
     let currentProject = null;
@@ -11,50 +9,8 @@ $(document).ready(function() {
     // Inicializar la página
     init();
 
-    function generateSolicitudPDF(proyecto, tarea, estadoActual, estadoSolicitado, trabajador, email, rol, motivo){
-        const jsPDFRef = window.jspdf && window.jspdf.jsPDF;
-        if (!jsPDFRef) throw new Error('PDF no disponible');
-        const doc = new jsPDFRef({ unit: 'pt', format: 'a4' });
-        const margin = 40;
-        let y = margin;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text('Informe de Solicitud de Cambio de Estado de Tarea', margin, y);
-        y += 30;
-        doc.setFontSize(12);
-        doc.text('1. Información General', margin, y);
-        y += 18;
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Proyecto: ${proyecto?.nombre||''}`, margin, y);
-        y += 16;
-        doc.text(`Tarea: ${tarea?.titulo||''}`, margin, y);
-        y += 16;
-        doc.text(`Estado Actual: ${estadoActual||''}`, margin, y);
-        y += 16;
-        doc.text(`Estado Solicitado: ${estadoSolicitado||''}`, margin, y);
-        y += 24;
-        doc.setFont('helvetica', 'bold');
-        doc.text('2. Datos del Solicitante', margin, y);
-        y += 18;
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Nombre del Trabajador: ${trabajador||''}`, margin, y);
-        y += 16;
-        doc.text(`Correo Electrónico: ${email||''}`, margin, y);
-        y += 16;
-        doc.text(`Rol / Cargo: ${rol||''}`, margin, y);
-        y += 24;
-        doc.setFont('helvetica', 'bold');
-        doc.text('3. Detalle de la Solicitud', margin, y);
-        y += 18;
-        doc.setFont('helvetica', 'normal');
-        const fecha = new Date().toLocaleString('es-ES');
-        doc.text(`Fecha y Hora de la Solicitud: ${fecha}`, margin, y);
-        y += 16;
-        doc.text('Motivo del Cambio de Estado:', margin, y);
-        y += 16;
-        const split = doc.splitTextToSize(motivo || '—', 520);
-        split.forEach(line => { doc.text(line, margin + 20, y); y += 14; });
-        return doc.output('blob');
+    function escapeHtml(s){
+        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
     }
 
     function init() {
@@ -101,37 +57,61 @@ function setupEventListeners() {
                 const tareas = Array.isArray(currentTasks) ? currentTasks : [];
                 if (tareas.length === 0) { Swal.fire({ icon:'info', title:'Sin tareas', text:'No hay tareas para solicitar cambio de estado.' }); return; }
                 const estados = { pendiente:'Por Hacer', en_progreso:'En Progreso', revisando:'Revisando', completada:'Completada' };
+                let selectedFiles = [];
                 const html = `
                     <div class="sw-request">
                         <div class="sw-header"><i class="fas fa-clipboard-check"></i> Selecciona tarea y estado</div>
-                        <div class="form-row">
-                            <label>Tarea</label>
-                            <select id="swTareaSelect" class="form-control">
+                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+                            <label style="margin-bottom:8px;font-weight:600;">Tarea</label>
+                            <select id="swTareaSelect" class="form-control" style="width:100%;max-width:560px">
                                 ${tareas.map(t=>`<option value="${t.id}">${(t.titulo||'Tarea')} (${estados[t.estado]||t.estado})</option>`).join('')}
                             </select>
                         </div>
-                        <div class="form-row">
-                            <label>Estado</label>
-                            <select id="swTareaEstado" class="form-control">
+                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+                            <label style="margin-bottom:8px;font-weight:600;">Estado</label>
+                            <select id="swTareaEstado" class="form-control" style="width:100%;max-width:560px">
                                 ${Object.entries(estados).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
                             </select>
                         </div>
-                        <div class="form-row">
-                            <label>Mensaje</label>
-                            <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Justificación (opcional)"></textarea>
+                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+                            <label style="margin-bottom:8px;font-weight:600;">Mensaje</label>
+                            <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Justificación (opcional)" style="width:100%;max-width:560px"></textarea>
                         </div>
-                        <div class="form-row" style="display:flex;align-items:center;gap:8px;">
-                            <input type="checkbox" id="swAdjuntarInforme" />
-                            <label for="swAdjuntarInforme" style="margin:0;">Adjuntar informe PDF de la solicitud</label>
+                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+                            <label style="margin-bottom:8px;font-weight:600;">Adjuntar documentos</label>
+                            <div id="swFilesList" class="muted" style="margin-bottom:8px;color:#6b7280;width:100%;max-width:560px">No hay archivos seleccionados</div>
+                            <div id="swDropZone" style="width:100%;max-width:560px;border:2px dashed #c7cbe0;border-radius:10px;padding:14px;text-align:center;color:#4b5563;cursor:pointer">
+                                Arrastra aquí los archivos o haz clic para buscar
+                            </div>
+                            <input id="swFilesInput" type="file" multiple style="display:none" />
+                            <small class="form-hint" style="color:#6b7280;margin-top:8px;">Hasta 10 archivos; formatos comunes (PDF, imágenes, Word, Excel)</small>
                         </div>
                     </div>`;
-                const res = await Swal.fire({ title: 'Solicitar estado de tarea', html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', customClass: { popup: 'sw-popup', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }, focusConfirm: false, preConfirm: () => {
+                const res = await Swal.fire({ title: 'Solicitar estado de tarea', width: 720, html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', customClass: { popup: 'sw-popup', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }, focusConfirm: false, didOpen: () => {
+                    const drop = document.getElementById('swDropZone');
+                    const input = document.getElementById('swFilesInput');
+                    const list = document.getElementById('swFilesList');
+                    const updateList = () => {
+                        if (!selectedFiles.length) { list.textContent = 'No hay archivos seleccionados'; return; }
+                        list.innerHTML = selectedFiles.map(f => `${f.name} (${Math.round((f.size||0)/1024)} KB)`).join('<br>');
+                    };
+                    const addFiles = (files) => {
+                        const arr = Array.from(files || []);
+                        selectedFiles = [...selectedFiles, ...arr].slice(0, 10);
+                        updateList();
+                    };
+                    drop.style.width = '100%';
+                    drop.addEventListener('click', () => input.click());
+                    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.background = '#eef2f7'; });
+                    drop.addEventListener('dragleave', () => { drop.style.background = ''; });
+                    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.style.background = ''; addFiles(e.dataTransfer.files); });
+                    input.addEventListener('change', (e) => addFiles(e.target.files));
+                }, preConfirm: () => {
                     const tareaSel = document.getElementById('swTareaSelect');
                     const estadoSel = document.getElementById('swTareaEstado');
-                    const adj = document.getElementById('swAdjuntarInforme');
                     if (!tareaSel || !tareaSel.value) { Swal.showValidationMessage('Debes seleccionar una tarea'); return false; }
                     if (!estadoSel || !estadoSel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
-                    return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim(), adjuntar: !!(adj && adj.checked) };
+                    return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim(), files: selectedFiles };
                 }});
                 if (!res.isConfirmed) return;
                 const tareaId = res.value.tareaId;
@@ -145,16 +125,42 @@ function setupEventListeners() {
                     fd.append('to_emails', jefeEmail);
                     const asunto = `Solicitud de estado de tarea: ${(tarea?.titulo||'Tarea')} · ${currentProject.nombre}`;
                     const estadosTxt = estados;
-                    const cuerpo = `El trabajador ${(currentUser?.nombre||currentUser?.email||'')} solicita cambiar el estado de la tarea \"${tarea?.titulo||''}\" a \"${estadosTxt[estadoSolicitado]||estadoSolicitado}\" en el proyecto \"${currentProject.nombre}\".\n\n${msg}\n\n[[REQUEST_TASK_STATUS:${currentProject.id}|${tareaId}|${estadoSolicitado}|${currentUser?.email||''}]]`;
+                    const actualTxt = estadosTxt[tarea?.estado] || tarea?.estado || '';
+                    const solicitadoTxt = estadosTxt[estadoSolicitado] || estadoSolicitado;
+                    const safeMsg = escapeHtml(msg).replace(/\n/g,'<br/>');
+                    const cuerpo = `<div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#f8fafc;">
+  <div style="margin-bottom:6px;">
+    <span style="background:#eef2ff;border-radius:9999px;padding:6px 12px;color:#3730a3;font-weight:600;font-size:12px;display:inline-block;">Solicitud de estado de tarea</span>
+  </div>
+  <table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 12px 0;">
+    <tr>
+      <td style="width:170px;color:#6b7280;padding:4px 8px;">Proyecto</td>
+      <td style="padding:4px 8px;font-weight:600;color:#111827;">${currentProject.nombre}</td>
+    </tr>
+    <tr>
+      <td style="width:170px;color:#6b7280;padding:4px 8px;">Tarea</td>
+      <td style="padding:4px 8px;font-weight:600;color:#111827;">${tarea?.titulo||''}</td>
+    </tr>
+    <tr>
+      <td style="width:170px;color:#6b7280;padding:4px 8px;">Estado actual</td>
+      <td style="padding:4px 8px;"><span style="background:#e5e7eb;border-radius:6px;padding:3px 8px;font-weight:600;color:#374151;display:inline-block;">${actualTxt}</span></td>
+    </tr>
+    <tr>
+      <td style="width:170px;color:#6b7280;padding:4px 8px;">Estado solicitado</td>
+      <td style="padding:4px 8px;"><span style="background:#dbeafe;border-radius:6px;padding:3px 8px;font-weight:700;color:#1e3a8a;display:inline-block;">${solicitadoTxt}</span></td>
+    </tr>
+    <tr>
+      <td style="width:170px;color:#6b7280;padding:4px 8px;vertical-align:top;">Descripción</td>
+      <td style="padding:4px 8px;line-height:1.5;color:#111827;">${safeMsg || '—'}</td>
+    </tr>
+  </table>
+  <div style="color:#6b7280;font-size:12px;">Solicitado por ${currentUser?.nombre||currentUser?.email||''} · ${new Date().toLocaleString('es-ES')}</div>
+</div>
+[[REQUEST_TASK_STATUS:${currentProject.id}|${tareaId}|${estadoSolicitado}|${currentUser?.email||''}]]`;
                     fd.append('asunto', asunto);
                     fd.append('cuerpo', cuerpo);
-                    if (res.value.adjuntar) {
-                        const estadoAct = estadosTxt[tarea?.estado] || tarea?.estado || '';
-                        const estadoSol = estadosTxt[estadoSolicitado] || estadoSolicitado;
-                        const blob = generateSolicitudPDF(currentProject, tarea, estadoAct, estadoSol, currentUser?.nombre||currentUser?.email||'', currentUser?.email||'', currentUser?.rol||'', msg);
-                        const fname = `Informe_Solicitud_Tarea_${tareaId}.pdf`;
-                        fd.append('adjuntos', blob, fname);
-                    }
+                    const files = Array.isArray(res.value?.files) ? res.value.files : [];
+                    files.slice(0,10).forEach(f => { try { fd.append('adjuntos', f, f.name); } catch(_){ fd.append('adjuntos', f); } });
                     const r = await fetch('/api/correos', { method: 'POST', body: fd });
                     const d = await r.json().catch(()=>({}));
                     if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }
