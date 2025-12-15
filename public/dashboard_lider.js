@@ -127,6 +127,36 @@
       else { el.style.display = 'none'; }
     }).catch(()=>{});
   }
+  function setupAutoLogoutIdle(){
+    const LIMIT = 5*60*1000;
+    const WARNING = 5*1000;
+    let idleTimer = null;
+    let warnTimer = null;
+    let tickInt = null;
+    let open = false;
+    function clearAll(){ if (idleTimer) clearTimeout(idleTimer); if (warnTimer) clearTimeout(warnTimer); if (tickInt) clearInterval(tickInt); idleTimer=null; warnTimer=null; tickInt=null; }
+    function startTimers(){
+      clearAll();
+      warnTimer = setTimeout(()=>{
+        open = true;
+        let left = 5;
+        if (window.Swal){
+          window.Swal.fire({ title:'Inactividad', html:`Cierre de sesión en <b id="idleCountdown">5</b>s`, allowOutsideClick:false, allowEscapeKey:false, showConfirmButton:false });
+          const el = document.getElementById('idleCountdown');
+          tickInt = setInterval(()=>{ left--; if (el) el.textContent = String(left); if (left<=0){ clearInterval(tickInt); } },1000);
+        }
+      }, LIMIT - WARNING);
+      idleTimer = setTimeout(()=>{ fetch('/api/auth/logout', { method:'POST', credentials:'include', keepalive:true }).finally(()=>{ window.location.href='/login?error=inactive'; }); }, LIMIT);
+    }
+    function reset(){
+      if (open && window.Swal){ try{ window.Swal.close(); }catch(_){ } }
+      open = false;
+      startTimers();
+    }
+    ['mousemove','mousedown','keydown','scroll','touchstart'].forEach(ev=> document.addEventListener(ev, reset, { passive:true }));
+    document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) reset(); });
+    startTimers();
+  }
 
   // Proyectos del líder
   const proyectosGrid = document.getElementById('proyectosGrid');
@@ -596,6 +626,7 @@
   cargarMiembrosCatalogo();
   updateTopCorreoBadge();
   setInterval(updateTopCorreoBadge, 30000);
+  setupAutoLogoutIdle();
 
   // Perfil (SweetAlert)
   const profileBtn = document.getElementById('profileBtn');
