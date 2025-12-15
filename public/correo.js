@@ -151,7 +151,6 @@
           panel.innerHTML = `
             <div class="action-box">
               <h4><i class="fas fa-flag"></i> Solicitud de estado de tarea</h4>
-              <p>Proyecto #${projectId} · Tarea #${tareaId}</p>
               <p>Estado solicitado: <strong>${labels[solicitado]||solicitado}</strong></p>
               <div class="actions">
                 <button id="btnIrAsignacionTareas" class="btn btn-primary"><i class="fas fa-arrow-right"></i> Redirigir a Asignación de Tareas</button>
