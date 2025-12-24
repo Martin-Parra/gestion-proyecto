@@ -22,12 +22,12 @@
     <!-- Barra superior reemplazando el sidebar -->
     <header class="topbar">
         <div class="topbar-inner">
-            <div class="sidebar-header">
-                <h2>Nexxuz</h2>
-            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
                 <i class="fas fa-bars"></i>
             </button>
+            <div class="sidebar-header">
+                <h2>Nexxuz</h2>
+            </div>
             <!-- Menú visible siempre; se removió el botón de despliegue -->
             <ul class="sidebar-menu" id="sidebarMenu">
                 <li><a href="#usuarios"><i class="fas fa-users"></i> Usuarios</a></li>
@@ -36,13 +36,13 @@
                 <li><a href="#revicion_proyectos"><i class="fas fa-clipboard-check"></i> Revisión de proyectos</a></li>
                 <li><a href="#gestion_miembros"><i class="fas fa-user-cog"></i> Gestión de Miembros</a></li>
                 <li><a href="#registro_cambios"><i class="fas fa-history"></i> Registro de Cambios</a></li>
-                <li class="profile">
-                    <button id="profileBtn" class="profile-btn" aria-label="Perfil">
-                        <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
-                    </button>
-                </li>
                 <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
             </ul>
+            <div class="topbar-profile">
+                <button id="profileBtn" class="profile-btn" aria-label="Perfil">
+                    <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
+                </button>
+            </div>
         </div>
     </header>
 

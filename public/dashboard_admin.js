@@ -1,7 +1,7 @@
 // Variables globales para la gestión de usuarios
 let todosLosUsuarios = [];
 let usuariosFiltrados = [];
-let cantidadPorPagina = 7; // Por defecto mostrar 7 registros
+let cantidadPorPagina = 6; // Por defecto mostrar 6 registros
 let paginaActual = 1;
 let terminoBusqueda = '';
 
@@ -97,12 +97,12 @@ function mostrarUsuariosEnTabla() {
         const estadoTexto = usuario.activo ? 'Activo' : 'Inactivo';
         
         tr.innerHTML = `
-            <td>${usuario.id}</td>
-            <td>${usuario.nombre}</td>
-            <td>${usuario.email}</td>
-            <td>${usuario.rol}</td>
-            <td><span class="badge ${usuario.activo ? 'badge-success' : 'badge-danger'}">${estadoTexto}</span></td>
-            <td class="action-buttons">
+            <td data-label="ID">${usuario.id}</td>
+            <td data-label="Nombre">${usuario.nombre}</td>
+            <td data-label="Email">${usuario.email}</td>
+            <td data-label="Rol">${usuario.rol}</td>
+            <td data-label="Estado"><span class="badge ${usuario.activo ? 'badge-success' : 'badge-danger'}">${estadoTexto}</span></td>
+            <td data-label="Acciones" class="action-buttons">
                 <button class="btn btn-sm btn-primary" data-id="${usuario.id}" title="Editar usuario">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -198,7 +198,7 @@ function abrirModalEditarUsuario(userId) {
                         cambiarUserId.value = uid || '';
                         if (nuevaPwdInput) nuevaPwdInput.value = '';
                         if (confirmPwdInput) confirmPwdInput.value = '';
-                        cambiarModal.style.display = 'block';
+                        cambiarModal.style.display = 'flex';
                     };
                 }
                 if (closeCambiar && cambiarModal) {
@@ -253,7 +253,7 @@ function abrirModalEditarUsuario(userId) {
                 
                 const modal = document.getElementById('modalEditarUsuario');
                 if (modal) {
-                    modal.style.display = 'block';
+                    modal.style.display = 'flex';
                 }
             } else {
                 console.error('Error al cargar datos del usuario:', data.message);
@@ -269,7 +269,7 @@ function abrirModalEliminarUsuario(userId) {
     document.getElementById('confirmarEliminarUsuario').setAttribute('data-id', userId);
     const modal = document.getElementById('modalEliminarUsuario');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
     }
 }
 
@@ -526,12 +526,12 @@ function mostrarProyectosEnTabla() {
                         
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td>${proyecto.id || ''}</td>
-                            <td>${proyecto.nombre || ''}</td>
-                            <td>${fechaInicio}</td>
-                            <td>${fechaFin}</td>
-                            <td>${proyecto.jefe_nombre || 'Sin asignar'}</td>
-                            <td>
+                            <td data-label="ID">${proyecto.id || ''}</td>
+                            <td data-label="Nombre">${proyecto.nombre || ''}</td>
+                            <td data-label="Fecha Inicio">${fechaInicio}</td>
+                            <td data-label="Fecha Fin">${fechaFin}</td>
+                            <td data-label="Jefe de Proyecto">${proyecto.jefe_nombre || 'Sin asignar'}</td>
+                            <td data-label="Acciones">
                                 <button class="btn btn-sm btn-primary" data-id="${proyecto.id}" title="Editar proyecto">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -644,7 +644,7 @@ function abrirModalEditarProyecto(proyectoId) {
                 // Mostrar el modal
                 const modal = document.getElementById('modalEditarProyecto');
                 if (modal) {
-                    modal.style.display = 'block';
+                    modal.style.display = 'flex';
                 }
             } else {
                 console.error('Error al cargar datos del proyecto:', data.message);
@@ -666,7 +666,7 @@ function abrirModalEliminarProyecto(proyectoId) {
     
     const modal = document.getElementById('modalEliminarProyecto');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
     }
 }
 
@@ -1088,12 +1088,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     easing: 'easeInQuad',
                                     complete: () => {
                                         topbar.classList.remove('open');
-                                        if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                                        if (icon) { icon.classList.remove('fa-times'); icon.classList.add('fa-bars'); }
                                     }
                                 });
                             } else {
                                 topbar.classList.remove('open');
-                                if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                                if (icon) { icon.classList.remove('fa-times'); icon.classList.add('fa-bars'); }
                             }
                         }
                         if (main) {
@@ -1835,10 +1835,10 @@ window.cargarRegistroCambios = async function() {
                 const fechaTxt = ev.date ? ev.date.toLocaleString() : '';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${fechaTxt}</td>
-                    <td>${pName}</td>
-                    <td>${ev.title}</td>
-                    <td>${ev.detail}${ev.who ? ' · ' + ev.who : ''}</td>
+                    <td data-label="Fecha">${fechaTxt}</td>
+                    <td data-label="Proyecto">${pName}</td>
+                    <td data-label="Tipo">${ev.title}</td>
+                    <td data-label="Detalle">${ev.detail}${ev.who ? ' · ' + ev.who : ''}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2070,7 +2070,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnAbrirAsignacion && modalAsignacion) {
         btnAbrirAsignacion.addEventListener('click', () => {
-            modalAsignacion.style.display = 'block';
+            modalAsignacion.style.display = 'flex';
             try {
                 if (typeof cargarProyectosParaTareas === 'function') {
                     cargarProyectosParaTareas();
@@ -2227,10 +2227,10 @@ window.cargarAsignacionesTabla = function(proyectoId = null) {
                         const fecha = a.created_at ? new Date(a.created_at) : null;
                         const fechaTxt = fecha ? fecha.toLocaleString() : '';
                         tr.innerHTML = `
-                            <td>${a.proyecto_nombre || a.proyecto_id}</td>
-                            <td>${a.usuario_nombre || a.usuario_id}</td>
-                            <td>${fechaTxt}</td>
-                            <td>
+                            <td data-label="Proyecto">${a.proyecto_nombre || a.proyecto_id}</td>
+                            <td data-label="Miembro">${a.usuario_nombre || a.usuario_id}</td>
+                            <td data-label="Fecha">${fechaTxt}</td>
+                            <td data-label="Acciones">
                                 <button class="btn btn-sm btn-danger" data-asignacion-id="${a.id}"><i class="fas fa-trash-alt"></i></button>
                             </td>`;
                         tbody.appendChild(tr);
@@ -2330,7 +2330,7 @@ function editarTarea(tareaId, titulo, descripcion, proyectoId) {
     document.getElementById('editarTareaDescripcion').value = descripcion;
     
     // Mostrar el modal
-    modal.style.display = 'block';
+    modal.style.display = 'flex';
 }
 
 function eliminarTarea(tareaId, proyectoId) {
@@ -2391,6 +2391,61 @@ function eliminarTarea(tareaId, proyectoId) {
 
 // Event listeners para el modal de editar tarea
 document.addEventListener('DOMContentLoaded', function() {
+    // Toggle menú hamburguesa
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    
+    if (menuToggle && sidebarMenu) {
+        const topbar = document.querySelector('.topbar');
+        
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sidebarMenu.classList.toggle('active');
+            if (topbar) topbar.classList.toggle('open');
+            
+            // Cambiar ícono
+            const icon = menuToggle.querySelector('i');
+            if (icon) {
+                if (sidebarMenu.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+        
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (sidebarMenu.classList.contains('active') && 
+                !sidebarMenu.contains(e.target) && 
+                !menuToggle.contains(e.target)) {
+                sidebarMenu.classList.remove('active');
+                const icon = menuToggle.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+
+        // Cerrar menú al seleccionar una opción
+        const menuLinks = sidebarMenu.querySelectorAll('a');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    sidebarMenu.classList.remove('active');
+                    const icon = menuToggle.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                }
+            });
+        });
+    }
+
     const modalEditarTarea = document.getElementById('modalEditarTarea');
     const closeEditarTarea = document.getElementById('closeEditarTarea');
     const formEditarTarea = document.getElementById('formEditarTarea');
@@ -2741,7 +2796,7 @@ function setupNavLoader(){
     async function openModal(){
         if (modal){
             modal.classList.add('show');
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
             // Reset estado de contraseña
             pwdVerificada = false;
             if (pwdActualInput){ pwdActualInput.value = ''; }

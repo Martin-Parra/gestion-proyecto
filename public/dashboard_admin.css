@@ -110,7 +110,8 @@ html { height: 100%; overflow-y: hidden; }
         font-size: 1.5rem;
         cursor: pointer;
         color: var(--p-700);
-        margin-left: auto; /* Empujar a la derecha si es necesario */
+        margin-right: auto; /* Asegurar que no empuje */
+        order: 1;
     }
 
     /* Ocultar menú por defecto en móvil */
@@ -127,12 +128,22 @@ html { height: 100%; overflow-y: hidden; }
         margin: 0;
         border-top: 1px solid #e5e7eb;
         z-index: 200;
+        order: 4; /* Al final del flujo si se muestra estático */
+        box-sizing: border-box; /* Evitar desbordamiento por padding */
     }
 
     /* Mostrar menú cuando tiene la clase open (manejado por JS en .topbar) */
     .topbar.open .sidebar-menu {
         display: flex;
+        position: absolute; /* Override desktop static */
+        padding: 1rem; /* Override desktop padding 0 */
+        background: #fff; /* Override desktop transparent */
+        width: 100%;
+        box-sizing: border-box;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         animation: slideDown 0.3s ease-out;
+        flex-direction: column; /* Asegurar columna */
+        z-index: 200;
     }
 
     .sidebar-menu li {
@@ -151,8 +162,26 @@ html { height: 100%; overflow-y: hidden; }
 
     /* Ajustes para el topbar en móvil */
     .topbar-inner {
-        justify-content: space-between; /* Logo a la izq, Toggle a la der */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding: 10px 15px;
+        position: relative; /* Para posicionamiento absoluto del logo */
+    }
+
+    /* Centrar logo Nexxuz */
+    .topbar .sidebar-header {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        width: auto;
+        text-align: center;
+        order: 2;
+    }
+    
+    .topbar-profile {
+        order: 3;
     }
     
     /* Ocultar items que no deberían verse o ajustar orden */
@@ -468,69 +497,12 @@ section h2:after {
     background-color: #e74a3b;
 }
 
-/* Acciones en tablas */
+/* Modales - Estilos unificados en seccion posterior */
 .action-buttons {
     display: flex;
     gap: 0.5rem;
 }
 
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border-radius: 0.2rem;
-}
-/* Modales */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1050;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    animation: fadeIn 0.3s;
-}
-
-.modal-content {
-    position: relative;
-    background-color: #fff;
-    margin: 10% auto;
-    padding: 1.5rem;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 0.3rem;
-    width: 80%;
-    max-width: 500px;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
-    animation: slideIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideIn {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.close:hover,
-.close:focus {
-    color: #4e73df;
-    text-decoration: none;
-}
 
 /* Buscador de jefes */
 .buscador-jefe {
@@ -577,11 +549,14 @@ section h2:after {
 }
 ::-webkit-scrollbar {
     width: 8px;
-    background: #ffe06633;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #ffe066;
+    background: #c1c1c1;
     border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 /* Estilos para mensajes de éxito/error */
@@ -648,9 +623,13 @@ section h2:after {
     width: 92%;
     max-width: 640px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    transform: translateY(-20px);
+    transform: translateY(0); /* Corregido: centrado exacto */
     transition: transform 0.3s;
-    border:1px solid #e6ecf3;
+    border: 1px solid #e6ecf3;
+    /* Asegurar scroll interno si es muy alto */
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: auto; /* Centrado en flex container */
 }
 
 .modal-overlay.active .modal-content {
@@ -1469,7 +1448,7 @@ body.add-project .form-actions .btn-primary:hover {
 }
 
 .toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+.records-control { display: none; align-items: center; gap: 0.5rem; white-space: nowrap; }
 .records-select { min-width: 80px; }
 @media (max-width: 768px) {
     .user-toolbar { flex-direction: column; align-items: stretch; }
@@ -1633,8 +1612,8 @@ body.add-project .form-actions .btn-primary:hover {
 
 /* --- Modal de Perfil --- */
 #perfilModal { position: fixed; inset: 0; background: rgba(2,6,23,0.45); backdrop-filter: blur(2px); z-index: 300; display: none; }
-#perfilModal.show { display: block; }
-#perfilModal .perfil-modal-content { width: min(560px, calc(100% - 48px)); margin: 6% auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,0.25); padding: 18px 20px; position: relative; box-sizing: border-box; overflow: hidden; }
+#perfilModal.show { display: flex; align-items: center; justify-content: center; }
+#perfilModal .perfil-modal-content { width: min(560px, calc(100% - 48px)); margin: auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,0.25); padding: 18px 20px; position: relative; box-sizing: border-box; overflow: hidden; max-height: 90vh; overflow-y: auto; }
 #perfilModal .modal-title { font-weight: 800; color: var(--p-800); margin: 0 0 12px 0; }
 #perfilModal .close { position: absolute; top: 10px; right: 12px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: #64748b; }
 .perfil-body { display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: start; }
@@ -1651,6 +1630,10 @@ body.add-project .form-actions .btn-primary:hover {
 @media (max-width: 640px){
   .perfil-body { grid-template-columns: 1fr; }
   .perfil-avatar-wrap { justify-items: start; }
+  /* Permitir scroll horizontal si el contenido es muy ancho */
+  #perfilModal .perfil-modal-content {
+      overflow-x: auto !important;
+  }
 }
 .members-divider {
     position: relative;
@@ -1691,7 +1674,7 @@ body.add-project .form-actions .btn-primary:hover {
 /* Subtítulos y caja de asignación paralela */
 .members-subtitle {
     margin: 0 0 12px 0;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: var(--p-800);
     text-align: center;
@@ -1707,11 +1690,11 @@ body.add-project .form-actions .btn-primary:hover {
     background: linear-gradient(90deg, var(--p-600), var(--p-800));
 }
 .assign-box {
-    background: #fff;
-    border: 1px solid #e6ecf3;
-    border-radius: 12px;
-    padding: 16px;
-    min-height: 420px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    min-height: auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -1777,3 +1760,397 @@ body.project-detail .table tbody tr:hover { background-color: rgba(120,134,185,0
 /* Título de tareas con color y subrayado bonito */
 body.project-detail #proyectoDetalleTitulo { color: var(--p-700); font-weight: 900; letter-spacing: .2px; position: relative; margin: 0; }
 body.project-detail #proyectoDetalleTitulo::after { content:""; display:block; width:220px; height:3px; margin-top:6px; border-radius:999px; background: linear-gradient(90deg, var(--p-600), var(--p-800)); opacity:.85; }
+
+/* Alinear acciones del header a la derecha para la sección Revisión */
+#revicion_proyectos .card-header.actions-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* ---- Gestión de Miembros Layout ---- */
+.members-grid {
+    display: grid;
+    grid-template-columns: 1fr 12px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+.members-left, .members-right { min-width: 0; }
+.members-right { margin-top: 36px; }
+
+/* --- Avatar de perfil en topbar --- */
+.topbar .sidebar-menu li.profile { display: flex; align-items: center; margin-left: auto; padding-right: 12px; }
+.topbar .sidebar-menu li.profile + li.logout { margin-left: 0; }
+.profile-btn { border: none; background: transparent; padding: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.avatar-circle { width: 36px; height: 36px; border-radius: 50%; background: var(--p-700); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.12); border: 2px solid #fff; }
+.avatar-lg { width: 96px; height: 96px; font-size: 1.4rem; border-width: 3px; }
+
+/* --- Modal de Perfil --- */
+#perfilModal { position: fixed; inset: 0; background: rgba(2,6,23,0.45); backdrop-filter: blur(2px); z-index: 300; display: none; }
+#perfilModal.show { display: flex; align-items: center; justify-content: center; }
+#perfilModal .perfil-modal-content { width: min(560px, calc(100% - 48px)); margin: auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,0.25); padding: 18px 20px; position: relative; box-sizing: border-box; overflow: hidden; max-height: 90vh; overflow-y: auto; }
+#perfilModal .modal-title { font-weight: 800; color: var(--p-800); margin: 0 0 12px 0; }
+#perfilModal .close { position: absolute; top: 10px; right: 12px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: #64748b; }
+.perfil-body { display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: start; }
+
+@media (max-width: 768px) {
+    /* Forzar scroll en ambas direcciones para tablas en móvil */
+    .table-responsive, 
+    .table-responsive.fullbleed-table {
+        display: block;
+        width: 100%;
+        max-height: 60vh; /* Altura máxima para scroll vertical */
+        overflow-y: auto !important; /* Forzar scroll vertical */
+        overflow-x: auto !important; /* Forzar scroll horizontal */
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive .table {
+        min-width: 900px; /* Asegurar ancho suficiente para scroll horizontal */
+        margin-bottom: 0;
+    }
+
+    /* Asegurar cabecera fija al hacer scroll vertical */
+    .table-responsive thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: #f8f9fc; /* Fondo sólido para evitar transparencia */
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Footer de tabla responsivo */
+    .table-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-right { order: 1; }
+    .footer-left { order: 2; }
+
+    .footer-left, 
+    .footer-right {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .footer-right .pagination {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .pagination button {
+        flex: initial;
+        width: auto;
+        padding: 0.5rem 1rem;
+        justify-content: center;
+    }
+
+    /* Habilitar scroll global en móvil */
+    body {
+        overflow-y: auto !important;
+        padding-bottom: 0;
+    }
+    /* Excepción para Nuevo Usuario: Sin scroll vertical en móvil */
+    body.add-user {
+        overflow-y: hidden !important;
+        padding-bottom: 0 !important;
+        height: 100vh !important;
+    }
+    
+    /* Ajustes específicos para el select de estado en detalle proyecto */
+    body.project-detail .main-content {
+        max-height: none !important;
+        overflow-y: visible !important;
+        padding-right: 0;
+    }
+
+    body.project-detail .review-controls {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    body.project-detail .review-controls select {
+        width: auto !important;
+        min-width: 200px;
+        max-width: 300px;
+        flex: 0 0 auto;
+    }
+}
+
+/* --- Nuevos Estilos (Centrado Asignar Miembro) y Back Button Unificado --- */
+body.project-detail .page-back .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--p-700);
+    color: var(--p-700);
+    font-weight: 600;
+    text-decoration: none;
+    background: transparent;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+body.project-detail .page-back {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    padding: 0;
+}
+
+body.project-detail .main-content {
+    position: relative;
+    padding-top: 60px !important;
+}
+
+body.add-user .page-back .back-link:hover,
+body.project-detail .page-back .back-link:hover {
+    background: var(--p-700);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(90,96,155,0.2);
+    transform: translateY(-1px);
+}
+
+/* --- Centrado Asignar Miembro (Gestión de Miembros) --- */
+.members-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.members-subtitle {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 20px;
+    color: var(--p-700);
+    font-weight: 700;
+}
+
+.assign-box {
+    width: 100%;
+    max-width: 500px; /* Ancho máximo para que se vea centrado y prolijo */
+}
+
+.assign-box form {
+    text-align: left; /* Etiquetas a la izquierda */
+}
+
+.assign-box .btn-center {
+    display: table; /* Truco para centrar con margin auto si es block */
+    margin: 20px auto 0;
+    min-width: 180px;
+}
+
+/* Ocultar cargadores en móvil si molestan (Solicitud usuario) */
+@media (max-width: 768px) {
+    #globalLoader, #pageLoader {
+        display: none !important;
+    }
+}
+
+/* --- REPARACI�N CR�TICA DE RESPONSIVIDAD --- */
+@media (max-width: 768px) {
+    /* 1. Toolbar de usuarios: forzar columna y ajuste de ancho */
+    .user-toolbar {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        height: auto !important;
+        gap: 10px !important;
+    }
+    
+    .search-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 auto !important;
+    }
+
+    .toolbar-right {
+        width: 100% !important;
+        justify-content: space-between !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* 2. Tablas: asegurar scroll y sticky headers */
+    .table-responsive, 
+    .table-responsive.fullbleed-table {
+        display: block !important;
+        width: 100% !important;
+        max-height: 60vh !important;
+        overflow-y: auto !important;
+        overflow-x: auto !important;
+        border: 1px solid #e3e6f0;
+    }
+    
+    .table-responsive thead th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+        background: #f8f9fc !important;
+    }
+
+    /* 3. Body: permitir scroll vertical en m�vil */
+    /* 3. Body y Contenedor Principal: permitir scroll vertical en móvil */
+    html, body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    
+    .main-content {
+        height: auto !important;
+        overflow: visible !important;
+        padding-bottom: 40px !important;
+    }
+
+    body {
+        padding-bottom: 0 !important;
+    }
+    
+    /* Asegurar que el footer de la tabla se vea bien */
+    .table-footer {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 1rem;
+    }
+    
+    .table-footer .dataTables_info {
+        order: 2;
+        margin-top: 0.5rem;
+    }
+
+    .table-footer .pagination-container {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    
+    /* 4. Men�: asegurar visualizaci�n si JS usa .active */
+    .sidebar-menu.active {
+        display: flex !important;
+        flex-direction: column !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        width: 100% !important;
+        background: #fff !important;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+        z-index: 9999 !important;
+        padding: 1rem !important;
+    }
+    
+    /* 5. Ajustes de modales y contenido vario */
+    .modal-content {
+        margin: auto !important; /* Centrado flex */
+        max-width: 95% !important;
+    }
+}
+
+/* Estilos para acciones de documentos (Global) */
+.docs-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 8px 0 12px;
+}
+
+.docs-actions label {
+    margin-right: 8px;
+}
+
+/* Ajustes Móviles Adicionales */
+@media (max-width: 768px) {
+    .docs-actions {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .docs-actions label {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        display: block;
+        width: 100%;
+    }
+    
+    .docs-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Ocultar loaders en móvil para evitar bloqueos visuales */
+    #globalLoader, #pageLoader {
+        display: none !important;
+    }
+
+    /* --- Gestión de Miembros Mobile Layout --- */
+    .members-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .members-left {
+        width: 100%;
+        order: 1;
+    }
+
+    .members-divider {
+        display: none;
+    }
+
+    .members-right {
+        width: 100%;
+        order: 2;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    /* Horizontal scrolling for charts */
+    .stat-cards {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 16px;
+        padding-bottom: 12px;
+        margin-bottom: 0;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+    }
+
+    .stat-card {
+        flex: 0 0 85%;
+        min-width: 260px;
+        scroll-snap-align: center;
+        margin-bottom: 0;
+    }
+
+    /* Ensure Assign Member section is centered */
+    .assign-box {
+        margin: 0 auto;
+    }
+}
+

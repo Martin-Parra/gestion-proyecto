@@ -40,9 +40,9 @@
   function renderProyectoInfo(data){
     const tituloEl = document.getElementById('proyectoDetalleTitulo');
     const liderEl = document.getElementById('proyectoInfoLider');
-    const pageTitleEl = document.getElementById('pageTitle');
-    if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> Tareas del Proyecto: ${data.nombre}`;
-    if (pageTitleEl) pageTitleEl.textContent = `Detalle del Proyecto`;
+    // const pageTitleEl = document.getElementById('pageTitle'); // Eliminado por solicitud
+    if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> ${data.nombre}`;
+    // if (pageTitleEl) pageTitleEl.textContent = `Detalle del Proyecto`;
     if (liderEl) liderEl.textContent = data.jefe_nombre || '—';
   }
 
@@ -282,6 +282,61 @@
     if (section){ section.classList.remove('enter'); void section.offsetWidth; section.classList.add('enter'); }
   }
 
+  // Variables de paginación para documentos
+  let allDocuments = [];
+  let currentDocsPage = 1;
+  const docsPerPage = 6;
+
+  function updateDocsView(){
+    const totalPages = Math.ceil(allDocuments.length / docsPerPage) || 1;
+    if (currentDocsPage < 1) currentDocsPage = 1;
+    if (currentDocsPage > totalPages) currentDocsPage = totalPages;
+    
+    const start = (currentDocsPage - 1) * docsPerPage;
+    const end = start + docsPerPage;
+    const slice = allDocuments.slice(start, end);
+    
+    renderDocumentosTabla(slice);
+    renderDocsPagination(totalPages);
+  }
+
+  function renderDocsPagination(totalPages){
+    const container = document.getElementById('docsPagination');
+    if (!container) return;
+    
+    // Mostrar siempre la paginación, incluso si no hay documentos (se mostrará deshabilitada)
+    // if (allDocuments.length === 0) {
+    //     container.innerHTML = '';
+    //     return;
+    // }
+
+    container.innerHTML = `
+        <button id="btnDocsPrev" class="btn btn-sm btn-outline-primary" ${currentDocsPage === 1 ? 'disabled' : ''}>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span style="display:flex; align-items:center; font-weight:600; color:var(--p-700); font-size:0.9rem;">
+            Página ${currentDocsPage} de ${totalPages}
+        </span>
+        <button id="btnDocsNext" class="btn btn-sm btn-outline-primary" ${currentDocsPage === totalPages ? 'disabled' : ''}>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+
+    container.querySelector('#btnDocsPrev')?.addEventListener('click', () => {
+        if (currentDocsPage > 1) {
+            currentDocsPage--;
+            updateDocsView();
+        }
+    });
+
+    container.querySelector('#btnDocsNext')?.addEventListener('click', () => {
+        if (currentDocsPage < totalPages) {
+            currentDocsPage++;
+            updateDocsView();
+        }
+    });
+  }
+
   function cargarDocumentos(){
     const tbody = document.querySelector('#tablaDocumentos tbody');
     if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Cargando...</td></tr>';
@@ -290,7 +345,9 @@
       .then(r => r.json())
       .then(data => {
         if (data && data.success){
-          renderDocumentosTabla(data.documentos || []);
+          allDocuments = data.documentos || [];
+          currentDocsPage = 1;
+          updateDocsView();
         } else {
           const msg = (data && (data.error || data.message)) || 'No se pudieron cargar';
           Swal.fire('Error', msg, 'error');

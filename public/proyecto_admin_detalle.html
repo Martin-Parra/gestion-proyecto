@@ -14,21 +14,22 @@
 </head>
 <body class="project-detail">
     <!-- Overlay de carga de pantalla -->
-    <div id="pageLoader" class="page-loader" aria-hidden="true">
+    <div id="pageLoader" class="page-loader" aria-hidden="true" style="display:none">
         <div class="loader-spinner"></div>
         <div class="loader-label">Cargando…</div>
     </div>
-    <!-- Botón Volver arriba a la izquierda -->
-    <div class="page-back">
-        <a class="back-link" href="/dashboard/admin"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
-    </div>
-
+    <!-- Botón Volver movido dentro del main para que scrollee -->
+    
     <main class="main-content">
-        <h2 id="pageTitle">Detalle del Proyecto</h2>
+        <div class="page-back">
+            <a class="back-link" href="/dashboard/admin"><i class="fas fa-arrow-left"></i> Volver</a>
+        </div>
+
+        <!-- Título eliminado por solicitud -->
 
         <div class="card">
             <div class="card-header header-row">
-                <h3 id="proyectoDetalleTitulo"><i class="fas fa-tasks"></i> Tareas del Proyecto</h3>
+                <h3 id="proyectoDetalleTitulo"><i class="fas fa-tasks"></i></h3>
                 <div class="project-lead-inline"><strong>Líder de Proyecto:</strong> <span id="proyectoInfoLider">—</span></div>
             </div>
             <div class="card-body">
@@ -88,8 +89,8 @@
 
                 <div id="proyectoDocumentos" class="project-docs section-block" style="margin-top: 18px;">
                     <h4><i class="fas fa-folder-open"></i> Documentos del Proyecto</h4>
-                    <div class="form-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
-                        <label class="muted" style="margin-right:8px;">Acciones</label>
+                    <div class="docs-actions">
+                        <label class="muted">Acciones</label>
                         <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Descargar todos</button>
                         <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
                     </div>
@@ -112,6 +113,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="docsPagination" class="pagination-controls" style="display:flex; justify-content:center; gap:10px; margin-top:15px;"></div>
                 </div>
             </div>
         </div>
