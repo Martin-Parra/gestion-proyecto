@@ -937,7 +937,84 @@ label {
         margin-left: 12px;
         padding-left: 12px;
     }
+
+    /* Scroll vertical para lista de proyectos */
+    /* Ajuste estructural para mobile: Main como contenedor flex fijo */
+    .main-content {
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding-top: 90px; /* Espacio para topbar */
+        box-sizing: border-box;
+    }
+
+    /* Secciones generales (Dashboard) scrollean completas */
+    .dashboard-section {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 20px;
+    }
+
+    /* "Mi Proyecto" se convierte en contenedor flex para scroll interno */
+    #mi-proyecto[style*="block"] {
+        display: flex !important;
+        flex-direction: column;
+        overflow: hidden;
+        padding-bottom: 0; /* Sin padding en el contenedor para aprovechar toda la altura */
+    }
+
+    /* Grid de proyectos ocupa el espacio restante y scrollea internamente */
+    #mi-proyecto .projects-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+        overflow-y: auto;
+        max-height: none;
+        padding-bottom: 24px; /* Espacio justo al final del scroll */
+        min-height: 0; /* Crucial para flex scroll */
+    }
+
+    /* Reordenar barra de herramientas: filtros arriba, buscador abajo */
+    .projects-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 15px; /* Separar del grid */
+        padding: 0 5px; /* Padding lateral para asegurar márgenes */
+    }
+    
+    .projects-toolbar select {
+        width: 100%; /* Filtros ocupan todo el ancho */
+        margin-bottom: 5px;
+        height: 38px; /* Altura estándar más contenida */
+    }
+
+    .projects-toolbar input#buscarProyecto {
+        order: 3; /* Forzar que el buscador vaya al final */
+        width: 100%;
+        text-align: center; /* Texto centrado como se pidió */
+        margin-top: 8px;
+        height: 38px; /* Reducir grosor excesivo (de 44px a 38px) */
+        border: 1px solid #d1d3e2; /* Borde estándar, no tan grueso */
+        border-radius: 0.35rem; /* Radio estándar */
+        background-color: #fff; /* Fondo blanco limpio */
+        font-weight: 400;
+        /* Asegurar que respete el box-sizing y padding del contenedor padre para no tocar bordes */
+        box-sizing: border-box;
+    }
+    .projects-toolbar input#buscarProyecto:focus {
+        background-color: #fff;
+        border-color: #4e73df;
+        box-shadow: 0 0 0 3px rgba(78,115,223,0.1);
+    }
+
+    .toolbar-spacer {
+        display: none; /* Ocultar espaciador en móvil */
+    }
 }
+
 
 @media (max-width: 480px) {
     .topbar.open .sidebar-menu {
@@ -1628,3 +1705,141 @@ label {
 .project-title{margin:0;text-align:center;font-size:1rem;color:#111827;font-weight:600}
 .status-pill{display:block;width:fit-content;margin:8px auto;background:#eef2ff;color:#363955;border-radius:999px;padding:6px 12px;font-weight:700;text-align:center}
 .project-time{margin-top:6px;text-align:right;color:#6b7280;font-size:.8rem}
+
+/* Estilos Menú Móvil */
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--p-700);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    z-index: 500;
+}
+
+/* Mobile Only helper */
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block;
+    }
+    
+    .worker-topbar {
+        min-height: 60px;
+    }
+
+    .menu-toggle {
+        display: block;
+        order: 1; /* Leftmost */
+    }
+
+    /* Adjust wt-left (Logo) */
+    .wt-left {
+        flex: 1;
+        justify-content: center;
+        padding-left: 0;
+        order: 2; /* Center */
+        position: static; /* Logo is absolute relative to topbar or wt-left? */
+    }
+    
+    .wt-left h2 {
+        font-size: 1.25rem;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        margin: 0;
+        top: 50%;
+        transform: translate(-50%, -50%); /* Centered vertically too */
+    }
+
+    /* Adjust wt-right (Profile) */
+    .wt-right {
+        flex: 0 0 auto;
+        gap: 0;
+        order: 3; /* Rightmost */
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* Hide desktop logout */
+    .wt-right .logout-link {
+        display: none !important;
+    }
+
+    /* Menú desplegable */
+    .worker-topbar .sidebar-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.98);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        backdrop-filter: blur(10px);
+    }
+
+    .worker-topbar .sidebar-menu.active {
+        display: flex;
+        animation: slideDown 0.3s ease-out forwards;
+    }
+
+    .worker-topbar .sidebar-menu a {
+        display: flex;
+        justify-content: center;
+        margin: 0 1.5rem;
+        padding: 12px;
+        box-sizing: border-box;
+    }
+    
+    /* Mobile Logout Button in Menu */
+    .worker-topbar .sidebar-menu li.mobile-only {
+        margin-top: 12px;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 12px;
+    }
+    
+    .worker-topbar .sidebar-menu li.mobile-only a {
+        background-color: #fee2e2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+    
+    .worker-topbar .sidebar-menu li.mobile-only a:hover {
+        background-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    /* Centrar títulos de sección en móvil */
+    section h2 {
+        text-align: center;
+    }
+    
+    section h2::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    /* Ajuste Header Mis Proyectos en Móvil */
+    .section-header {
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+    }
+
+    .section-time {
+        align-self: flex-end;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+}
+

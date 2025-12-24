@@ -16,12 +16,16 @@
 <body>
     <header class="worker-topbar">
         <div class="wt-inner">
+            <button class="menu-toggle" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="wt-left">
                 <h2>Nexxuz</h2>
-                <ul class="sidebar-menu">
+                <ul class="sidebar-menu" id="mobileMenu">
                     <li><a href="#dashboard" data-section="dashboard" class="active">Dashboard</a></li>
                     <li><a href="#mi-proyecto" data-section="mi-proyecto">Mi Proyecto</a></li>
                     <li><a href="/correo">Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
+                    <li class="mobile-only"><a href="#" id="mobileLogoutBtn">Cerrar sesión</a></li>
                 </ul>
             </div>
             <div class="wt-right">

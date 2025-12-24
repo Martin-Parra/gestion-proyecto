@@ -103,14 +103,67 @@ html { height: 100%; overflow-y: hidden; }
 .topbar .sidebar-menu li.logout { margin-left: auto; padding-left: 12px; border-left: 1px solid rgba(90,96,155,0.25); }
 /* Estado colapsado por defecto en pantallas pequeñas */
 @media (max-width: 1024px) {
-  .sidebar-menu {
-    display: flex;
-    position: static;
-    background: transparent;
-    padding: 0;
-    margin: 0;
-    flex-wrap: wrap;
-  }
+    .menu-toggle {
+        display: block;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--p-700);
+        margin-left: auto; /* Empujar a la derecha si es necesario */
+    }
+
+    /* Ocultar menú por defecto en móvil */
+    .sidebar-menu {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #fff;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        margin: 0;
+        border-top: 1px solid #e5e7eb;
+        z-index: 200;
+    }
+
+    /* Mostrar menú cuando tiene la clase open (manejado por JS en .topbar) */
+    .topbar.open .sidebar-menu {
+        display: flex;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .sidebar-menu li {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .sidebar-menu a {
+        display: flex;
+        width: 100%;
+        justify-content: flex-start;
+        border-radius: 8px;
+        padding: 10px 15px;
+        box-sizing: border-box; /* Asegurar que el padding no desborde */
+    }
+
+    /* Ajustes para el topbar en móvil */
+    .topbar-inner {
+        justify-content: space-between; /* Logo a la izq, Toggle a la der */
+        padding: 10px 15px;
+    }
+    
+    /* Ocultar items que no deberían verse o ajustar orden */
+    .topbar .sidebar-menu li.logout {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+    }
 }
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-8px); }
@@ -1414,198 +1467,7 @@ body.add-project .form-actions .btn-primary:hover {
     font-size: 14px;
     pointer-events: none;
 }
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
-.toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
-.records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
-.records-select { min-width: 80px; }
-@media (max-width: 768px) {
-    .user-toolbar { flex-direction: column; align-items: stretch; }
-    .toolbar-right { justify-content: flex-start; width: 100%; }
-    .records-control { margin-bottom: 0.5rem; }
-}
+
 .toolbar-right { display: flex; align-items: center; gap: 0.75rem; }
 .records-control { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
 .records-select { min-width: 80px; }

@@ -115,3 +115,204 @@ tr.unread td{font-weight:600}
 .action-box{border:1px dashed #c7d2fe;background:#f8fafc;border-radius:12px;padding:14px}
 .action-box h4{margin:0 0 8px 0;color:#111827}
 .action-box .actions{margin-top:10px}
+
+/* Mobile styles */
+.mobile-back-bar { display: none; }
+.mobile-back-nav { display: none; }
+
+@media (max-width: 768px) {
+  /* Layout adjustments */
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; padding: 15px; }
+  
+  /* Mobile Back Nav */
+  .mobile-back-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  
+  /* Header */
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding-top: 60px; /* Make space for absolute back button */
+    gap: 15px;
+  }
+  .page-header h1 { display: none; }
+
+  /* Mobile Back Nav - Absolute top left */
+  .mobile-back-nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    z-index: 10;
+  }
+  
+  /* Actions container centered */
+  .actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    order: 2;
+    margin-top: 0;
+  }
+
+  /* Search bar */
+  .search {
+    width: 100%;
+    max-width: 400px; /* Reasonable max width */
+    margin: 0 auto;
+    order: 2;
+    justify-content: center;
+  }
+  
+  /* Redactar Button */
+  #btnRedactar {
+    width: 100%;
+    max-width: 400px;
+    justify-content: center;
+    order: 1; /* Button above search based on screenshot preference, or swap if desired. Screenshot had button above search. */
+  }
+
+  /* Tabs/Folders */
+  .folders {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+    justify-content: center; /* Center the folders */
+    display: flex;
+    width: 100%;
+  }
+
+  /* Mail List & View Logic */
+  .mail-layout {
+    display: block;
+    position: relative;
+    height: calc(100vh - 160px);
+    overflow: hidden;
+  }
+  
+  .mail-list {
+    height: 100%;
+    overflow-y: auto;
+    width: 100%;
+    transition: transform 0.3s ease;
+  }
+  
+  /* Table to Cards */
+  .list-table {
+    display: block;
+    border: none;
+    background: transparent;
+  }
+  .list-table thead { display: none; }
+  .list-table tbody { display: block; }
+  .list-table tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .list-table td {
+    display: block;
+    padding: 2px 0;
+    border: none;
+    text-align: left;
+  }
+  
+  /* Specific Cell Styling */
+  /* De/Para */
+  .list-table td:nth-child(1) {
+    font-size: 0.9rem;
+    color: var(--muted);
+    order: 1;
+  }
+  /* Asunto */
+  .list-table td:nth-child(2) {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 4px 0;
+    order: 2;
+  }
+  /* Fecha */
+  .list-table td:nth-child(3) {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding: 0;
+  }
+  /* Estado */
+  .list-table td:nth-child(4) {
+    order: 3;
+    margin-top: 5px;
+  }
+
+  /* Visor - Mobile Full Screen Overlay */
+  .mail-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0;
+    border: none;
+  }
+  
+  .mail-layout.mobile-view-active .mail-view {
+    transform: translateX(0);
+  }
+  
+  .mobile-back-bar {
+    display: block;
+    margin-bottom: 15px;
+  }
+  
+  /* Compose Modal */
+  .modal { padding: 0; }
+  .modal-dialog {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+  .modal-content {
+    height: 100%;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  /* Adjust form rows in modal */
+  .form-row { flex-direction: column; align-items: stretch; gap: 5px; }
+  .form-row label { width: auto; font-weight: 600; }
+  .form-row textarea.form-control { min-height: 120px; }
+}

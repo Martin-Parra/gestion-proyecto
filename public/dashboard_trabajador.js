@@ -23,80 +23,59 @@ document.addEventListener('DOMContentLoaded', function() {
     updateTopCorreoBadge();
     setInterval(updateTopCorreoBadge, 30000);
 
-    // --- Toggle del menú en el topbar ---
-    const topbar = document.querySelector('.topbar');
-    const toggleBtn = document.querySelector('.menu-toggle');
-    const menu = topbar ? topbar.querySelector('.sidebar-menu') : null;
-    console.log('Topbar:', topbar);
-    console.log('Toggle button:', toggleBtn);
+    // --- Toggle del menú en el topbar (Worker Dashboard) ---
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
     
-    if (topbar && toggleBtn) {
-        const hasAnime = typeof window !== 'undefined' && window.anime;
-
-        const openMenu = () => {
-            console.log('Abrir menú');
-            topbar.classList.add('open');
-            const icon = toggleBtn.querySelector('i');
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('active');
+            
+            // Cambiar icono
+            const icon = mobileMenuBtn.querySelector('i');
             if (icon) {
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-            }
-            if (hasAnime && menu) {
-                window.anime({
-                    targets: menu,
-                    opacity: [0, 1],
-                    translateY: [-12, 0],
-                    duration: 250,
-                    easing: 'easeOutQuad'
-                });
-            }
-        };
-
-        const closeMenu = () => {
-            console.log('Cerrar menú');
-            if (hasAnime && menu) {
-                window.anime({
-                    targets: menu,
-                    opacity: [1, 0],
-                    translateY: [0, -12],
-                    duration: 200,
-                    easing: 'easeInQuad',
-                    complete: () => {
-                        topbar.classList.remove('open');
-                        const icon = toggleBtn.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('fa-chevron-up');
-                            icon.classList.add('fa-chevron-down');
-                        }
-                    }
-                });
-            } else {
-                topbar.classList.remove('open');
-                const icon = toggleBtn.querySelector('i');
-                if (icon) {
-                    icon.classList.remove('fa-chevron-up');
-                    icon.classList.add('fa-chevron-down');
+                if (mobileMenu.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
                 }
             }
-        };
-
-        toggleBtn.addEventListener('click', function(e){
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Menu button clicked!');
-            if (topbar.classList.contains('open')) {
-                closeMenu();
-            } else {
-                openMenu();
-            }
-            console.log('Topbar classes:', topbar.className);
         });
 
-        // Exponer funciones para que otros manejadores las usen
-        topbar.__openMenu = openMenu;
-        topbar.__closeMenu = closeMenu;
+        // Cerrar al hacer click en un enlace
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+        });
+
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', function(e) {
+            if (mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
     } else {
-        console.error('No se encontraron los elementos topbar o menu-toggle');
+        // Fallback para código legacy si existen las clases antiguas
+        const topbar = document.querySelector('.topbar');
+        const toggleBtn = document.querySelector('.menu-toggle');
+        if (topbar && toggleBtn) {
+             // ... lógica anterior si fuera necesaria, pero por ahora simplificamos
+             console.log('Usando selectores legacy para topbar');
+        }
     }
     
     // Cerrar menú y animar contenido al seleccionar una sección
@@ -323,6 +302,11 @@ function setupEventListeners() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', logout);
+    }
+
+    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', logout);
     }
     
     // Filtros de tareas

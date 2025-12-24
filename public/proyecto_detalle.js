@@ -74,6 +74,32 @@ function setupEventListeners() {
             });
         }
 
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                mobileMenu.classList.toggle('active');
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                }
+            });
+        }
+
+        // Mobile Logout
+        const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+        if (mobileLogoutBtn) {
+            mobileLogoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+        }
+
         // Filtros de tareas
         $('.filter-btn').click(function() {
             $('.filter-btn').removeClass('active');
@@ -708,6 +734,42 @@ function setupEventListeners() {
         setBar('barPending', pending, 'countPending');
         setBar('barProgress', inProgress, 'countProgress');
         setBar('barCompleted', completed, 'countCompleted');
+
+        // Actualizar Gráfico Circular Móvil
+        const mobileTotal = document.getElementById('mobileTotalTasks');
+        const mobilePending = document.getElementById('mobileCountPending');
+        const mobileProgress = document.getElementById('mobileCountProgress');
+        const mobileCompleted = document.getElementById('mobileCountCompleted');
+        const mobileDonut = document.getElementById('mobileDonutChart');
+
+        if (mobileTotal) mobileTotal.textContent = total;
+        if (mobilePending) mobilePending.textContent = pending;
+        if (mobileProgress) mobileProgress.textContent = inProgress;
+        if (mobileCompleted) mobileCompleted.textContent = completed;
+
+        if (mobileDonut) {
+            if (total > 0) {
+                const degPending = (pending / total) * 360;
+                const degProgress = (inProgress / total) * 360;
+                const degCompleted = (completed / total) * 360; // Resto
+
+                const d1 = degPending;
+                const d2 = d1 + degProgress;
+                
+                // Colores: Pendiente(Naranja), En Progreso(Morado), Completada(Azul/Principal)
+                const cPending = '#f39c12';
+                const cProgress = '#9b59b6';
+                const cCompleted = '#5A609B'; 
+
+                mobileDonut.style.background = `conic-gradient(
+                    ${cPending} 0deg ${d1}deg,
+                    ${cProgress} ${d1}deg ${d2}deg,
+                    ${cCompleted} ${d2}deg 360deg
+                )`;
+            } else {
+                mobileDonut.style.background = `conic-gradient(#e9ecef 0deg, #e9ecef 360deg)`;
+            }
+        }
     }
 
     function filterTasks() {

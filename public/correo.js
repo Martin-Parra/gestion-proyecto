@@ -58,13 +58,17 @@
           if (el) el.textContent = name;
           // Ajustar botón Volver según rol
           const back = document.getElementById('backLink');
-          if (back){
+          const mobileBack = document.getElementById('mobileBackLink');
+          if (back || mobileBack){
             const role = (data.user.rol || '').toLowerCase();
-            back.href = (role === 'administrador' || role === 'admin')
+            const targetUrl = (role === 'administrador' || role === 'admin')
               ? '/dashboard/admin'
               : (role === 'ceo'
                 ? '/dashboard/ceo'
                 : (role === 'jefe_proyecto' ? '/dashboard/lider/misproyectos' : '/dashboard/trabajador'));
+            
+            if (back) back.href = targetUrl;
+            if (mobileBack) mobileBack.href = targetUrl;
           }
           return data.user;
         }
@@ -109,6 +113,7 @@
   }
 
   function openMessage(id){
+    document.querySelector('.mail-layout')?.classList.add('mobile-view-active');
     fetch(`/api/correos/${id}`).then(r=>r.json()).then(m=>{
       const cont = document.getElementById('visor');
       const fecha = m.fecha_envio ? new Date(m.fecha_envio).toLocaleString() : '';
@@ -120,15 +125,28 @@
       const hasHtml = /<[^>]+>/.test(stripped.trim());
       const displayBody = hasHtml ? stripped : stripped.replace(/\n/g,'<br/>');
       const adjHtml = adjuntos.length ? `
-        <div class=\"attachments\">\n          <strong>Adjuntos (${adjuntos.length}):</strong>\n          <ul>\n            ${adjuntos.map(a=>`<li><a href="${a.url}" download="${(a.nombre||a.nombre_original||'archivo')}">${a.nombre||a.nombre_original||'archivo'}</a> <span class=\"muted\">(${a.tamano ? (Math.round(a.tamano/1024))+' KB' : a.mime||''})</span></li>`).join('')}\n          </ul>\n        </div>` : '';
+        <div class="attachments">
+          <strong>Adjuntos (${adjuntos.length}):</strong>
+          <ul>
+            ${adjuntos.map(a=>`<li><a href="${a.url}" download="${(a.nombre||a.nombre_original||'archivo')}">${a.nombre||a.nombre_original||'archivo'}</a> <span class="muted">(${a.tamano ? (Math.round(a.tamano/1024))+' KB' : a.mime||''})</span></li>`).join('')}
+          </ul>
+        </div>` : '';
       cont.innerHTML = `
+        <div class="mobile-back-bar">
+          <button id="btnBackMobile" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</button>
+        </div>
         <h3>${m.asunto||'(Sin asunto)'}</h3>
-        <div class=\"meta\"><strong>De:</strong> ${m.remitente_nombre||m.remitente} &nbsp; <strong>Para:</strong> ${m.para} ${m.cc? `&nbsp; <strong>CC:</strong> ${m.cc}`:''}</div>
+        <div class="meta"><strong>De:</strong> ${m.remitente_nombre||m.remitente} &nbsp; <strong>Para:</strong> ${m.para} ${m.cc? `&nbsp; <strong>CC:</strong> ${m.cc}`:''}</div>
         <hr/>
-        <div class=\"body\">${displayBody}</div>
+        <div class="body">${displayBody}</div>
         ${adjHtml}
-        <div class=\"muted\" style=\"margin-top:10px;color:#6b7280\">${fecha}</div>
+        <div class="muted" style="margin-top:10px;color:#6b7280">${fecha}</div>
       `;
+      
+      document.getElementById('btnBackMobile')?.addEventListener('click', ()=>{
+        document.querySelector('.mail-layout')?.classList.remove('mobile-view-active');
+      });
+
       // Acción especial: solicitud de estado de proyecto
       try {
         const marker = rawBody.match(/\[\[REQUEST_PROJECT_STATUS:([^\]|]+)\|([^\]|]+)\|([^\]]*)\]\]/);

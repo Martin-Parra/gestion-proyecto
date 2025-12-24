@@ -12,7 +12,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 body.login-body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
@@ -24,7 +24,7 @@ body.login-body {
 .login-wrapper {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 /* Panel izquierda: hero */
@@ -343,3 +343,65 @@ body.login-body {
 .login-form .feedback { margin-top: 10px; color: var(--color-muted); }
 .login-form .feedback.success { color: #16a34a; font-weight: 600; }
 .login-form .feedback.error { color: #dc2626; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .login-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr; /* Hero arriba (compacto), Form abajo (ocupa el resto) */
+  }
+  .hero-content {
+    text-align: center;
+    padding: 20px;
+    margin: 0 auto;
+    /* Usar flex para centrar verticalmente el contenido del hero en su área disponible */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding-top: 40px; /* Empujar un poco hacia abajo visualmente */
+  }
+  .hero-title {
+    font-size: 26px;
+    margin: 0 0 8px;
+  }
+  .hero-subtitle {
+    display: block;
+    font-size: 13px;
+    line-height: 1.3;
+    margin: 0 auto 10px;
+    opacity: 0.9;
+    max-width: 320px;
+  }
+  .login-card {
+    padding: 0 20px 20px; /* Quitar padding superior para acercarlo al hero si es necesario, o mantener equilibrio */
+    align-items: flex-start;
+  }
+  .login-form {
+    margin: 0 auto;
+    padding: 24px; /* Un poco más de aire interno */
+    width: 100%;
+    max-width: 400px;
+  }
+  .hero-title .brand {
+    color: #4D5180 !important; /* Restaurar el azul original */
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4); /* Resplandor blanco intenso detrás para que se lea sobre fondo oscuro */
+  }
+
+  /* Ajustes para el modal en móvil */
+  .modal-content {
+    width: 90%; /* Ocupa el 90% del ancho disponible */
+    margin: 0 auto; /* Centrado horizontal */
+    padding: 20px; /* Reducir padding interno */
+    max-height: 90vh; /* Evita que sea más alto que la pantalla */
+    overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+  }
+  
+  .modal-title {
+    font-size: 20px; /* Título un poco más pequeño */
+  }
+  
+  .modal-subtitle {
+    font-size: 14px; /* Subtítulo legible pero compacto */
+  }
+}
+

@@ -1039,54 +1039,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 // --- Toggle del menú en el topbar ---
                 const topbar = document.querySelector('.topbar');
                 const toggleBtn = document.querySelector('.menu-toggle');
-                const menu = topbar ? topbar.querySelector('.sidebar-menu') : null;
+                
                 if (topbar && toggleBtn) {
-                    const hasAnime = typeof window !== 'undefined' && window.anime;
-
-                    const openMenu = () => {
-                        topbar.classList.add('open');
-                        const icon = toggleBtn.querySelector('i');
-                        if (icon) { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up'); }
-                        if (hasAnime && menu) {
-                            window.anime({
-                                targets: menu,
-                                opacity: [0, 1],
-                                translateY: [-12, 0],
-                                duration: 250,
-                                easing: 'easeOutQuad'
-                            });
-                        }
-                    };
-
-                    const closeMenu = () => {
-                        const icon = toggleBtn.querySelector('i');
-                        if (hasAnime && menu) {
-                            window.anime({
-                                targets: menu,
-                                opacity: [1, 0],
-                                translateY: [0, -12],
-                                duration: 200,
-                                easing: 'easeInQuad',
-                                complete: () => {
-                                    topbar.classList.remove('open');
-                                    if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
-                                }
-                            });
-                        } else {
-                            topbar.classList.remove('open');
-                            if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
-                        }
-                    };
-
-                    toggleBtn.addEventListener('click', function(e){
+                    toggleBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (topbar.classList.contains('open')) { closeMenu(); } else { openMenu(); }
+                        topbar.classList.toggle('open');
+                        
+                        const icon = toggleBtn.querySelector('i');
+                        if (icon) {
+                            if (topbar.classList.contains('open')) {
+                                icon.classList.remove('fa-bars');
+                                icon.classList.add('fa-times');
+                            } else {
+                                icon.classList.remove('fa-times');
+                                icon.classList.add('fa-bars');
+                            }
+                        }
                     });
 
                     // Cerrar al hacer click fuera
-                    document.addEventListener('click', function(e){
-                        if (topbar && !topbar.contains(e.target)) { closeMenu(); }
+                    document.addEventListener('click', function(e) {
+                        if (topbar.classList.contains('open') && !topbar.contains(e.target)) {
+                            topbar.classList.remove('open');
+                            const icon = toggleBtn.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('fa-times');
+                                icon.classList.add('fa-bars');
+                            }
+                        }
                     });
                 }
                 // Cerrar menú y animar contenido al seleccionar una sección
