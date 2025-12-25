@@ -3,6 +3,13 @@
   const topbar = document.querySelector('.topbar');
   const menuBtn = document.querySelector('.menu-toggle');
   const icon = menuBtn?.querySelector('i');
+  
+  // Asegurar icono inicial correcto (fix para visualización móvil)
+  if(icon) {
+    icon.classList.remove('fa-chevron-down', 'fa-times');
+    icon.classList.add('fa-bars');
+  }
+
   let currentUser = null;
   (function(){
     try{ history.pushState(null,'',location.href); }catch(_){}
@@ -42,7 +49,16 @@
   menuBtn?.addEventListener('click', () => {
     const opening = !topbar.classList.contains('open');
     topbar.classList.toggle('open');
-    if (icon){ icon.classList.remove(opening ? 'fa-chevron-down' : 'fa-chevron-up'); icon.classList.add(opening ? 'fa-chevron-up' : 'fa-chevron-down'); }
+    if (icon){
+        // Toggle entre hamburguesa (fa-bars) y cerrar (fa-times)
+        if (opening) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        }
+    }
     opening ? animateOpen() : animateClose();
   });
 
@@ -50,7 +66,10 @@
     const isInside = topbar.contains(e.target);
     if (!isInside && topbar.classList.contains('open')){
       topbar.classList.remove('open');
-      if (icon){ icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+      if (icon){
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+      }
       animateClose();
     }
   });
@@ -295,18 +314,53 @@
         // Cargar tareas asignadas del proyecto
         fetchJSON(`/api/tareas/proyecto/${proyectoId}`).then(r => {
           const tareas = r && r.success ? (r.tareas || []) : [];
-          const list = tareas.length ? tareas.map(t => `
-            <li>
-              <i class="fas fa-check-circle"></i>
-              <span class="task-title">${escapeHtml(t.titulo)}</span>
-              <span class="muted">• ${estadoTareaLabel(t.estado)}</span>
-            </li>`).join('') : '<li class="muted">Sin tareas asignadas</li>';
-          openModal('Tareas asignadas', `
-            <div class="info-block">
-              <div class="info-row"><span class="info-label">Proyecto:</span> ${pr.nombre}</div>
-              <ul class="modal-list">${list}</ul>
-            </div>
-          `);
+          
+          let currentPage = 1;
+          const itemsPerPage = 4;
+          
+          function render(){
+            const totalPages = Math.ceil(tareas.length / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const currentTasks = tareas.slice(start, start + itemsPerPage);
+            
+            const listHtml = currentTasks.length ? currentTasks.map(t => `
+              <li>
+                <i class="fas fa-check-circle"></i>
+                <span class="task-title">${escapeHtml(t.titulo)}</span>
+                <span class="muted">• ${estadoTareaLabel(t.estado)}</span>
+              </li>`).join('') : '<li class="muted">Sin tareas asignadas</li>';
+              
+            const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+            const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+            
+            const content = `
+              <div class="info-block">
+                <div class="info-row"><span class="info-label">Proyecto:</span> ${pr.nombre}</div>
+                <ul class="modal-list" style="min-height: 200px;">${listHtml}</ul>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                  <button id="btnPrevTask" class="btn btn-sm btn-outline" ${prevDisabled} style="padding:4px 10px; font-size:0.9rem;">Anterior</button>
+                  <span style="font-size:0.9rem; color:#666;">Página ${currentPage} de ${totalPages}</span>
+                  <button id="btnNextTask" class="btn btn-sm btn-outline" ${nextDisabled} style="padding:4px 10px; font-size:0.9rem;">Siguiente</button>
+                </div>
+              </div>
+            `;
+            
+            openModal('Tareas asignadas', content);
+            
+            setTimeout(() => {
+              document.getElementById('btnPrevTask')?.addEventListener('click', () => {
+                if (currentPage > 1) { currentPage--; render(); }
+              });
+              document.getElementById('btnNextTask')?.addEventListener('click', () => {
+                if (currentPage < totalPages) { currentPage++; render(); }
+              });
+            }, 0);
+          }
+          
+          render();
         }).catch(() => {
           openModal('Tareas asignadas', '<p>No se pudieron cargar las tareas del proyecto.</p>');
         });
@@ -390,9 +444,22 @@
       const miembros = d.success && d.proyecto ? (d.proyecto.miembros || []) : [];
       const tbody = tablaMiembros?.querySelector('tbody');
       if (!tbody) return;
-      if (miembros.length === 0){ tbody.innerHTML = '<tr><td colspan="4" class="text-center">Sin miembros aún</td></tr>'; return; }
+      const container = tablaMiembros.parentElement;
+      const PAGE_SIZE = 2;
+      let page = Number(tbody.dataset.page || 1);
+      const totalPages = Math.ceil(miembros.length / PAGE_SIZE) || 1;
+      if (page > totalPages) page = totalPages;
+      if (page < 1) page = 1;
+      tbody.dataset.page = String(page);
+      if (miembros.length === 0){
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Sin miembros aún</td></tr>';
+        const pg = container.querySelector('.pager-miembros'); if (pg) pg.remove();
+        return;
+      }
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = miembros.slice(start, start + PAGE_SIZE);
       tbody.innerHTML = '';
-      miembros.forEach(m => {
+      slice.forEach(m => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${m.nombre}</td>
@@ -405,7 +472,6 @@
       tbody.querySelectorAll('button[data-remove]')?.forEach(btn => {
         btn.addEventListener('click', () => {
           const usuarioId = btn.getAttribute('data-remove');
-          // Buscar asignación id para ese usuario en el proyecto
           fetchJSON(`/api/asignaciones?proyecto_id=${proyectoId}`).then(a => {
             const asign = (a.asignaciones || []).find(x => String(x.usuario_id) === String(usuarioId));
             if (!asign) return alert('No se encontró asignación');
@@ -414,6 +480,20 @@
           });
         });
       });
+      let pager = container.querySelector('.pager-miembros');
+      if (!pager){ pager = document.createElement('div'); pager.className = 'pager-miembros'; container.appendChild(pager); }
+      const prevDisabled = page <= 1 ? 'disabled' : '';
+      const nextDisabled = page >= totalPages ? 'disabled' : '';
+      pager.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+          <button class="btn btn-outline" data-pg="prev" ${prevDisabled} style="padding:6px 10px; font-size:.9rem;">Anterior</button>
+          <span class="muted pager-text-desktop">Página ${page} de ${totalPages}</span>
+          <span class="muted pager-text-mobile">${page}/${totalPages}</span>
+          <button class="btn btn-outline" data-pg="next" ${nextDisabled} style="padding:6px 10px; font-size:.9rem;">Siguiente</button>
+        </div>
+      `;
+      pager.querySelector('[data-pg="prev"]')?.addEventListener('click', ()=>{ tbody.dataset.page = String(page-1); cargarMiembrosDelProyecto(proyectoId); });
+      pager.querySelector('[data-pg="next"]')?.addEventListener('click', ()=>{ tbody.dataset.page = String(page+1); cargarMiembrosDelProyecto(proyectoId); });
     });
   }
   selProyectoAsignacion?.addEventListener('change', ()=> cargarMiembrosDelProyecto(selProyectoAsignacion.value));
@@ -457,9 +537,22 @@
     fetchJSON(`/api/tareas/proyecto/${proyectoId}`).then(d => {
       const tareas = d && d.success ? (d.tareas || []) : [];
       if (!tbody) return;
-      if (tareas.length === 0){ tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin tareas aún</td></tr>'; return; }
+      const container = tablaTareas.parentElement;
+      const PAGE_SIZE = 2;
+      let page = Number(tbody.dataset.page || 1);
+      const totalPages = Math.ceil(tareas.length / PAGE_SIZE) || 1;
+      if (page > totalPages) page = totalPages;
+      if (page < 1) page = 1;
+      tbody.dataset.page = String(page);
+      if (tareas.length === 0){ 
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sin tareas aún</td></tr>'; 
+        const pg = container.querySelector('.pager-tareas'); if (pg) pg.remove();
+        return; 
+      }
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = tareas.slice(start, start + PAGE_SIZE);
       tbody.innerHTML = '';
-      tareas.forEach(t => {
+      slice.forEach(t => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${escapeHtml(t.titulo)}</td>
@@ -536,6 +629,20 @@
           }
         });
       });
+      let pager = container.querySelector('.pager-tareas');
+      if (!pager){ pager = document.createElement('div'); pager.className = 'pager-tareas'; container.appendChild(pager); }
+      const prevDisabled = page <= 1 ? 'disabled' : '';
+      const nextDisabled = page >= totalPages ? 'disabled' : '';
+      pager.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+          <button class="btn btn-outline" data-pg="prev" ${prevDisabled} style="padding:6px 10px; font-size:.9rem;">Anterior</button>
+          <span class="muted pager-text-desktop">Página ${page} de ${totalPages}</span>
+          <span class="muted pager-text-mobile">${page}/${totalPages}</span>
+          <button class="btn btn-outline" data-pg="next" ${nextDisabled} style="padding:6px 10px; font-size:.9rem;">Siguiente</button>
+        </div>
+      `;
+      pager.querySelector('[data-pg="prev"]')?.addEventListener('click', ()=>{ tbody.dataset.page = String(page-1); cargarTareasDelProyecto(proyectoId); });
+      pager.querySelector('[data-pg="next"]')?.addEventListener('click', ()=>{ tbody.dataset.page = String(page+1); cargarTareasDelProyecto(proyectoId); });
     }).catch(() => { if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Error al cargar tareas</td></tr>'; });
   }
   // Documentos
@@ -590,9 +697,22 @@
       const docs = d.success ? (d.documentos || []) : [];
       const tbody = tablaDocumentos?.querySelector('tbody');
       if (!tbody) return;
-      if (docs.length === 0){ tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>'; return; }
+      const container = tablaDocumentos.parentElement;
+      const PAGE_SIZE = 2;
+      let page = Number(tbody.dataset.page || 1);
+      const totalPages = Math.ceil(docs.length / PAGE_SIZE) || 1;
+      if (page > totalPages) page = totalPages;
+      if (page < 1) page = 1;
+      tbody.dataset.page = String(page);
+      if (docs.length === 0){ 
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>'; 
+        const pg = container.querySelector('.pager-docs'); if (pg) pg.remove();
+        return; 
+      }
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = docs.slice(start, start + PAGE_SIZE);
       tbody.innerHTML = '';
-      docs.forEach(doc => {
+      slice.forEach(doc => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-id', doc.id);
         tr.innerHTML = `
@@ -617,6 +737,20 @@
           fetch(`/api/documentos/${id}`, { method:'DELETE' }).then(r => r.json()).then(rr => { if (rr.success){ cargarDocumentos(selProyectoDocs.value); } });
         });
       });
+      let pager = container.querySelector('.pager-docs');
+      if (!pager){ pager = document.createElement('div'); pager.className = 'pager-docs'; container.appendChild(pager); }
+      const prevDisabled = page <= 1 ? 'disabled' : '';
+      const nextDisabled = page >= totalPages ? 'disabled' : '';
+      pager.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+          <button class="btn btn-outline" data-pg="prev" ${prevDisabled} style="padding:6px 10px; font-size:.9rem;">Anterior</button>
+          <span class="muted pager-text-desktop">Página ${page} de ${totalPages}</span>
+          <span class="muted pager-text-mobile">${page}/${totalPages}</span>
+          <button class="btn btn-outline" data-pg="next" ${nextDisabled} style="padding:6px 10px; font-size:.9rem;">Siguiente</button>
+        </div>
+      `;
+      pager.querySelector('[data-pg="prev"]')?.addEventListener('click', ()=>{ tbody.dataset.page = String(page-1); cargarDocumentos(proyectoId); });
+      pager.querySelector('[data-pg="next"]')?.addEventListener('click', ()=>{ tbody.dataset.page = String(page+1); cargarDocumentos(proyectoId); });
     }).catch(err => { console.error('Error cargando docs', err); });
   }
 

@@ -1,25 +1,128 @@
 /* Estilo elegante para dashboard del líder */
 body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #f4f6fb; color: #2c3e50; }
 :root { --p-500:#7886B9; --p-600:#6670AA; --p-700:#5A609B; --p-800:#4D5180; --p-900:#363955; --p-950:#2B2D40; }
-.topbar { position: fixed; top: 0; left: 0; right: 0; min-height: 64px; background: rgba(255,255,255,0.85); backdrop-filter: saturate(125%) blur(10px); -webkit-backdrop-filter: saturate(125%) blur(10px); color: var(--p-900); z-index: 200; box-shadow: 0 8px 22px rgba(34,36,44,0.12); border-bottom: 1px solid rgba(102,112,170,0.25); }
-.topbar-container { display: flex; align-items: center; gap: 12px; height: auto; padding: 8px 16px; flex-wrap: wrap; }
-.brand { display:flex; align-items:center; gap:8px; font-weight: 800; letter-spacing: .3px; color: var(--p-700); }
-.brand i { color: var(--p-700); }
-.menu-toggle { display: none; }
-.sidebar-menu { list-style: none; display: flex; gap: 8px; margin: 0 0 0 12px; padding: 0; align-items: center; flex-wrap: wrap; flex: 1; }
-.topbar.open .sidebar-menu { display: flex; }
-.sidebar-menu li { position: relative; }
-.sidebar-menu a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:8px 14px; color: var(--p-700); font-weight:600; font-size:.95rem; border-radius:999px; border:1px solid var(--p-700); background: transparent; transition: background .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease; }
-.sidebar-menu a:hover { color:#fff; background: var(--p-700); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-.sidebar-menu a.active { color:#fff; background: var(--p-800); border-color: var(--p-800); }
-/* Burbuja de no leídos en topbar */
-.menu-bubble{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;line-height:20px;text-align:center;margin-left:6px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:700;vertical-align:middle;padding:0;box-sizing:border-box}
-.sidebar-menu li.profile { display:flex; align-items:center; margin-left: auto; padding-right: 12px; }
-.profile-btn { border: none; background: transparent; padding: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-.avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--p-700); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.12); border: 2px solid #fff; }
-.sidebar-menu li.logout { margin-left: 8px; padding-left: 0; border-left: none; }
+/* Estilos actualizados para Topbar Responsivo */
+.topbar { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: rgba(255,255,255,0.95); backdrop-filter: saturate(125%) blur(10px); -webkit-backdrop-filter: saturate(125%) blur(10px); color: var(--p-900); z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border-bottom: 1px solid rgba(102,112,170,0.15); display: flex; align-items: center; }
+.topbar-container { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: relative; box-sizing: border-box; }
 
-.main-content { padding: 18px; max-width: 1200px; margin: 88px auto 0 auto; }
+/* Brand - Logo text */
+.brand { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; color: var(--p-700); text-transform: none; white-space: nowrap; }
+.brand i { color: var(--p-700); }
+
+/* Menu Toggle (Mobile) */
+.menu-toggle { display: none; background: transparent; border: none; font-size: 1.4rem; color: var(--p-700); cursor: pointer; padding: 4px; }
+
+/* Sidebar Menu (Desktop) */
+.sidebar-menu { list-style: none; display: flex; gap: 8px; margin: 0 20px; padding: 0; align-items: center; flex: 1; justify-content: flex-end; }
+.sidebar-menu li { position: relative; }
+.sidebar-menu a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:8px 14px; color: var(--p-700); font-weight:600; font-size:.9rem; border-radius:999px; border:1px solid transparent; background: transparent; transition: all .2s ease; }
+.sidebar-menu a:hover { color: var(--p-800); background: rgba(77, 81, 128, 0.08); }
+.sidebar-menu a.active { color:#fff; background: var(--p-700); border-color: var(--p-700); }
+
+/* Topbar Actions (Profile) */
+.topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: 0; }
+.profile-btn { border: none; background: transparent; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+.profile-btn:hover { transform: scale(1.05); }
+.avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: var(--p-700); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 2px 8px rgba(90, 96, 155, 0.2); border: 2px solid #fff; font-size: 1rem; }
+
+/* Burbuja de no leídos */
+.menu-bubble{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;line-height:1;padding: 0 5px;border-radius:10px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;margin-left:6px;}
+
+.main-content { padding: 24px; max-width: 1200px; margin: 80px auto 0 auto; }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .menu-toggle { display: block; order: 1; z-index: 20; }
+  .brand { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; order: 2; font-size: 1.35rem; z-index: 10; pointer-events: none; }
+  
+  /* Posicionamiento NUCLEAR para el perfil en móvil - Fixed al viewport */
+  .topbar-actions { 
+      position: fixed !important;
+      right: 15px !important;
+      top: 12px !important;
+      transform: none !important;
+      display: flex !important; 
+      z-index: 9999 !important; 
+      margin: 0 !important;
+      width: auto !important;
+      height: 40px !important;
+      background: transparent !important;
+      justify-content: center !important;
+      align-items: center !important;
+  }
+  
+  /* Asegurar que el botón dentro también sea visible */
+  .topbar-actions .profile-btn {
+      display: flex !important;
+      width: 40px !important;
+      height: 40px !important;
+      padding: 0 !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+  }
+  
+  .avatar-circle {
+      display: flex !important;
+      width: 38px !important;
+      height: 38px !important;
+      background-color: #5A609B !important;
+      color: #ffffff !important;
+      font-size: 1rem !important;
+      border: 2px solid #fff !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 10000 !important;
+  }
+
+  .sidebar-menu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    background: #fff;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-top: 1px solid #f0f0f0;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  
+  /* Show menu when open */
+  .topbar.open .sidebar-menu { display: flex; animation: slideDown 0.3s ease-out forwards; }
+  
+  .sidebar-menu li { width: 100%; }
+  .sidebar-menu a { width: 100%; justify-content: flex-start; border: 1px solid #eee; padding: 12px 16px; box-sizing: border-box; }
+  .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--p-700); color: white; border-color: var(--p-700); }
+  
+  .form-grid { grid-template-columns: 1fr; }
+  
+  /* Hide logout in menu if you wanted, but keeping it for now */
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Safety for desktop to override JS animations if resized */
+@media (min-width: 769px) {
+    .sidebar-menu {
+        display: flex !important;
+        opacity: 1 !important;
+        transform: none !important;
+        position: static !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: auto !important;
+        height: auto !important;
+        flex-direction: row !important;
+    }
+}
 .dashboard-section { background: #fff; border-radius: 16px; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(2,6,23,0.06); overflow: hidden; }
 .section-header { padding: 16px 18px; border-bottom: 1px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center; background:#fafbfc; }
 .section-header h2 { display:flex; align-items:center; gap:8px; font-size: 1.2rem; margin:0; }
@@ -70,6 +173,7 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
 .info-label { font-weight:700; color:#1f2937; }
 .muted { color:#6b7280; }
 .modal-list { list-style:none; padding:0; margin: 8px 0 0 0; display:grid; gap:8px; }
+.pager-text-mobile { display: none; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(.98); }
@@ -90,6 +194,7 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
 .team-table th, .team-table td, .docs-table th, .docs-table td { padding: 10px 12px; border-top: 1px solid #e3e6f0; }
 .team-table thead th, .docs-table thead th { background:#f8f9fc; color:#4e73df; font-weight:700; text-transform:uppercase; font-size:.8rem; letter-spacing:.03em; }
 .team-table tbody tr:hover, .docs-table tbody tr:hover { background: rgba(78,115,223,0.05); }
+.docs-table td .btn { min-width: 128px; justify-content: center; padding: 6px 10px; font-size: .9rem; box-sizing: border-box; gap: 6px; }
 
 /* Estilos de tareas dentro de Áreas */
 .task-status-pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:.8rem; border:1px solid #e5e7eb; background:#f9fafb; color:#374151; }
@@ -103,4 +208,75 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
 @media (max-width: 768px) {
   .form-grid { grid-template-columns: 1fr; }
   .sidebar-menu { flex-wrap: wrap; }
+  
+  /* Ajuste de cabecera en móvil: Título arriba, Usuario abajo, ambos centrados */
+  .section-header {
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 20px;
+  }
+  
+  .section-header h2 {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.3rem;
+  }
+  
+  .user-info {
+    margin: 0 auto;
+    font-size: 0.9rem;
+  }
+
+  /* Ajustes de formulario en móvil */
+  .form-control {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .form-actions {
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  /* Tabla con scroll en móvil */
+  .table-scroll-mobile {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px; /* Altura máxima para scroll vertical */
+    border: 1px solid #eee; /* Opcional: para delimitar el área de scroll */
+    border-radius: 8px;
+  }
+  
+  .table-scroll-mobile table {
+    width: 100%;
+    min-width: 600px; /* Fuerza el scroll horizontal si la tabla es pequeña */
+  }
+  
+  /* Centrados específicos para Documentos en móvil */
+  .doc-form .form-group label { 
+    text-align: center; 
+    width: 100%;
+  }
+  .doc-actions { 
+    justify-content: center; 
+    text-align: center; 
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .doc-actions .btn { 
+    margin: 4px 2px; 
+  }
+  .doc-actions label {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  
+  .pager-text-desktop { display: none; }
+  .pager-text-mobile { display: inline; }
 }

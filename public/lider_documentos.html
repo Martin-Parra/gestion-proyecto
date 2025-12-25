@@ -14,17 +14,26 @@
 <body>
   <header class="topbar">
     <div class="topbar-container">
-      <div class="brand"><span>Nexxuz</span></div>
-      <button class="menu-toggle" aria-label="Abrir menú"><i class="fas fa-chevron-down"></i></button>
+      <button class="menu-toggle" aria-label="Abrir menú">
+        <i class="fas fa-bars"></i>
+      </button>
+      
+      <div class="brand">Nexxuz</div>
+
       <ul class="sidebar-menu">
         <li><a href="/dashboard/lider/misproyectos"><i class="fas fa-chart-line"></i> Mis Proyectos</a></li>
         <li><a href="/dashboard/lider/asignacion"><i class="fas fa-user-plus"></i> Asignar Miembros</a></li>
         <li><a href="/dashboard/lider/areas"><i class="fas fa-layer-group"></i> Asignacion de Tareas</a></li>
         <li><a href="/dashboard/lider/documentos"><i class="fas fa-folder-open"></i> Documentos</a></li>
         <li><a href="/correo"><i class="fas fa-envelope"></i> Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
-        <li class="profile"><button id="profileBtn" class="profile-btn" aria-label="Perfil"><span id="profileAvatar" class="avatar-circle">U</span></button></li>
         <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
       </ul>
+
+      <div class="topbar-actions">
+        <button id="profileBtn" class="profile-btn" aria-label="Perfil">
+          <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -36,31 +45,33 @@
       </div>
 
       <div class="card">
-        <div class="card-body">
+        <div class="card-body doc-form">
           <div class="form-group">
             <label for="selProyectoDocs">Proyecto</label>
             <select id="selProyectoDocs" class="form-control"></select>
           </div>
-          <div class="form-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
+          <div class="form-actions doc-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
             <label class="muted" style="margin-right:8px;">Acciones</label>
             <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Descargar todos</button>
             <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
           </div>
-          <table id="tablaDocumentos" class="docs-table">
-            <thead>
-              <tr>
-                <th style="width:36px; text-align:center;">
-                  <input type="checkbox" id="chkDocsSelectAll" aria-label="Seleccionar todo" />
-                </th>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Tamaño</th>
-                <th>Subido por</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody><tr><td colspan="6" class="text-center">Seleccione un proyecto</td></tr></tbody>
-          </table>
+          <div class="table-scroll-mobile">
+            <table id="tablaDocumentos" class="docs-table">
+              <thead>
+                <tr>
+                  <th style="width:36px; text-align:center;">
+                    <input type="checkbox" id="chkDocsSelectAll" aria-label="Seleccionar todo" />
+                  </th>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Tamaño</th>
+                  <th>Subido por</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" class="text-center">Seleccione un proyecto</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
