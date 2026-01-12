@@ -165,8 +165,14 @@
           return r.json();
         })
         .then(() => {
-          Swal.fire({ icon: 'success', title: 'Proyecto creado', timer: 1500, showConfirmButton: false });
-          window.location.href = '/dashboard/admin#proyectos';
+          Swal.fire({ 
+            icon: 'success', 
+            title: 'Proyecto creado', 
+            timer: 1500, 
+            showConfirmButton: false 
+          }).then(() => {
+            window.location.href = '/dashboard/admin#proyectos';
+          });
         })
         .catch(err => {
           Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Falló la creación' });

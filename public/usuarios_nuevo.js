@@ -8,26 +8,9 @@
       }
     });
   })();
-  // Overlay de carga para transiciones de salida (navegación a otra página/sección)
-  function ensureOverlay(){
-    let overlay = document.getElementById('loadingOverlay');
-    if (!overlay){
-      overlay = document.createElement('div');
-      overlay.id = 'loadingOverlay';
-      overlay.className = 'loading-overlay';
-      overlay.setAttribute('aria-hidden','true');
-      overlay.innerHTML = '<div class="loader-content"><div class="loader-spinner" aria-label="Cargando"></div><div class="loader-text">Cargando…</div></div>';
-      document.body.appendChild(overlay);
-    }
-    return overlay;
-  }
-
-  function showOverlayThenNavigate(href, duration = 1000){
-    const overlay = ensureOverlay();
-    overlay.style.display = 'flex';
-    overlay.classList.add('active');
-    // Mantener overlay visible hasta que cambie la página
-    setTimeout(() => { window.location.href = href; }, duration);
+  // Navegación sin overlay (se elimina la animación de carga)
+  function showOverlayThenNavigate(href){
+    window.location.href = href;
   }
 
   function setupLogout(){
@@ -93,12 +76,7 @@
       });
     });
 
-    // Mostrar overlay en salida de la página (refrescos/cambios directos)
-    window.addEventListener('beforeunload', () => {
-      const overlay = ensureOverlay();
-      overlay.style.display = 'flex';
-      overlay.classList.add('active');
-    });
+    // Sin overlay en salida de la página
 
     const form = document.getElementById('formCrearUsuario');
     if (!form) return;
@@ -126,9 +104,14 @@
       .then(r => r.json())
       .then(data => {
         if (data && data.success){
-          Swal.fire({ icon: 'success', title: 'Usuario creado', timer: 1500, showConfirmButton: false });
-          // Volver al dashboard de usuarios
-          showOverlayThenNavigate('/dashboard/admin#usuarios', 800);
+          Swal.fire({ 
+            icon: 'success', 
+            title: 'Usuario creado correctamente', 
+            timer: 2200, 
+            showConfirmButton: false 
+          }).then(() => {
+            showOverlayThenNavigate('/dashboard/admin#usuarios');
+          });
         } else {
           const msg = (data && data.message) || 'Error al crear usuario';
           Swal.fire({ icon: 'error', title: 'Error', text: msg });

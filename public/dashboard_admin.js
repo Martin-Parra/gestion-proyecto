@@ -219,7 +219,7 @@ function abrirModalEditarUsuario(userId) {
                     };
                 }
                 if (submitCambiar && cambiarModal) {
-                    submitCambiar.addEventListener('click', async (e) => {
+                    submitCambiar.onclick = async (e) => {
                         e.preventDefault();
                         try{
                             const uid = cambiarUserId.value;
@@ -246,7 +246,7 @@ function abrirModalEditarUsuario(userId) {
                         } finally {
                             submitCambiar.disabled = false;
                         }
-                    });
+                    };
                 }
                 
                 
@@ -1238,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Validar que el rol sea uno de los valores permitidos
-            const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro'];
+            const rolesPermitidos = ['administrador', 'jefe_proyecto', 'miembro', 'ceo'];
             if (!rolesPermitidos.includes(rol)) {
                 throw new Error('El rol seleccionado no es válido');
             }

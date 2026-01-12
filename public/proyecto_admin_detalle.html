@@ -119,6 +119,34 @@
         </div>
     </main>
 
+    <!-- Modal Editar Tarea -->
+    <div id="modalEditarTarea" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Editar Tarea</h3>
+                <span class="close" id="closeEditarTarea">&times;</span>
+            </div>
+            <form id="formEditarTarea">
+                <input type="hidden" id="editarTareaId">
+                
+                <div class="form-group">
+                    <label for="editarTareaTitulo">Título:</label>
+                    <input type="text" id="editarTareaTitulo" name="editarTareaTitulo" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editarTareaDescripcion">Descripción:</label>
+                    <textarea id="editarTareaDescripcion" name="editarTareaDescripcion" class="form-control" rows="4"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarEditarTarea">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/proyecto_admin_detalle.js"></script>
     <script>
       try{ history.pushState(null,'',location.href); }catch(_){}
