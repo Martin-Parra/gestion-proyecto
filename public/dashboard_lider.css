@@ -12,15 +12,20 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
 /* Menu Toggle (Mobile) */
 .menu-toggle { display: none; background: transparent; border: none; font-size: 1.4rem; color: var(--p-700); cursor: pointer; padding: 4px; }
 
-/* Sidebar Menu (Desktop) */
-.sidebar-menu { list-style: none; display: flex; gap: 8px; margin: 0 20px; padding: 0; align-items: center; flex: 1; justify-content: flex-end; }
+/* Sidebar Menu (Desktop) - Alineado a la izquierda */
+.sidebar-menu { list-style: none; display: flex; gap: 8px; margin: 0 0 0 12px; padding: 0; align-items: center; flex: 1; flex-wrap: wrap; }
 .sidebar-menu li { position: relative; }
-.sidebar-menu a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:8px 14px; color: var(--p-700); font-weight:600; font-size:.9rem; border-radius:999px; border:1px solid transparent; background: transparent; transition: all .2s ease; }
-.sidebar-menu a:hover { color: var(--p-800); background: rgba(77, 81, 128, 0.08); }
-.sidebar-menu a.active { color:#fff; background: var(--p-700); border-color: var(--p-700); }
+.sidebar-menu a { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:8px 14px; color: var(--p-700); font-weight:600; font-size:.9rem; border-radius:999px; border:1px solid var(--p-700); background: transparent; transition: all .2s ease; }
+.sidebar-menu a:hover { color: #fff; background: var(--p-700); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.sidebar-menu a.active { color:#fff; background: var(--p-800); border-color: var(--p-800); }
+
+/* Ubicar "Cerrar sesión" al extremo derecho */
+.sidebar-menu li.logout { margin-left: auto; padding-left: 12px; border-left: 1px solid rgba(90,96,155,0.25); }
+.sidebar-menu li.logout a { color: var(--p-600); border: 1px solid rgba(90,96,155,0.2); }
+.sidebar-menu li.logout a:hover { background: #ef4444; color: white; border-color: #ef4444; }
 
 /* Topbar Actions (Profile) */
-.topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: 0; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: 12px; }
 .profile-btn { border: none; background: transparent; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
 .profile-btn:hover { transform: scale(1.05); }
 .avatar-circle { width: 38px; height: 38px; border-radius: 50%; background: var(--p-700); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 2px 8px rgba(90, 96, 155, 0.2); border: 2px solid #fff; font-size: 1rem; }
@@ -32,52 +37,19 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .menu-toggle { display: block; order: 1; z-index: 20; }
-  .brand { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; order: 2; font-size: 1.35rem; z-index: 10; pointer-events: none; }
+  /* Toggle (Hamburguesa) a la izquierda */
+  .menu-toggle { display: block; order: 1; z-index: 20; position: absolute; left: 20px; top: 50%; transform: translateY(-50%); }
   
-  /* Posicionamiento NUCLEAR para el perfil en móvil - Fixed al viewport */
-  .topbar-actions { 
-      position: fixed !important;
-      right: 15px !important;
-      top: 12px !important;
-      transform: none !important;
-      display: flex !important; 
-      z-index: 9999 !important; 
-      margin: 0 !important;
-      width: auto !important;
-      height: 40px !important;
-      background: transparent !important;
-      justify-content: center !important;
-      align-items: center !important;
-  }
+  /* Logo Nexxuz centrado */
+  .brand { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; order: 2; font-size: 1.35rem; z-index: 10; pointer-events: none; width: auto; }
   
-  /* Asegurar que el botón dentro también sea visible */
-  .topbar-actions .profile-btn {
-      display: flex !important;
-      width: 40px !important;
-      height: 40px !important;
-      padding: 0 !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-  }
-  
-  .avatar-circle {
-      display: flex !important;
-      width: 38px !important;
-      height: 38px !important;
-      background-color: #5A609B !important;
-      color: #ffffff !important;
-      font-size: 1rem !important;
-      border: 2px solid #fff !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      z-index: 10000 !important;
-  }
+  /* Topbar container relativo para posicionar elementos absolutos */
+  .topbar-container { position: relative; height: 100%; justify-content: center; }
 
+  /* Menú desplegable */
   .sidebar-menu {
     display: none; /* Hidden by default */
-    position: absolute;
+    position: fixed; /* Fixed para cubrir viewport */
     top: 64px;
     left: 0;
     width: 100%;
@@ -89,18 +61,45 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
     border-top: 1px solid #f0f0f0;
     gap: 10px;
     box-sizing: border-box;
+    z-index: 190;
+    align-items: stretch; /* Estirar items */
   }
   
   /* Show menu when open */
   .topbar.open .sidebar-menu { display: flex; animation: slideDown 0.3s ease-out forwards; }
   
   .sidebar-menu li { width: 100%; }
-  .sidebar-menu a { width: 100%; justify-content: flex-start; border: 1px solid #eee; padding: 12px 16px; box-sizing: border-box; }
+  .sidebar-menu a { width: 100%; justify-content: flex-start; border: 1px solid #eee; padding: 12px 16px; box-sizing: border-box; border-radius: 8px; }
   .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--p-700); color: white; border-color: var(--p-700); }
   
-  .form-grid { grid-template-columns: 1fr; }
+  /* Ocultar elementos que no deben estar en el menú móvil si fuera necesario, 
+     pero el usuario pidió Dashboard, Correo, Cerrar sesión, que ya están en la lista */
   
-  /* Hide logout in menu if you wanted, but keeping it for now */
+  /* Perfil (Avatar) oculto en móvil si el usuario no lo quiere, 
+     pero la imagen de referencia NO muestra avatar en la barra, solo toggle y logo.
+     Sin embargo, el usuario dijo "donde tenga la seccion dashboard, correo y cerrar sesion SOLO para cuando este en modo movil".
+     Esto implica que el avatar quizás no deba estar visible o deba estar DENTRO del menú.
+     En la implementación actual, el avatar está visible a la derecha. 
+     El usuario NO mencionó quitar el avatar de la derecha, pero dijo "menu de las 3 rayitas... donde tenga dashboard, correo y cerrar sesion".
+     Voy a asumir que el avatar a la derecha puede quedarse o ocultarse.
+     La imagen de referencia (la segunda) NO tiene avatar a la derecha, solo toggle y logo centrado?
+     Espera, la imagen 2 del usuario (la que dijo "erroneo") SI tiene avatar.
+     La imagen 1 (admin) SI tiene avatar.
+     El usuario quiere que el menú (3 rayitas) tenga las opciones.
+     Voy a ocultar el avatar de la barra superior en móvil para limpiar la interfaz si eso ayuda a centrar,
+     o dejarlo si no estorba. 
+     La instrucción "solo dime que ves mal" anterior implicaba que quería replicar el admin.
+     Ahora dice "menu de las 3 rayitas a la izquierda... donde tenga la seccion dashboard, correo y cerrar sesion".
+     Esto suena a que quiere que el menú contenga TODO.
+  */
+  
+  /* Ajuste de perfil en móvil: Ocultarlo de la barra superior para limpiar y dejar solo menú + logo?
+     O dejarlo a la derecha?
+     "salga el menu de las 3 rayitas a la izquierda de nexxuz donde tenga la seccion dashboard, correo y cerrar sesion"
+     Esto describe el CONTENIDO del menú desplegable.
+  */
+  .topbar-actions { display: none !important; } /* Ocultamos avatar en móvil para dar prioridad al menú y logo limpio */
+
 }
 
 @keyframes slideDown {
