@@ -3,6 +3,41 @@
   let charts = { estados: null, tareas: null, avance: null };
   let pluginRegistered = false;
   let currentUser = null;
+
+  // Mobile Menu Toggle Logic
+  const topbar = document.querySelector('.topbar');
+  const menuBtn = document.querySelector('.menu-toggle');
+  const icon = menuBtn?.querySelector('i');
+
+  if(menuBtn) {
+      menuBtn.addEventListener('click', () => {
+        const opening = !topbar.classList.contains('open');
+        topbar.classList.toggle('open');
+        if (icon){
+            if (opening) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+      });
+  }
+
+  document.addEventListener('click', (e)=>{
+    if(topbar && topbar.classList.contains('open')) {
+        const isInside = topbar.contains(e.target);
+        if (!isInside){
+            topbar.classList.remove('open');
+            if (icon){
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        }
+    }
+  });
+
   (function(){
     try{ history.pushState(null,'',location.href); }catch(_){}
     window.addEventListener('popstate', function(e){ if (e && e.preventDefault) e.preventDefault(); history.go(1); });

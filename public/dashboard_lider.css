@@ -41,65 +41,74 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
   .menu-toggle { display: block; order: 1; z-index: 20; position: absolute; left: 20px; top: 50%; transform: translateY(-50%); }
   
   /* Logo Nexxuz centrado */
-  .brand { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; order: 2; font-size: 1.35rem; z-index: 10; pointer-events: none; width: auto; }
+  .brand { position: absolute; left: 50%; top: 55%; transform: translate(-50%, -50%); margin: 0; order: 2; font-size: 1.35rem; z-index: 10; pointer-events: none; width: auto; line-height: 1; }
   
   /* Topbar container relativo para posicionar elementos absolutos */
   .topbar-container { position: relative; height: 100%; justify-content: center; }
 
-  /* Menú desplegable */
+  /* Perfil (Avatar) visible a la derecha en móvil - Fuera del menú desplegable */
+  .topbar-actions { display: flex; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); z-index: 20; margin: 0; }
+  .profile-btn { padding: 0; border: none; background: transparent; }
+  .avatar-circle { width: 32px; height: 32px; font-size: 0.9rem; }
+
+  /* Menú desplegable - Estilo Admin */
   .sidebar-menu {
-    display: none; /* Hidden by default */
-    position: fixed; /* Fixed para cubrir viewport */
-    top: 64px;
+    display: none;
+    position: absolute;
+    top: 100%;
     left: 0;
     width: 100%;
-    margin: 0;
-    padding: 16px;
     background: #fff;
     flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    border-top: 1px solid #f0f0f0;
-    gap: 10px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid #e5e7eb;
+    padding: 1rem;
+    margin: 0;
+    gap: 0; /* Admin uses margin-bottom on li */
     box-sizing: border-box;
     z-index: 190;
-    align-items: stretch; /* Estirar items */
+    align-items: stretch;
+    /* Removed max-height/overflow to fix "broken sections/scrollbars" per user request */
+    height: auto; 
   }
   
   /* Show menu when open */
-  .topbar.open .sidebar-menu { display: flex; animation: slideDown 0.3s ease-out forwards; }
+  .topbar.open .sidebar-menu { 
+    display: flex; 
+    animation: slideDown 0.3s ease-out forwards; 
+  }
   
-  .sidebar-menu li { width: 100%; }
-  .sidebar-menu a { width: 100%; justify-content: flex-start; border: 1px solid #eee; padding: 12px 16px; box-sizing: border-box; border-radius: 8px; }
-  .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--p-700); color: white; border-color: var(--p-700); }
+  .sidebar-menu li { 
+    width: 100%; 
+    margin-bottom: 0.5rem; /* Admin spacing */
+  }
   
-  /* Ocultar elementos que no deben estar en el menú móvil si fuera necesario, 
-     pero el usuario pidió Dashboard, Correo, Cerrar sesión, que ya están en la lista */
+  .sidebar-menu a { 
+    display: flex;
+    width: 100%; 
+    justify-content: flex-start; 
+    border: 1px solid #eee; 
+    padding: 10px 15px; 
+    box-sizing: border-box; 
+    border-radius: 8px; 
+  }
   
-  /* Perfil (Avatar) oculto en móvil si el usuario no lo quiere, 
-     pero la imagen de referencia NO muestra avatar en la barra, solo toggle y logo.
-     Sin embargo, el usuario dijo "donde tenga la seccion dashboard, correo y cerrar sesion SOLO para cuando este en modo movil".
-     Esto implica que el avatar quizás no deba estar visible o deba estar DENTRO del menú.
-     En la implementación actual, el avatar está visible a la derecha. 
-     El usuario NO mencionó quitar el avatar de la derecha, pero dijo "menu de las 3 rayitas... donde tenga dashboard, correo y cerrar sesion".
-     Voy a asumir que el avatar a la derecha puede quedarse o ocultarse.
-     La imagen de referencia (la segunda) NO tiene avatar a la derecha, solo toggle y logo centrado?
-     Espera, la imagen 2 del usuario (la que dijo "erroneo") SI tiene avatar.
-     La imagen 1 (admin) SI tiene avatar.
-     El usuario quiere que el menú (3 rayitas) tenga las opciones.
-     Voy a ocultar el avatar de la barra superior en móvil para limpiar la interfaz si eso ayuda a centrar,
-     o dejarlo si no estorba. 
-     La instrucción "solo dime que ves mal" anterior implicaba que quería replicar el admin.
-     Ahora dice "menu de las 3 rayitas a la izquierda... donde tenga la seccion dashboard, correo y cerrar sesion".
-     Esto suena a que quiere que el menú contenga TODO.
-  */
+  .sidebar-menu a:hover, .sidebar-menu a.active { 
+    background: var(--p-700); 
+    color: white; 
+    border-color: var(--p-700); 
+  }
   
-  /* Ajuste de perfil en móvil: Ocultarlo de la barra superior para limpiar y dejar solo menú + logo?
-     O dejarlo a la derecha?
-     "salga el menu de las 3 rayitas a la izquierda de nexxuz donde tenga la seccion dashboard, correo y cerrar sesion"
-     Esto describe el CONTENIDO del menú desplegable.
-  */
-  .topbar-actions { display: none !important; } /* Ocultamos avatar en móvil para dar prioridad al menú y logo limpio */
-
+  /* Ajustar logout */
+  .sidebar-menu li.logout { 
+    margin-left: 0; 
+    border-left: none; 
+    padding-left: 0; 
+    margin-top: 1rem; 
+    border-top: 1px solid #eee; 
+    padding-top: 1rem;
+    margin-bottom: 0;
+  }
 }
 
 @keyframes slideDown {

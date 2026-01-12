@@ -59,7 +59,7 @@
             icon.classList.add('fa-bars');
         }
     }
-    opening ? animateOpen() : animateClose();
+    // opening ? animateOpen() : animateClose(); // Disabled to avoid conflict with CSS
   });
 
   document.addEventListener('click', (e)=>{
@@ -70,7 +70,7 @@
           icon.classList.remove('fa-times');
           icon.classList.add('fa-bars');
       }
-      animateClose();
+      // animateClose();
     }
   });
 

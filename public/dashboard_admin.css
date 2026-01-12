@@ -48,10 +48,45 @@ html { height: 100%; overflow-y: hidden; }
     font-weight: 800;
     margin: 0;
 }
-.menu-toggle {
-    display: none;
+/* Perfil en desktop */
+.topbar-profile {
+    margin-left: 12px;
+    display: flex;
+    align-items: center;
 }
-/* Menú horizontal */
+.profile-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.profile-btn:hover {
+    background: rgba(90,96,155,0.1);
+}
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--p-700);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .sidebar-menu {
     list-style: none;
     display: flex;
@@ -2049,14 +2084,16 @@ body.project-detail .page-back .back-link:hover {
     .sidebar-menu.active {
         display: flex !important;
         flex-direction: column !important;
-        position: absolute !important;
-        top: 100% !important;
+        position: fixed !important; /* Fixed relative to viewport to ensure correct positioning */
+        top: 80px !important; /* Force menu below the topbar */
         left: 0 !important;
         width: 100% !important;
         background: #fff !important;
         box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
-        z-index: 9999 !important;
+        z-index: 190 !important; /* Below topbar (200) */
         padding: 1rem !important;
+        max-height: calc(100vh - 80px) !important;
+        overflow-y: auto !important;
     }
     
     /* 5. Ajustes de modales y contenido vario */
