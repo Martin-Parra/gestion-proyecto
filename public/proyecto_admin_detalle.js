@@ -41,7 +41,7 @@
     const tituloEl = document.getElementById('proyectoDetalleTitulo');
     const liderEl = document.getElementById('proyectoInfoLider');
     // const pageTitleEl = document.getElementById('pageTitle'); // Eliminado por solicitud
-    if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> ${data.nombre}`;
+    if (tituloEl) tituloEl.innerHTML = `<i class="fas fa-tasks"></i> Tareas del Proyecto: ${data.nombre}`;
     // if (pageTitleEl) pageTitleEl.textContent = `Detalle del Proyecto`;
     if (liderEl) liderEl.textContent = data.jefe_nombre || '—';
   }
@@ -304,11 +304,11 @@
     const container = document.getElementById('docsPagination');
     if (!container) return;
     
-    // Mostrar siempre la paginación, incluso si no hay documentos (se mostrará deshabilitada)
-    // if (allDocuments.length === 0) {
-    //     container.innerHTML = '';
-    //     return;
-    // }
+    // Mostrar siempre la paginación si hay documentos, aunque sea solo una página
+    if (allDocuments.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
 
     container.innerHTML = `
         <button id="btnDocsPrev" class="btn btn-sm btn-outline-primary" ${currentDocsPage === 1 ? 'disabled' : ''}>
@@ -427,11 +427,8 @@
     });
   }
 
-  // Editor de tarea (título y descripción) con Modal personalizado
+  // Editor de tarea (título y descripción) con SweetAlert
   function abrirEditorTarea(tareaId){
-    const modal = document.getElementById('modalEditarTarea');
-    if (!modal) return;
-
     fetch(`/api/tareas/${tareaId}`)
       .then(r => r.json())
       .then(data => {
@@ -441,16 +438,54 @@
           return;
         }
         const tarea = data.tarea;
-        const inputId = document.getElementById('editarTareaId');
-        const inputTitulo = document.getElementById('editarTareaTitulo');
-        const inputDesc = document.getElementById('editarTareaDescripcion');
-        
-        if (inputId) inputId.value = tarea.id;
-        if (inputTitulo) inputTitulo.value = tarea.titulo || '';
-        if (inputDesc) inputDesc.value = tarea.descripcion || '';
-        
-        modal.classList.add('show');
-        modal.style.display = 'flex';
+        Swal.fire({
+          title: 'Editar tarea',
+          html: `
+            <div class="form-group" style="text-align:left">
+              <label for="swalTitulo">Título</label>
+              <input id="swalTitulo" class="swal2-input" style="width:100%" value="${(tarea.titulo||'').replace(/"/g, '&quot;')}">
+            </div>
+            <div class="form-group" style="text-align:left">
+              <label for="swalDescripcion">Descripción</label>
+              <textarea id="swalDescripcion" class="swal2-textarea" style="width:100%">${(tarea.descripcion||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Guardar',
+          cancelButtonText: 'Cancelar',
+          preConfirm: () => {
+            const titulo = document.getElementById('swalTitulo').value.trim();
+            const descripcion = document.getElementById('swalDescripcion').value.trim();
+            if (!titulo){
+              Swal.showValidationMessage('El título es obligatorio');
+              return false;
+            }
+            return { titulo, descripcion };
+          }
+        }).then(res => {
+          if (!res.isConfirmed || !res.value) return;
+          const { titulo, descripcion } = res.value;
+          fetch(`/api/tareas/${tareaId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, descripcion })
+          })
+          .then(r => r.json())
+          .then(upd => {
+            if (upd && (upd.success || upd.message)){
+              Swal.fire('Actualizada', 'La tarea fue actualizada', 'success');
+              cargarTareas();
+            } else {
+              const msg = (upd && (upd.error || upd.message)) || 'No se pudo actualizar';
+              Swal.fire('Error', msg, 'error');
+            }
+          })
+          .catch(err => {
+            console.error('Error al actualizar tarea:', err);
+            Swal.fire('Error', 'Ocurrió un problema al actualizar', 'error');
+          });
+        });
       })
       .catch(err => {
         console.error('Error al obtener tarea:', err);
@@ -585,63 +620,6 @@
     });
   }
 
-  function setupModalEditar(){
-    const modal = document.getElementById('modalEditarTarea');
-    const form = document.getElementById('formEditarTarea');
-    const closeBtn = document.getElementById('closeEditarTarea');
-    const cancelBtn = document.getElementById('cancelarEditarTarea');
-    
-    if (!modal) return;
-    
-    const cerrar = () => {
-      modal.classList.remove('show');
-      modal.style.display = 'none';
-    };
-    
-    if (closeBtn) closeBtn.onclick = cerrar;
-    if (cancelBtn) cancelBtn.onclick = cerrar;
-    window.addEventListener('click', (e) => {
-      if (e.target === modal) cerrar();
-    });
-    
-    if (form) {
-      form.onsubmit = (e) => {
-        e.preventDefault();
-        const id = document.getElementById('editarTareaId').value;
-        const titulo = document.getElementById('editarTareaTitulo').value.trim();
-        const descripcion = document.getElementById('editarTareaDescripcion').value.trim();
-        
-        if (!titulo) return Swal.fire('Error','El título es obligatorio','error');
-        
-        const btn = form.querySelector('button[type="submit"]');
-        if(btn) btn.disabled = true;
-
-        fetch(`/api/tareas/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ titulo, descripcion })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data && (data.success || data.message)) {
-                Swal.fire({ icon:'success', title:'Tarea actualizada', timer:1500, showConfirmButton:false });
-                cerrar();
-                cargarTareas();
-            } else {
-                Swal.fire('Error', data.message || 'No se pudo actualizar', 'error');
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            Swal.fire('Error', 'Error de conexión', 'error');
-        })
-        .finally(() => {
-            if(btn) btn.disabled = false;
-        });
-      };
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     const main = document.querySelector('.main-content');
     showPageLoader();
@@ -649,7 +627,6 @@
     setupLogout();
     setupEstadoProyecto();
     setupNavLoader();
-    setupModalEditar();
     if (!currentProjectId){
       Swal.fire('Sin proyecto', 'No se ha especificado un proyecto válido', 'warning');
       hidePageLoader();

@@ -1653,7 +1653,7 @@ body.add-project .form-actions .btn-primary:hover {
 #perfilModal.show { display: flex; align-items: center; justify-content: center; }
 #perfilModal .perfil-modal-content { width: min(560px, calc(100% - 48px)); margin: auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,0.25); padding: 18px 20px; position: relative; box-sizing: border-box; overflow: hidden; max-height: 90vh; overflow-y: auto; }
 #perfilModal .modal-title { font-weight: 800; color: var(--p-800); margin: 0 0 12px 0; }
-#perfilModal .close { position: absolute; top: 10px; right: 12px; border: none; background: transparent; font-size: 24px; cursor: pointer; color: #64748b; }
+#perfilModal .close { display: none; }
 .perfil-body { display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: start; }
 .perfil-avatar-wrap { display: grid; gap: 8px; justify-items: center; }
 .avatar-actions .btn { padding: 6px 10px; font-size: .9rem; }

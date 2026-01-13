@@ -29,7 +29,7 @@
 
         <div class="card">
             <div class="card-header header-row">
-                <h3 id="proyectoDetalleTitulo"><i class="fas fa-tasks"></i></h3>
+                <h3 id="proyectoDetalleTitulo"><i class="fas fa-tasks"></i> Tareas del Proyecto</h3>
                 <div class="project-lead-inline"><strong>Líder de Proyecto:</strong> <span id="proyectoInfoLider">—</span></div>
             </div>
             <div class="card-body">
@@ -89,8 +89,8 @@
 
                 <div id="proyectoDocumentos" class="project-docs section-block" style="margin-top: 18px;">
                     <h4><i class="fas fa-folder-open"></i> Documentos del Proyecto</h4>
-                    <div class="docs-actions">
-                        <label class="muted">Acciones</label>
+                    <div class="form-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
+                        <label class="muted" style="margin-right:8px;">Acciones</label>
                         <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Descargar todos</button>
                         <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
                     </div>
@@ -118,34 +118,6 @@
             </div>
         </div>
     </main>
-
-    <!-- Modal Editar Tarea -->
-    <div id="modalEditarTarea" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-edit"></i> Editar Tarea</h3>
-                <span class="close" id="closeEditarTarea">&times;</span>
-            </div>
-            <form id="formEditarTarea">
-                <input type="hidden" id="editarTareaId">
-                
-                <div class="form-group">
-                    <label for="editarTareaTitulo">Título:</label>
-                    <input type="text" id="editarTareaTitulo" name="editarTareaTitulo" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editarTareaDescripcion">Descripción:</label>
-                    <textarea id="editarTareaDescripcion" name="editarTareaDescripcion" class="form-control" rows="4"></textarea>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelarEditarTarea">Cancelar</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <script src="/proyecto_admin_detalle.js"></script>
     <script>

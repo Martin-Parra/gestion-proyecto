@@ -1091,6 +1091,7 @@ section h2::after { content:''; position:absolute; bottom:0; left:0; width:50px;
 .avatar-lg { width: 80px; height: 80px; font-size: 1.6rem; }
 
 #perfilModal .perfil-modal-content { width: min(560px, calc(100% - 48px)); margin: 6% auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(2,6,23,0.25); padding: 18px 20px; position: relative; box-sizing: border-box; overflow: hidden; }
+#perfilModal .close { display: none; }
 .perfil-body { display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: start; }
 .perfil-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
 .perfil-avatar-wrap .avatar-actions{width:100%}
