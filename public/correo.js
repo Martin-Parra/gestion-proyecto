@@ -248,6 +248,20 @@
     document.getElementById('btnRedactar').addEventListener('click', ()=>{ modal.classList.add('open'); });
     document.getElementById('cancelarRedactar').addEventListener('click', ()=>{ modal.classList.remove('open'); });
     document.getElementById('closeRedactar').addEventListener('click', ()=>{ modal.classList.remove('open'); });
+
+    // Auto-open compose if requested via URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'compose') {
+      const to = urlParams.get('to');
+      if (to) {
+        const toInput = document.getElementById('toEmails');
+        if (toInput) toInput.value = to;
+      }
+      modal.classList.add('open');
+      // Clean URL to avoid reopening on refresh
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
     
     // Toggle CC and BCC fields
     document.getElementById('toggleCc').addEventListener('click', (e)=>{

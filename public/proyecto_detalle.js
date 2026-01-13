@@ -15,6 +15,7 @@ $(document).ready(function() {
 
     function init() {
         loadUserInfo();
+        setupProfileModal();
         loadProjectDetails();
         setupEventListeners();
         setupDocumentoModalHandlers();
@@ -74,29 +75,21 @@ function setupEventListeners() {
             });
         }
 
-        // Mobile Menu Toggle
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', function(e) {
+        // Mobile Menu Toggle (Updated for new topbar)
+        const menuToggle = document.getElementById('menuToggle');
+        const topbar = document.querySelector('.topbar');
+        
+        if (menuToggle && topbar) {
+            menuToggle.addEventListener('click', function(e) {
                 e.preventDefault();
-                mobileMenu.classList.toggle('active');
+                topbar.classList.toggle('open');
             });
 
             // Close menu when clicking outside
             document.addEventListener('click', function(e) {
-                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-                    mobileMenu.classList.remove('active');
+                if (!menuToggle.contains(e.target) && !topbar.contains(e.target)) {
+                    topbar.classList.remove('open');
                 }
-            });
-        }
-
-        // Mobile Logout
-        const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
-        if (mobileLogoutBtn) {
-            mobileLogoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                logout();
             });
         }
 
@@ -231,73 +224,157 @@ function setupEventListeners() {
 
         // Estado de tareas no clickeable (visual únicamente)
 
-        // Ajuste de offset según barra worker-topbar
+        // Ajuste de offset según barra topbar
         const main = document.querySelector('.main-content');
-        const workerBar = document.querySelector('.worker-topbar');
+        const currentTopbar = document.querySelector('.topbar');
         const applyOffset = () => {
-            const h = workerBar ? workerBar.offsetHeight : 64;
+            const h = currentTopbar ? currentTopbar.offsetHeight : 64;
             if (main) main.style.paddingTop = (h + 20) + 'px';
         };
         applyOffset();
         window.addEventListener('resize', applyOffset);
+    }
 
-        // Toggle del menú anterior solo si existe la vieja topbar
-        const topbar = document.querySelector('.topbar');
-        const toggleBtn = document.querySelector('.topbar .menu-toggle');
-        const topbarMenuLinks = document.querySelectorAll('.topbar .sidebar-menu a');
+    function setupProfileModal() {
+        const perfilModal = document.getElementById('perfilModal');
+        const closePerfilModal = document.getElementById('closePerfilModal');
+        const cancelarPerfil = document.getElementById('cancelarPerfil');
+        const profileBtn = document.getElementById('profileBtn');
+        const perfilNombre = document.getElementById('perfilNombre');
+        const perfilEmail = document.getElementById('perfilEmail');
+        const perfilRol = document.getElementById('perfilRol');
+        const perfilAvatarPreview = document.getElementById('perfilAvatarPreview');
+        const perfilFotoInput = document.getElementById('perfilFoto');
+        const perfilForm = document.getElementById('perfilForm');
+        let selectedAvatarFile = null;
 
-        if (toggleBtn && topbar) {
-            const menu = topbar.querySelector('.sidebar-menu');
-            const hasAnime = typeof window !== 'undefined' && window.anime;
+        if (perfilNombre){
+            perfilNombre.addEventListener('input', function(){
+                const v = this.value || '';
+                const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+                if (filtered !== v) this.value = filtered;
+            });
+            perfilNombre.addEventListener('blur', function(){
+                const v = this.value || '';
+                const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
+                if (filtered !== v) this.value = filtered;
+            });
+        }
 
-            const openMenu = () => {
-                topbar.classList.add('open');
-                const icon = toggleBtn.querySelector('i');
-                if (icon) { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up'); }
-                if (hasAnime && menu) {
-                    window.anime({
-                        targets: menu,
-                        opacity: [0, 1],
-                        translateY: [-12, 0],
-                        duration: 250,
-                        easing: 'easeOutQuad'
-                    });
+        const openPerfil = () => {
+            if (!perfilModal) return;
+            perfilModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+            if (currentUser) {
+                if (perfilNombre) perfilNombre.value = currentUser.nombre || '';
+                if (perfilEmail) perfilEmail.value = currentUser.email || '';
+                if (perfilRol) perfilRol.value = currentUser.rol || '';
+                const url = currentUser.avatar_url;
+                if (perfilAvatarPreview) {
+                    if (url) {
+                        perfilAvatarPreview.style.backgroundImage = `url('${url}')`;
+                        perfilAvatarPreview.style.backgroundSize = 'cover';
+                        perfilAvatarPreview.style.backgroundPosition = 'center';
+                        perfilAvatarPreview.textContent = '';
+                    } else {
+                        const initial = (currentUser.nombre || currentUser.email || 'U').trim().charAt(0).toUpperCase();
+                        perfilAvatarPreview.style.backgroundImage = '';
+                        perfilAvatarPreview.textContent = initial;
+                    }
                 }
-            };
+            }
+        };
 
-            const closeMenu = () => {
-                const icon = toggleBtn.querySelector('i');
-                if (hasAnime && menu) {
-                    window.anime({
-                        targets: menu,
-                        opacity: [1, 0],
-                        translateY: [0, -12],
-                        duration: 200,
-                        easing: 'easeInQuad',
-                        complete: () => {
-                            topbar.classList.remove('open');
-                            if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+        const closePerfil = () => {
+            if (!perfilModal) return;
+            perfilModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        };
+
+        if (profileBtn) profileBtn.addEventListener('click', (e) => { e.preventDefault(); openPerfil(); });
+        if (closePerfilModal) closePerfilModal.addEventListener('click', closePerfil);
+        if (cancelarPerfil) cancelarPerfil.addEventListener('click', closePerfil);
+
+        // Cerrar al hacer click fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === perfilModal) closePerfil();
+        });
+
+        if (perfilFotoInput) {
+            perfilFotoInput.addEventListener('change', function() {
+                const file = this.files && this.files[0];
+                if (!file) return;
+                selectedAvatarFile = file;
+                const previewUrl = URL.createObjectURL(file);
+                if (perfilAvatarPreview) {
+                    perfilAvatarPreview.style.backgroundImage = `url('${previewUrl}')`;
+                    perfilAvatarPreview.style.backgroundSize = 'cover';
+                    perfilAvatarPreview.style.backgroundPosition = 'center';
+                    perfilAvatarPreview.textContent = '';
+                }
+            });
+        }
+
+        if (perfilForm) {
+            perfilForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                if (!currentUser) return;
+                
+                const nombre = perfilNombre ? (perfilNombre.value || '').trim() : '';
+                const email = perfilEmail ? (perfilEmail.value || '').trim() : '';
+                
+                try {
+                    // 1. Subir avatar si hay uno seleccionado
+                    if (selectedAvatarFile) {
+                        const fd = new FormData();
+                        fd.append('avatar', selectedAvatarFile);
+                        const avRes = await fetch(`/api/usuarios/${currentUser.id}/avatar`, {
+                            method: 'POST',
+                            body: fd
+                        });
+                        const avData = await avRes.json();
+                        if (avRes.ok && avData.avatar_url) {
+                            currentUser.avatar_url = avData.avatar_url;
+                            // Actualizar avatar en topbar
+                            const topAvatar = document.getElementById('profileAvatar');
+                            if (topAvatar) {
+                                topAvatar.style.backgroundImage = `url('${currentUser.avatar_url}')`;
+                                topAvatar.style.backgroundSize = 'cover';
+                                topAvatar.style.backgroundPosition = 'center';
+                                topAvatar.textContent = '';
+                            }
                         }
+                    }
+
+                    // 2. Actualizar datos (nombre, email)
+                    const res = await fetch(`/api/usuarios/${currentUser.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, email, rol: currentUser.rol })
                     });
-                } else {
-                    topbar.classList.remove('open');
-                    if (icon) { icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down'); }
+                    const data = await res.json();
+                    
+                    if (res.ok) {
+                        currentUser.nombre = nombre;
+                        currentUser.email = email;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Perfil actualizado',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        closePerfil();
+                    } else {
+                        throw new Error(data.message || 'Error al actualizar perfil');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message || 'No se pudo actualizar el perfil'
+                    });
                 }
-            };
-
-            toggleBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                if (topbar.classList.contains('open')) { closeMenu(); } else { openMenu(); }
-            });
-
-            // Cerrar si se hace click fuera
-            document.addEventListener('click', function (e) {
-                if (!topbar.contains(e.target)) { closeMenu(); }
-            });
-
-            // Cerrar al navegar por alguna opción
-            topbarMenuLinks.forEach((link) => {
-                link.addEventListener('click', () => { closeMenu(); });
             });
         }
     }
@@ -599,17 +676,33 @@ function setupEventListeners() {
         let html = '';
         teammates.forEach(teammate => {
             const initials = getInitials(teammate.nombre);
+            const role = teammate.rol || 'Miembro'; // Default role if not provided
+            
+            // Random gradient or specific logic for avatar bg if desired, keeping it simple for now
+            // or use the existing style.
+            
             html += `
-                <div class="teammate-card">
-                    <div class="teammate-avatar">${initials}</div>
-                    <div class="teammate-info">
+                <div class="teammate-card-new">
+                    <div class="tm-avatar">
+                        ${teammate.avatar_url ? `<img src="${teammate.avatar_url}" alt="${initials}">` : `<span>${initials}</span>`}
+                    </div>
+                    <div class="tm-info">
                         <h4>${teammate.nombre}</h4>
-                        <p>${teammate.email}</p>
+                        <span class="tm-role">${role}</span>
+                        <p class="tm-email">${teammate.email}</p>
+                    </div>
+                    <div class="tm-actions">
+                        <a href="mailto:${teammate.email}" class="btn-icon-sm" title="Contactar"><i class="fas fa-envelope"></i></a>
                     </div>
                 </div>
             `;
         });
 
+        // Wrap in a grid container if not already handled by CSS on #teammatesContainer
+        // But #teammatesContainer is just a div.
+        // We will style .teammates-container as a grid in CSS or here.
+        // Let's rely on CSS for the grid layout of #teammatesContainer (which is class .teammates-container in HTML)
+        
         $('#teammatesContainer').html(html);
     }
 
@@ -674,103 +767,26 @@ function setupEventListeners() {
 
     function updateTaskStats() {
         const tasks = Array.isArray(currentTasks) ? currentTasks : [];
-
-        const updateCounters = (total, pending, inProgress, completed) => {
-            $('#totalTasks').text(total);
-            $('#pendingTasks').text(pending);
-            $('#inProgressTasks').text(inProgress);
-            $('#completedTasks').text(completed);
-        };
-
-        if (!tasks.length) {
-            updateCounters(0, 0, 0, 0);
-            // Actualizar mini chart si existe
-            const ids = [
-                ['barAll','countAll',0],
-                ['barPending','countPending',0],
-                ['barProgress','countProgress',0],
-                ['barCompleted','countCompleted',0]
-            ];
-            ids.forEach(([barId, countId, value]) => {
-                const bar = document.getElementById(barId);
-                const count = document.getElementById(countId);
-                if (bar) {
-                    bar.style.setProperty('--target-height', '0%');
-                    bar.style.animation = 'none';
-                    void bar.offsetHeight; // reflow
-                    bar.style.animation = '';
-                    bar.style.height = '0%';
-                }
-                if (count) count.textContent = value;
-            });
-            return;
-        }
         
         const total = tasks.length;
         const pending = tasks.filter(t => t.estado === 'pendiente').length;
         const inProgress = tasks.filter(t => t.estado === 'en_progreso').length;
         const completed = tasks.filter(t => t.estado === 'completada').length;
 
-        updateCounters(total, pending, inProgress, completed);
+        // Update Stat Cards Text
+        $('#statTotal').text(total);
+        $('#statPending').text(pending);
+        $('#statProgress').text(inProgress);
+        $('#statCompleted').text(completed);
 
-        // Actualizar mini chart de barras
-        const maxValue = Math.max(total, pending, inProgress, completed, 1);
-        const toPercent = v => Math.round((v / maxValue) * 100);
-        const setBar = (id, value, countId) => {
-            const bar = document.getElementById(id);
-            const count = document.getElementById(countId);
-            if (!bar) return;
-            const pct = toPercent(value);
-            bar.style.setProperty('--target-height', pct + '%');
-            // Reiniciar animación
-            bar.style.animation = 'none';
-            void bar.offsetHeight; // reflow
-            bar.style.animation = '';
-            bar.style.height = pct + '%';
-            if (count) count.textContent = value;
-        };
-
-        setBar('barAll', total, 'countAll');
-        setBar('barPending', pending, 'countPending');
-        setBar('barProgress', inProgress, 'countProgress');
-        setBar('barCompleted', completed, 'countCompleted');
-
-        // Actualizar Gráfico Circular Móvil
-        const mobileTotal = document.getElementById('mobileTotalTasks');
-        const mobilePending = document.getElementById('mobileCountPending');
-        const mobileProgress = document.getElementById('mobileCountProgress');
-        const mobileCompleted = document.getElementById('mobileCountCompleted');
-        const mobileDonut = document.getElementById('mobileDonutChart');
-
-        if (mobileTotal) mobileTotal.textContent = total;
-        if (mobilePending) mobilePending.textContent = pending;
-        if (mobileProgress) mobileProgress.textContent = inProgress;
-        if (mobileCompleted) mobileCompleted.textContent = completed;
-
-        if (mobileDonut) {
-            if (total > 0) {
-                const degPending = (pending / total) * 360;
-                const degProgress = (inProgress / total) * 360;
-                const degCompleted = (completed / total) * 360; // Resto
-
-                const d1 = degPending;
-                const d2 = d1 + degProgress;
-                
-                // Colores: Pendiente(Naranja), En Progreso(Morado), Completada(Azul/Principal)
-                const cPending = '#f39c12';
-                const cProgress = '#9b59b6';
-                const cCompleted = '#5A609B'; 
-
-                mobileDonut.style.background = `conic-gradient(
-                    ${cPending} 0deg ${d1}deg,
-                    ${cProgress} ${d1}deg ${d2}deg,
-                    ${cCompleted} ${d2}deg 360deg
-                )`;
-            } else {
-                mobileDonut.style.background = `conic-gradient(#e9ecef 0deg, #e9ecef 360deg)`;
-            }
-        }
+        // Update Stat Cards Bars (percentages relative to total)
+        const getPct = val => total > 0 ? Math.round((val / total) * 100) : 0;
+        
+        $('#barFillPending').css('width', getPct(pending) + '%');
+        $('#barFillProgress').css('width', getPct(inProgress) + '%');
+        $('#barFillCompleted').css('width', getPct(completed) + '%');
     }
+
 
     function filterTasks() {
         let filteredTasks = currentTasks;

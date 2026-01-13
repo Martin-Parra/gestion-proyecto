@@ -13,24 +13,24 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
-    <!-- Barra de navegación igual a la del dashboard trabajador -->
-    <header class="worker-topbar">
-        <div class="wt-inner">
-            <button class="menu-toggle" id="mobileMenuBtn">
+    <!-- Barra de navegación estilo dashboard admin -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="wt-left">
+            <div class="sidebar-header">
                 <h2>Nexxuz</h2>
-                <ul class="sidebar-menu" id="mobileMenu">
-                    <li><a href="#" id="backBtn"><i class="fas fa-arrow-left"></i> Volver atrás</a></li>
-                    <!-- <li><a href="/dashboard/trabajador" class="active">Mi Proyecto</a></li> Eliminado por solicitud -->
-                    <li><a href="/correo">Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
-                    <li class="mobile-only"><a href="#" id="mobileLogoutBtn">Cerrar sesión</a></li>
-                </ul>
             </div>
-            <div class="wt-right">
-                <button id="profileBtn" class="profile-btn"><span id="profileAvatar" class="avatar-circle">U</span></button>
-                <a href="#" id="logoutBtn" class="logout-link">Cerrar sesión</a>
+            <ul class="sidebar-menu" id="sidebarMenu">
+                <li><a href="#" id="backBtn"><i class="fas fa-arrow-left"></i> Volver atrás</a></li>
+                <li><a href="/correo"><i class="fas fa-envelope"></i> Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
+                <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+            </ul>
+            <div class="topbar-profile">
+                <button id="profileBtn" class="profile-btn" aria-label="Perfil">
+                    <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
+                </button>
             </div>
         </div>
     </header>
@@ -42,37 +42,52 @@
         <!-- Información del Proyecto -->
         <div class="section-card">
             <div class="project-header">
+                <div class="project-info">
+                    <h2 id="projectName">Cargando...</h2>
+                    <p id="projectDescription">Cargando descripción...</p>
+                </div>
                 <div class="progress-circle">
                     <div class="progress-text">
                         <span id="progressPercentage">0%</span>
                         <small>Avance</small>
                     </div>
                 </div>
-                <div class="project-info">
-                    <div class="project-avatar" id="projectAvatar">PR</div>
-                    <div>
-                        <h2 id="projectName">Cargando...</h2>
-                        <p id="projectDescription">Cargando descripción...</p>
+                <div class="project-meta-grid">
+                    <!-- Líder -->
+                    <div class="meta-card">
+                        <div class="meta-icon-box leader-bg">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="meta-content">
+                            <span class="meta-label">Líder</span>
+                            <span class="meta-value" id="projectLeader">—</span>
+                        </div>
                     </div>
-                </div>
-                <div class="project-meta">
-                    <div class="meta-group">
-                        <span class="meta-badge leader">
-                            <span class="badge-label">Líder</span>
-                            <span class="badge-content"><i class="fas fa-user-tie"></i><span id="projectLeader">—</span></span>
-                        </span>
-                        <span class="meta-badge status" id="projectStatusBadge">
-                            <span class="badge-label">Estado</span>
-                            <span class="badge-content"><i class="fas fa-flag"></i><span id="projectStatus">—</span></span>
-                        </span>
-                        <span class="meta-badge dates">
-                            <span class="badge-label">Fechas</span>
-                            <span class="badge-content">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span class="date-item"><strong>Inicio:</strong> <span id="projectStartDate">—</span></span>
-                                <span class="date-item"><strong>Término:</strong> <span id="projectEndDate">—</span></span>
-                            </span>
-                        </span>
+                    
+                    <!-- Estado -->
+                    <div class="meta-card">
+                        <div class="meta-icon-box" id="projectStatusBadge">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                        <div class="meta-content">
+                            <span class="meta-label">Estado</span>
+                            <span class="meta-value" id="projectStatus">—</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Fechas -->
+                    <div class="meta-card">
+                        <div class="meta-icon-box date-bg">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="meta-content">
+                            <span class="meta-label">Fechas</span>
+                            <div class="meta-dates-row">
+                                <span class="date-val" id="projectStartDate">—</span>
+                                <i class="fas fa-long-arrow-alt-right arrow-sep"></i>
+                                <span class="date-val" id="projectEndDate">—</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,62 +106,41 @@
         <!-- Resumen de Tareas -->
         <div class="section-card">
             <div class="section-header">
-                <h2><i class="fas fa-chart-bar"></i> Resumen de Tareas</h2>
+                <h2><i class="fas fa-chart-pie"></i> Resumen de Tareas</h2>
             </div>
-            <div class="chart-card">
-                <div class="task-chart desktop-only" id="taskChart">
-                    <div class="bar-group" data-status="all">
-                        <div class="bar" id="barAll" style="height:0%"></div>
-                        <div class="bar-info">
-                            <span class="bar-count" id="countAll">0</span>
-                            <span class="bar-label">Todas</span>
+            <div class="tasks-summary-container">
+                <!-- Stats Side -->
+                <div class="summary-stats-grid">
+                    <div class="stat-card total">
+                        <div class="stat-icon"><i class="fas fa-list"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="statTotal">0</span>
+                            <span class="stat-label">Todas</span>
                         </div>
                     </div>
-                    <div class="bar-group" data-status="pendiente">
-                        <div class="bar" id="barPending" style="height:0%"></div>
-                        <div class="bar-info">
-                            <span class="bar-count" id="countPending">0</span>
-                            <span class="bar-label">Por Hacer</span>
+                    <div class="stat-card pending">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="statPending">0</span>
+                            <span class="stat-label">Por Hacer</span>
                         </div>
+                        <div class="stat-bar"><div class="bar-fill" id="barFillPending"></div></div>
                     </div>
-                    <div class="bar-group" data-status="en_progreso">
-                        <div class="bar" id="barProgress" style="height:0%"></div>
-                        <div class="bar-info">
-                            <span class="bar-count" id="countProgress">0</span>
-                            <span class="bar-label">En Progreso</span>
+                    <div class="stat-card progress">
+                        <div class="stat-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="statProgress">0</span>
+                            <span class="stat-label">En Progreso</span>
                         </div>
+                        <div class="stat-bar"><div class="bar-fill" id="barFillProgress"></div></div>
                     </div>
-                    <div class="bar-group" data-status="completada">
-                        <div class="bar" id="barCompleted" style="height:0%"></div>
-                        <div class="bar-info">
-                            <span class="bar-count" id="countCompleted">0</span>
-                            <span class="bar-label">Completadas</span>
+                    <div class="stat-card completed">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value" id="statCompleted">0</span>
+                            <span class="stat-label">Completadas</span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Gráfico Circular para Móvil -->
-                <div class="mobile-task-chart mobile-only" style="display:none;">
-                    <div class="donut-wrapper">
-                        <div class="donut-chart" id="mobileDonutChart"></div>
-                        <div class="donut-center-text">
-                            <span id="mobileTotalTasks">0</span>
-                            <small>Total</small>
-                        </div>
-                    </div>
-                    <div class="chart-legend">
-                        <div class="legend-item">
-                            <span class="dot" style="background:#f39c12"></span>
-                            <span class="legend-text">Por Hacer: <b id="mobileCountPending">0</b></span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="dot" style="background:#9b59b6"></span>
-                            <span class="legend-text">En Progreso: <b id="mobileCountProgress">0</b></span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="dot" style="background:var(--p-700)"></span>
-                            <span class="legend-text">Completadas: <b id="mobileCountCompleted">0</b></span>
-                        </div>
+                        <div class="stat-bar"><div class="bar-fill" id="barFillCompleted"></div></div>
                     </div>
                 </div>
             </div>
@@ -155,7 +149,7 @@
         <!-- Sección de Tareas -->
         <div class="section-card">
             <div class="section-header">
-                <h2><i class="fas fa-list-check"></i> Mis Tareas del Proyecto</h2>
+                <h2><i class="fas fa-list-check"></i> Mis tareas</h2>
                 <div class="task-filters">
                     <button class="filter-btn active" data-filter="all">Todas</button>
                     <button class="filter-btn" data-filter="pendiente">Por Hacer</button>
@@ -232,6 +226,41 @@
                         <button type="button" class="btn btn-secondary" id="cancelarDocumentoModal">Cancelar</button>
                         <button type="submit" form="formSubirDocumento" class="btn btn-success"><i class="fas fa-upload"></i> Subir</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Perfil de Usuario -->
+        <div id="perfilModal" class="modal" aria-hidden="true" style="display:none;">
+            <div class="modal-content perfil-modal-content">
+                <button type="button" class="close" id="closePerfilModal" aria-label="Cerrar">&times;</button>
+                <h3 class="modal-title"><i class="fas fa-user-circle"></i> Mi Perfil</h3>
+                <div class="perfil-body">
+                    <div class="perfil-avatar-wrap">
+                        <div class="avatar-circle avatar-lg" id="perfilAvatarPreview">U</div>
+                        <div class="avatar-actions">
+                            <label for="perfilFoto" class="btn btn-secondary btn-sm"><i class="fas fa-camera"></i> Cambiar foto</label>
+                            <input type="file" id="perfilFoto" accept="image/*" style="display:none;" />
+                        </div>
+                    </div>
+                    <form id="perfilForm" autocomplete="off">
+                        <div class="form-group">
+                            <label for="perfilNombre"><i class="fas fa-id-card"></i> Nombre</label>
+                            <input type="text" id="perfilNombre" class="form-control" placeholder="Tu nombre" />
+                        </div>
+                        <div class="form-group">
+                            <label for="perfilEmail"><i class="fas fa-envelope"></i> Correo</label>
+                            <input type="email" id="perfilEmail" class="form-control" placeholder="tu@correo.com" />
+                        </div>
+                        <div class="form-group">
+                            <label for="perfilRol"><i class="fas fa-user-tag"></i> Rol</label>
+                            <input type="text" id="perfilRol" class="form-control" placeholder="—" readonly />
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelarPerfil">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" id="guardarPerfil">Guardar cambios</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
