@@ -1811,14 +1811,14 @@ label {
     }
     
     .worker-topbar .sidebar-menu li.mobile-only a {
-        background-color: #fee2e2;
-        color: #dc2626;
-        border-color: #fecaca;
+        color: var(--p-700);
+        border-color: var(--p-700);
+        background: transparent;
     }
     
     .worker-topbar .sidebar-menu li.mobile-only a:hover {
-        background-color: #fecaca;
-        color: #b91c1c;
+        background: var(--p-700);
+        color: #fff;
     }
 
     /* Centrar títulos de sección en móvil */

@@ -301,12 +301,18 @@ function setupEventListeners() {
     // Logout
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
     }
 
     const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
     if (mobileLogoutBtn) {
-        mobileLogoutBtn.addEventListener('click', logout);
+        mobileLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
     }
     
     // Filtros de tareas
