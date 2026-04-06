@@ -561,9 +561,9 @@
           <td>${formatDate(t.created_at)}</td>
           <td>
             <div class="action-row compact">
-              <button class="btn btn-light btn-compact" data-task-status="en_progreso" data-id="${t.id}"><i class="fas fa-play"></i> Progreso</button>
-              <button class="btn btn-light btn-compact" data-task-status="revisando" data-id="${t.id}"><i class="fas fa-search"></i> Revisar</button>
-              <button class="btn btn-light btn-compact" data-task-status="completada" data-id="${t.id}"><i class="fas fa-check"></i> Done</button>
+              <button class="btn btn-light btn-compact" data-task-status="en_progreso" data-id="${t.id}"><i class="fas fa-play"></i> En progreso</button>
+              <button class="btn btn-light btn-compact" data-task-status="revisando" data-id="${t.id}"><i class="fas fa-search"></i> Revisado</button>
+              <button class="btn btn-light btn-compact" data-task-status="completada" data-id="${t.id}"><i class="fas fa-check"></i> Completado</button>
               <button class="btn btn-light btn-compact" data-task-email="${t.id}" data-proyecto="${proyectoId}" data-task-title="${escapeHtml(t.titulo)}" data-task-estado="${t.estado}" title="Informar estado por correo"><i class="fas fa-envelope"></i></button>
               <button class="btn btn-outline btn-compact" data-task-del="${t.id}"><i class="fas fa-trash"></i></button>
             </div>

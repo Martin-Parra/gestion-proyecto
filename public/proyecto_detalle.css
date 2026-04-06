@@ -1,15 +1,15 @@
 @charset "UTF-8";
 :root {
-  --p-50: #f0fdf4;
-  --p-100: #dcfce7;
-  --p-200: #bbf7d0;
-  --p-300: #86efac;
-  --p-400: #4ade80;
-  --p-500: #22c55e;
-  --p-600: #16a34a;
-  --p-700: #15803d;
-  --p-800: #166534;
-  --p-900: #14532d;
+  --p-50: #f8f9fc;
+  --p-100: #eef2f7;
+  --p-200: #e2e8f0;
+  --p-300: #cbd5e1;
+  --p-400: #9ba4c8;
+  --p-500: #7886B9;
+  --p-600: #6670AA;
+  --p-700: #5A609B;
+  --p-800: #4D5180;
+  --p-900: #363955;
   --s-50: #f8fafc;
   --s-100: #f1f5f9;
   --s-200: #e2e8f0;
@@ -22,7 +22,13 @@
   --s-900: #0f172a;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-body { background: #f3f4f6; color: #1f2937; }
+html, body { 
+    background: #f3f4f6; 
+    color: #1f2937; 
+    overflow-y: auto !important; 
+    height: auto !important; 
+    min-height: 100vh;
+}
 /* --- Nuevo topbar horizontal (estilo admin) --- */
 .topbar {
     position: fixed;
@@ -65,11 +71,12 @@ body { background: #f3f4f6; color: #1f2937; }
     list-style: none;
     display: flex;
     gap: 8px;
-    margin: 0 0 0 12px;
+    margin: 0 0 0 20px;
     padding: 0;
     align-items: center;
     flex-wrap: wrap;
     flex: 1;
+    justify-content: flex-start;
 }
 
 .sidebar-menu li { position: relative; }
@@ -102,8 +109,26 @@ body { background: #f3f4f6; color: #1f2937; }
     border-color: #4D5180;
 }
 
-/* Logout special positioning */
-.sidebar-menu li.logout { margin-left: auto; padding-left: 12px; border-left: 1px solid rgba(90,96,155,0.25); }
+/* Logout style as pill */
+.logout-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    padding: 8px 16px;
+    color: #ef4444; /* Keep it red-ish for logout */
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 999px;
+    border: 1px solid #ef4444;
+    background: transparent;
+    transition: all 0.2s ease;
+    margin-right: 12px;
+}
+.logout-link:hover {
+    background: #ef4444;
+    color: #fff;
+}
 
 /* Profile */
 .topbar-profile {
@@ -140,70 +165,28 @@ body { background: #f3f4f6; color: #1f2937; }
 
 /* Main Content adjustment for fixed topbar */
 .main-content {
-    padding-top: 88px; /* space for topbar */
-    padding-bottom: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding-top: 80px !important; 
+    padding-bottom: 2rem !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 76px !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
 }
 
 /* Mobile adjustments */
+/* Topbar handled by dashboard_trabajador.css */
 @media (max-width: 1024px) {
-    .menu-toggle {
-        display: block;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: #2563eb; /* Azul primary */
-        margin-right: auto;
-        order: 1;
+    .main-content {
+        padding-top: 76px !important;
     }
-
-    .sidebar-menu {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background: #fff;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
-        border-top: 1px solid #e5e7eb;
-        z-index: 200;
-        order: 4;
-    }
-
-    .topbar.open .sidebar-menu {
-        display: flex;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .sidebar-menu li { width: 100%; margin-bottom: 0.5rem; }
-    .sidebar-menu a { width: 100%; justify-content: flex-start; border-radius: 8px; }
-    
-    .sidebar-menu li.logout {
-        margin-left: 0;
-        padding-left: 0;
-        border-left: none;
-        margin-top: 1rem;
-        border-top: 1px solid #eee;
-        padding-top: 1rem;
-    }
-
-    .topbar-inner {
-        justify-content: space-between;
-        position: relative;
-    }
-
-    .sidebar-header {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        order: 2;
-    }
-
-    .topbar-profile { order: 3; }
 }
 
 @keyframes slideDown {
@@ -348,7 +331,9 @@ body { background: #f3f4f6; color: #1f2937; }
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
+    color: #fff !important; /* Force white icons for contrast */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
 }
 
 .stat-value {
@@ -378,31 +363,18 @@ body { background: #f3f4f6; color: #1f2937; }
     transition: width 1s ease-out;
 }
 
-/* Colors */
-.stat-card.total .stat-icon { background: #eff6ff; color: #3b82f6; }
+/* Colors & Contrast Improvements */
+.stat-card.total .stat-icon { background: #3b82f6; } /* Blue */
 .stat-card.total .bar-fill { background: #3b82f6; }
 
-.stat-card.pending .stat-icon { background: #fff7ed; color: #f97316; }
-.stat-card.pending .bar-fill { background: #f97316; }
-
-.stat-card.progress .stat-icon { background: #f0fdf4; color: #22c55e; }
-.stat-card.progress .bar-fill { background: #22c55e; }
-
-.stat-card.completed .stat-icon { background: #f3f4f6; color: #4b5563; } /* Changed from green to gray as requested implicitly or standard? User said '0 Completadas' with gray dot in legend? No, usually completed is green. Let's stick to standard colors: Pending=Orange, Progress=Blue, Completed=Green. Wait, user's previous code had: Pending=Orange, Progress=Purple, Completed=Dark? Let's check legend in html. */
-/* Legend in HTML: Pending #f39c12 (Orange), Progress #9b59b6 (Purple), Completed var(--p-700) (Greenish?). */
-/* Let's align with common sense:
-   Pending: Orange/Yellow
-   In Progress: Blue/Purple
-   Completed: Green
-*/
-.stat-card.pending .stat-icon { background: #fffbeb; color: #f59e0b; }
+.stat-card.pending .stat-icon { background: #f59e0b; } /* Orange */
 .stat-card.pending .bar-fill { background: #f59e0b; }
 
-.stat-card.progress .stat-icon { background: #eff6ff; color: #3b82f6; }
-.stat-card.progress .bar-fill { background: #3b82f6; }
+.stat-card.in-progress .stat-icon { background: #10b981; } /* Green for progress/doing */
+.stat-card.in-progress .bar-fill { background: #10b981; }
 
-.stat-card.completed .stat-icon { background: #ecfdf5; color: #10b981; }
-.stat-card.completed .bar-fill { background: #10b981; }
+.stat-card.completed .stat-icon { background: #6366f1; } /* Indigo for completed */
+.stat-card.completed .bar-fill { background: #6366f1; }
 
 @media (max-width: 768px) {
     .tasks-summary-container {
@@ -411,6 +383,13 @@ body { background: #f3f4f6; color: #1f2937; }
     .summary-stats-grid {
         width: 100%;
         grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-stats-grid {
+        grid-template-columns: 1fr;
     }
 }
 .dashboard-grid {
@@ -1294,10 +1273,46 @@ body { background: #f3f4f6; color: #1f2937; }
 
 .docs-table th {
     text-align: left;
-    background: #f8f9fc;
-    color: #4e73df;
+    background: #f1f5f9;
+    color: #475569;
     font-weight: 700;
-    padding: 15px;
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Tasks Table Wrap */
+.tasks-table-wrapper {
+    max-height: 480px;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+    background: #ffffff;
+}
+
+.tasks-table-wrapper table.docs-table {
+    margin-bottom: 0;
+}
+
+.tasks-table-wrapper table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 #e5e7eb; /* Better sticky border */
+}
+
+/* Prevent task badges from stretching in table cells */
+.docs-table .task-priority,
+.docs-table .task-status {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: fit-content !important;
+    min-width: 90px;
+    margin: 0 auto;
+    white-space: nowrap;
 }
 
 .docs-table td {

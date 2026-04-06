@@ -1,42 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle del Proyecto - Trabajador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/proyecto_detalle.css">
+    <link rel="stylesheet" href="/dashboard_trabajador.css?v=20">
+    <link rel="stylesheet" href="/proyecto_detalle.css?v=20">
     <link rel="icon" href="/assets/circlemartin.png?v=2" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <style>
+        /* NUCLEAR SCROLL FIX - Force everything to be scrollable */
+        html, body {
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: 100vh !important;
+            position: static !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: auto !important;
+        }
+        .main-content {
+            padding-top: 80px !important;
+            padding-bottom: 100px !important;
+            overflow-y: visible !important;
+            display: block !important;
+        }
+        @media (max-width: 1024px) {
+            .main-content { padding-top: 70px !important; }
+            .summary-stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+            .wt-left h2 { display: block !important; text-align: center !important; flex: 1; }
+        }
+        @media (max-width: 480px) {
+            .summary-stats-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+    <script>
+        // Force scrollability on load and remove potential locks
+        window.addEventListener('load', function() {
+            document.documentElement.style.overflow = 'auto';
+            document.body.style.overflow = 'auto';
+            // Remove any swal classes if they exist erroneously
+            document.documentElement.classList.remove('swal2-shown', 'swal2-height-auto');
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+        });
+    </script>
 </head>
+
 <body>
     <!-- Barra de navegación estilo dashboard admin -->
-    <header class="topbar">
-        <div class="topbar-inner">
-            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+    <header class="worker-topbar">
+        <div class="wt-inner">
+            <button class="menu-toggle" id="mobileMenuBtn">
                 <i class="fas fa-bars"></i>
             </button>
-            <div class="sidebar-header">
+            <div class="wt-left">
                 <h2>Nexxuz</h2>
+                <ul class="sidebar-menu" id="mobileMenu">
+                    <li><a href="/dashboard/trabajador">Dashboard</a></li>
+                    <li><a href="/dashboard/trabajador#mi-proyecto">Mi Proyecto</a></li>
+                    <li><a href="/correo">Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
+                    <li class="mobile-only"><a href="/logout" id="mobileLogoutBtn">Cerrar sesión</a></li>
+                </ul>
             </div>
-            <ul class="sidebar-menu" id="sidebarMenu">
-                <li><a href="#" id="backBtn"><i class="fas fa-arrow-left"></i> Volver atrás</a></li>
-                <li><a href="/correo"><i class="fas fa-envelope"></i> Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
-                <li class="logout"><a href="#" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
-            </ul>
-            <div class="topbar-profile">
-                <button id="profileBtn" class="profile-btn" aria-label="Perfil">
-                    <span id="profileAvatar" class="avatar-circle" title="Ver perfil">U</span>
-                </button>
+            <div class="wt-right">
+                <a href="/logout" id="logoutBtn" class="logout-link">Cerrar sesión</a>
+                <button id="profileBtn" class="profile-btn"><span id="profileAvatar" class="avatar-circle">U</span></button>
             </div>
         </div>
     </header>
 
 
-    
+
     <main class="main-content">
 
         <!-- Información del Proyecto -->
@@ -63,7 +101,7 @@
                             <span class="meta-value" id="projectLeader">—</span>
                         </div>
                     </div>
-                    
+
                     <!-- Estado -->
                     <div class="meta-card">
                         <div class="meta-icon-box" id="projectStatusBadge">
@@ -74,7 +112,7 @@
                             <span class="meta-value" id="projectStatus">—</span>
                         </div>
                     </div>
-                    
+
                     <!-- Fechas -->
                     <div class="meta-card">
                         <div class="meta-icon-box date-bg">
@@ -124,15 +162,19 @@
                             <span class="stat-value" id="statPending">0</span>
                             <span class="stat-label">Por Hacer</span>
                         </div>
-                        <div class="stat-bar"><div class="bar-fill" id="barFillPending"></div></div>
+                        <div class="stat-bar">
+                            <div class="bar-fill" id="barFillPending"></div>
+                        </div>
                     </div>
-                    <div class="stat-card progress">
-                        <div class="stat-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                    <div class="stat-card in-progress">
+                        <div class="stat-icon"><i class="fas fa-bars-progress"></i></div>
                         <div class="stat-details">
                             <span class="stat-value" id="statProgress">0</span>
                             <span class="stat-label">En Progreso</span>
                         </div>
-                        <div class="stat-bar"><div class="bar-fill" id="barFillProgress"></div></div>
+                        <div class="stat-bar">
+                            <div class="bar-fill" id="barFillProgress"></div>
+                        </div>
                     </div>
                     <div class="stat-card completed">
                         <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
@@ -140,7 +182,9 @@
                             <span class="stat-value" id="statCompleted">0</span>
                             <span class="stat-label">Completadas</span>
                         </div>
-                        <div class="stat-bar"><div class="bar-fill" id="barFillCompleted"></div></div>
+                        <div class="stat-bar">
+                            <div class="bar-fill" id="barFillCompleted"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -156,7 +200,9 @@
                     <button class="filter-btn" data-filter="en_progreso">En Progreso</button>
                     <button class="filter-btn" data-filter="completada">Completadas</button>
                 </div>
-                <button id="btnSolicitarEstadoTarea" class="btn btn-outline" title="Solicitar cambio de estado de tarea"><i class="fas fa-envelope"></i> Solicitar estado</button>
+                <button id="btnSolicitarEstadoTarea" class="btn btn-outline"
+                    title="Solicitar cambio de estado de tarea"><i class="fas fa-envelope"></i> Solicitar
+                    estado</button>
             </div>
             <div class="tasks-container" id="tasksContainer">
                 <div class="loading-message">Cargando tareas...</div>
@@ -169,11 +215,15 @@
                 <h2><i class="fas fa-folder-open"></i> Documentos del Proyecto</h2>
             </div>
             <div class="section-body">
-                <div class="form-actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
+                <div class="form-actions"
+                    style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 12px;">
                     <label class="muted" style="margin-right:8px;">Acciones</label>
-                    <button id="btnAbrirDocumentoModal" class="btn btn-primary add-doc-btn"><i class="fas fa-file-circle-plus"></i> Añadir documento</button>
-                    <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Descargar todos</button>
-                    <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
+                    <button id="btnAbrirDocumentoModal" class="btn btn-primary add-doc-btn"><i
+                            class="fas fa-file-circle-plus"></i> Añadir documento</button>
+                    <button id="btnDescargarTodosDocs" class="btn btn-primary btn-sm"><i class="fas fa-download"></i>
+                        Descargar todos</button>
+                    <button id="btnDescargarSeleccionadosDocs" class="btn btn-outline btn-sm"><i
+                            class="fas fa-file-arrow-down"></i> Descargar seleccionados</button>
                 </div>
                 <div class="docs-table-wrapper">
                     <table id="tablaDocumentos" class="docs-table">
@@ -190,7 +240,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="6" class="text-center">Sin documentos</td></tr>
+                            <tr>
+                                <td colspan="6" class="text-center">Sin documentos</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -209,7 +261,8 @@
                         <form id="formSubirDocumento" enctype="multipart/form-data" autocomplete="off">
                             <div class="form-group">
                                 <label for="nombreDocumento"><i class="fas fa-tag"></i> Nombre del documento</label>
-                                <input type="text" id="nombreDocumento" name="nombre" class="form-control" placeholder="Ej.: Propuesta comercial" />
+                                <input type="text" id="nombreDocumento" name="nombre" class="form-control"
+                                    placeholder="Ej.: Propuesta comercial" />
                                 <small class="form-hint">Si lo dejas vacío usaremos el nombre del archivo.</small>
                             </div>
                             <div class="form-group">
@@ -217,14 +270,17 @@
                                 <input type="file" id="archivoDocumento" name="archivo" class="form-control" required />
                             </div>
                             <div class="form-group">
-                                <label for="fechaVencimiento"><i class="fas fa-hourglass-half"></i> Fecha de vencimiento (opcional)</label>
-                                <input type="date" id="fechaVencimiento" name="fecha_vencimiento" class="form-control" />
+                                <label for="fechaVencimiento"><i class="fas fa-hourglass-half"></i> Fecha de vencimiento
+                                    (opcional)</label>
+                                <input type="date" id="fechaVencimiento" name="fecha_vencimiento"
+                                    class="form-control" />
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="cancelarDocumentoModal">Cancelar</button>
-                        <button type="submit" form="formSubirDocumento" class="btn btn-success"><i class="fas fa-upload"></i> Subir</button>
+                        <button type="submit" form="formSubirDocumento" class="btn btn-success"><i
+                                class="fas fa-upload"></i> Subir</button>
                     </div>
                 </div>
             </div>
@@ -239,7 +295,8 @@
                     <div class="perfil-avatar-wrap">
                         <div class="avatar-circle avatar-lg" id="perfilAvatarPreview">U</div>
                         <div class="avatar-actions">
-                            <label for="perfilFoto" class="btn btn-secondary btn-sm"><i class="fas fa-camera"></i> Cambiar foto</label>
+                            <label for="perfilFoto" class="btn btn-secondary btn-sm"><i class="fas fa-camera"></i>
+                                Cambiar foto</label>
                             <input type="file" id="perfilFoto" accept="image/*" style="display:none;" />
                         </div>
                     </div>
@@ -268,6 +325,7 @@
 
     <!-- Anime.js para animaciones avanzadas del donut -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
-    <script src="/proyecto_detalle.js" defer></script>
-  </body>
+    <script src="/proyecto_detalle.js?v=12" defer></script>
+</body>
+
 </html>

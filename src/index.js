@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const path = require('path');
+const os = require('os');
 const pool = require('./db/connection');
 
 const app = express();
@@ -21,13 +22,27 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // Añadir soporte para JSON
 app.use(session({
     secret: 'gestion_secret',
-    resave: false,
-    saveUninitialized: true,
-    // Solicitud del usuario: desactivar HttpOnly para poder acceder a la cookie desde el cliente
+    resave: true, // Cambiado de false para asegurar persistencia
+    saveUninitialized: false, // Cambiado de true para cumplir con regulaciones y evitar sesiones vacías
     cookie: {
-        httpOnly: false
+        httpOnly: true, // Recomendado por seguridad
+        secure: false,  // Debe ser false si no usas HTTPS (normal en desarrollo local)
+        maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
+
+// Obtener IP local para el acceso desde el celular
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
 
 // Importar middleware de autenticación
 const { isAuthenticated, isAdmin, checkUserStatus, isLeader } = require('./middleware/auth');
@@ -197,6 +212,12 @@ app.get('/reset-password', (req, res) => {
 });
 
 const PORT = Number(process.env.PORT || 3000);
-app.listen(PORT, () => {
-    console.log(`Servidor iniciado en http://localhost:${PORT}`);
+const LOCAL_IP = getLocalIP();
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('\x1b[36m%s\x1b[0m', '---------------------------------------------------');
+    console.log('\x1b[32m%s\x1b[0m', `  Servidor iniciado correctamente!`);
+    console.log(`  > Local:    http://localhost:${PORT}`);
+    console.log(`  > Celular:  http://${LOCAL_IP}:${PORT}`);
+    console.log('\x1b[36m%s\x1b[0m', '---------------------------------------------------');
 });

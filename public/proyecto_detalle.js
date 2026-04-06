@@ -1,5 +1,5 @@
- 
-$(document).ready(function() {
+
+$(document).ready(function () {
     // Variables globales
     let currentProject = null;
     let currentTasks = [];
@@ -9,8 +9,8 @@ $(document).ready(function() {
     // Inicializar la página
     init();
 
-    function escapeHtml(s){
-        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    function escapeHtml(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     function init() {
@@ -24,40 +24,40 @@ $(document).ready(function() {
         setupAutoLogoutIdle();
     }
 
-    function setupAutoLogoutIdle(){
-        const LIMIT = 5*60*1000;
-        const WARNING = 5*1000;
+    function setupAutoLogoutIdle() {
+        const LIMIT = 5 * 60 * 1000;
+        const WARNING = 5 * 1000;
         let idleTimer = null;
         let warnTimer = null;
         let tickInt = null;
         let open = false;
-        function clearAll(){ if (idleTimer) clearTimeout(idleTimer); if (warnTimer) clearTimeout(warnTimer); if (tickInt) clearInterval(tickInt); idleTimer=null; warnTimer=null; tickInt=null; }
-        function startTimers(){
+        function clearAll() { if (idleTimer) clearTimeout(idleTimer); if (warnTimer) clearTimeout(warnTimer); if (tickInt) clearInterval(tickInt); idleTimer = null; warnTimer = null; tickInt = null; }
+        function startTimers() {
             clearAll();
-            warnTimer = setTimeout(()=>{
+            warnTimer = setTimeout(() => {
                 open = true;
                 let left = 5;
-                if (window.Swal){
-                    window.Swal.fire({ title:'Inactividad', html:`Cierre de sesión en <b id="idleCountdown">5</b>s`, allowOutsideClick:false, allowEscapeKey:false, showConfirmButton:false });
+                if (window.Swal) {
+                    window.Swal.fire({ title: 'Inactividad', html: `Cierre de sesión en <b id="idleCountdown">5</b>s`, allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false });
                     const el = document.getElementById('idleCountdown');
-                    tickInt = setInterval(()=>{ left--; if (el) el.textContent = String(left); if (left<=0){ clearInterval(tickInt); } },1000);
+                    tickInt = setInterval(() => { left--; if (el) el.textContent = String(left); if (left <= 0) { clearInterval(tickInt); } }, 1000);
                 }
             }, LIMIT - WARNING);
-            idleTimer = setTimeout(()=>{ fetch('/api/auth/logout', { method:'POST', credentials:'include', keepalive:true }).finally(()=>{ window.location.href='/login?error=inactive'; }); }, LIMIT);
+            idleTimer = setTimeout(() => { fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true }).finally(() => { window.location.href = '/login?error=inactive'; }); }, LIMIT);
         }
-        function reset(){
-            if (open && window.Swal){ try{ window.Swal.close(); }catch(_){ } }
+        function reset() {
+            if (open && window.Swal) { try { window.Swal.close(); } catch (_) { } }
             open = false;
             startTimers();
         }
-        ['mousemove','mousedown','keydown','scroll','touchstart'].forEach(ev=> document.addEventListener(ev, reset, { passive:true }));
-        document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) reset(); });
+        ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(ev => document.addEventListener(ev, reset, { passive: true }));
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) reset(); });
         startTimers();
     }
 
-function setupEventListeners() {
+    function setupEventListeners() {
         // Logout
-        $('#logoutBtn').click(function(e) {
+        $('#logoutBtn').click(function (e) {
             e.preventDefault();
             logout();
         });
@@ -65,7 +65,7 @@ function setupEventListeners() {
         // Volver atrás
         const backBtn = document.getElementById('backBtn');
         if (backBtn) {
-            backBtn.addEventListener('click', function(e){
+            backBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 if (window.history.length > 1) {
                     window.history.back();
@@ -75,26 +75,56 @@ function setupEventListeners() {
             });
         }
 
-        // Mobile Menu Toggle (Updated for new topbar)
-        const menuToggle = document.getElementById('menuToggle');
-        const topbar = document.querySelector('.topbar');
-        
-        if (menuToggle && topbar) {
-            menuToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                topbar.classList.toggle('open');
+        // Mobile Menu Toggle (Updated for worker topbar)
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const topbar = document.querySelector('.worker-topbar');
+
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('active');
+
+                // Cambiar icono
+                const icon = mobileMenuBtn.querySelector('i');
+                if (icon) {
+                    if (mobileMenu.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                }
+            });
+
+            // Cerrar al hacer click en un enlace
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.remove('active');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
             });
 
             // Close menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!menuToggle.contains(e.target) && !topbar.contains(e.target)) {
-                    topbar.classList.remove('open');
+            document.addEventListener('click', function (e) {
+                if (mobileMenu.classList.contains('active') && !mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
                 }
             });
         }
 
         // Filtros de tareas
-        $('.filter-btn').click(function() {
+        $('.filter-btn').click(function () {
             $('.filter-btn').removeClass('active');
             $(this).addClass('active');
             currentFilter = $(this).data('filter');
@@ -103,67 +133,101 @@ function setupEventListeners() {
 
         const btnSolicitar = document.getElementById('btnSolicitarEstadoTarea');
         if (btnSolicitar) {
-            btnSolicitar.addEventListener('click', async function(){
+            btnSolicitar.addEventListener('click', async function () {
                 if (!currentProject || !currentProject.id) { return; }
                 const tareas = Array.isArray(currentTasks) ? currentTasks : [];
-                if (tareas.length === 0) { Swal.fire({ icon:'info', title:'Sin tareas', text:'No hay tareas para solicitar cambio de estado.' }); return; }
-                const estados = { pendiente:'Por Hacer', en_progreso:'En Progreso', revisando:'Revisando', completada:'Completada' };
+                if (tareas.length === 0) { Swal.fire({ icon: 'info', title: 'Sin tareas', text: 'No hay tareas para solicitar cambio de estado.' }); return; }
+                const estados = { pendiente: 'Por Hacer', en_progreso: 'En Progreso', revisando: 'Revisando', completada: 'Completada' };
                 let selectedFiles = [];
                 const html = `
-                    <div class="sw-request">
-                        <div class="sw-header"><i class="fas fa-clipboard-check"></i> Selecciona tarea y estado</div>
-                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
-                            <label style="margin-bottom:8px;font-weight:600;">Tarea</label>
-                            <select id="swTareaSelect" class="form-control" style="width:100%;max-width:560px">
-                                ${tareas.map(t=>`<option value="${t.id}">${(t.titulo||'Tarea')} (${estados[t.estado]||t.estado})</option>`).join('')}
-                            </select>
+                    <div class="sw-request-container" style="text-align: left; padding: 0 10px; font-family: 'Inter', system-ui, sans-serif;">
+                        <!-- Header / Banner -->
+                        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; color: #166534; box-shadow: 0 2px 4px rgba(22, 101, 52, 0.05);">
+                            <div style="background: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <i class="fas fa-clipboard-check" style="font-size: 1rem; color: #22c55e;"></i>
+                            </div>
+                            <span style="font-weight: 600; font-size: 0.95rem;">Selecciona la tarea y el nuevo estado</span>
                         </div>
-                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
-                            <label style="margin-bottom:8px;font-weight:600;">Estado</label>
-                            <select id="swTareaEstado" class="form-control" style="width:100%;max-width:560px">
-                                ${Object.entries(estados).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
-                            </select>
+                        
+                        <!-- Two Column Layout for Tarea and Estado -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 0.9rem;">Tarea</label>
+                                <select id="swTareaSelect" class="form-control" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #d1d5db; background-color: #f9fafb; font-size: 0.95rem; color: #111827; transition: border-color 0.2s;">
+                                    ${tareas.map(t => `<option value="${t.id}">${escapeHtml(t.titulo || 'Tarea')} (${estados[t.estado] || t.estado})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 0.9rem;">Nuevo Estado</label>
+                                <select id="swTareaEstado" class="form-control" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #d1d5db; background-color: #f9fafb; font-size: 0.95rem; color: #111827; transition: border-color 0.2s;">
+                                    ${Object.entries(estados).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
-                            <label style="margin-bottom:8px;font-weight:600;">Mensaje</label>
-                            <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Justificación (opcional)" style="width:100%;max-width:560px"></textarea>
+
+                        <!-- Mensaje -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 0.9rem;">
+                                Mensaje / Justificación
+                                <span style="font-size: 0.75rem; color: #6b7280; font-weight: 400; background: #f3f4f6; padding: 2px 8px; border-radius: 10px;">Opcional</span>
+                            </label>
+                            <textarea id="swMsgEstado" class="form-control" rows="3" placeholder="Describe brevemente el motivo de tu solicitud..." style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #d1d5db; background-color: #f9fafb; font-size: 0.95rem; color: #111827; resize: vertical; transition: border-color 0.2s;"></textarea>
                         </div>
-                        <div class="form-row" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
-                            <label style="margin-bottom:8px;font-weight:600;">Adjuntar documentos</label>
-                            <div id="swFilesList" class="muted" style="margin-bottom:8px;color:#6b7280;width:100%;max-width:560px">No hay archivos seleccionados</div>
-                            <div id="swDropZone" style="width:100%;max-width:560px;border:2px dashed #c7cbe0;border-radius:10px;padding:14px;text-align:center;color:#4b5563;cursor:pointer">
-                                Arrastra aquí los archivos o haz clic para buscar
+
+                        <!-- Adjuntos -->
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 0.9rem;">
+                                Adjuntar documentos
+                                <span style="font-size: 0.75rem; color: #6b7280; font-weight: 400; background: #f3f4f6; padding: 2px 8px; border-radius: 10px;">Opcional</span>
+                            </label>
+                            <div id="swDropZone" style="width: 100%; border: 2px dashed #93c5fd; background-color: #eff6ff; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; border-spacing: 15px;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 2.2rem; color: #3b82f6; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(59,130,246,0.2));"></i>
+                                <div style="color: #1d4ed8; font-weight: 600; font-size: 1rem; margin-bottom: 4px;">Haz clic o arrastra tus archivos aquí</div>
+                                <div style="font-size: 0.8rem; color: #64748b;">Hasta 10 archivos (PDF, DOCX, XLSX, IMG)</div>
                             </div>
                             <input id="swFilesInput" type="file" multiple style="display:none" />
-                            <small class="form-hint" style="color:#6b7280;margin-top:8px;">Hasta 10 archivos; formatos comunes (PDF, imágenes, Word, Excel)</small>
+                            
+                            <!-- Lista de Archivos -->
+                            <div id="swFilesList" style="margin-top: 12px; text-align: left; max-height: 120px; overflow-y: auto;">
+                                <!-- Los archivos se listarán aquí -->
+                            </div>
                         </div>
                     </div>`;
-                const res = await Swal.fire({ title: 'Solicitar estado de tarea', width: 720, html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', customClass: { popup: 'sw-popup', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }, focusConfirm: false, didOpen: () => {
-                    const drop = document.getElementById('swDropZone');
-                    const input = document.getElementById('swFilesInput');
-                    const list = document.getElementById('swFilesList');
-                    const updateList = () => {
-                        if (!selectedFiles.length) { list.textContent = 'No hay archivos seleccionados'; return; }
-                        list.innerHTML = selectedFiles.map(f => `${f.name} (${Math.round((f.size||0)/1024)} KB)`).join('<br>');
-                    };
-                    const addFiles = (files) => {
-                        const arr = Array.from(files || []);
-                        selectedFiles = [...selectedFiles, ...arr].slice(0, 10);
-                        updateList();
-                    };
-                    drop.style.width = '100%';
-                    drop.addEventListener('click', () => input.click());
-                    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.background = '#eef2f7'; });
-                    drop.addEventListener('dragleave', () => { drop.style.background = ''; });
-                    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.style.background = ''; addFiles(e.dataTransfer.files); });
-                    input.addEventListener('change', (e) => addFiles(e.target.files));
-                }, preConfirm: () => {
-                    const tareaSel = document.getElementById('swTareaSelect');
-                    const estadoSel = document.getElementById('swTareaEstado');
-                    if (!tareaSel || !tareaSel.value) { Swal.showValidationMessage('Debes seleccionar una tarea'); return false; }
-                    if (!estadoSel || !estadoSel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
-                    return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim(), files: selectedFiles };
-                }});
+                const res = await Swal.fire({
+                    title: 'Solicitud de Cambio de Estado', width: 650, html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', customClass: { popup: 'sw-popup-modern', confirmButton: 'btn btn-primary', cancelButton: 'btn btn-secondary' }, focusConfirm: false, didOpen: () => {
+                        const drop = document.getElementById('swDropZone');
+                        const input = document.getElementById('swFilesInput');
+                        const list = document.getElementById('swFilesList');
+                        const updateList = () => {
+                            if (!selectedFiles.length) { list.innerHTML = ''; return; }
+                            list.innerHTML = selectedFiles.map(f => `
+                                <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                                    <div style="display:flex; align-items:center; gap: 10px; overflow:hidden;">
+                                        <i class="fas fa-file-alt" style="color:#94a3b8; font-size: 1.1rem;"></i>
+                                        <span style="font-size: 0.85rem; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 250px; font-weight: 500;">${f.name}</span>
+                                    </div>
+                                    <span style="font-size:0.75rem; color:#64748b; font-family:monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">${f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(2) + ' MB' : Math.round(f.size / 1024) + ' KB'}</span>
+                                </div>`).join('');
+                        };
+                        const addFiles = (files) => {
+                            const arr = Array.from(files || []);
+                            selectedFiles = [...selectedFiles, ...arr].slice(0, 10);
+                            updateList();
+                        };
+                        drop.style.width = '100%';
+                        drop.addEventListener('click', () => input.click());
+                        drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.background = '#dbeafe'; drop.style.borderColor = '#3b82f6'; });
+                        drop.addEventListener('dragleave', () => { drop.style.background = '#eff6ff'; drop.style.borderColor = '#93c5fd'; });
+                        drop.addEventListener('drop', (e) => { e.preventDefault(); drop.style.background = '#eff6ff'; drop.style.borderColor = '#93c5fd'; addFiles(e.dataTransfer.files); });
+                        input.addEventListener('change', (e) => addFiles(e.target.files));
+                    }, preConfirm: () => {
+                        const tareaSel = document.getElementById('swTareaSelect');
+                        const estadoSel = document.getElementById('swTareaEstado');
+                        if (!tareaSel || !tareaSel.value) { Swal.showValidationMessage('Debes seleccionar una tarea'); return false; }
+                        if (!estadoSel || !estadoSel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
+                        return { tareaId: tareaSel.value, estado: estadoSel.value, mensaje: (document.getElementById('swMsgEstado')?.value || '').trim(), files: selectedFiles };
+                    }
+                });
                 if (!res.isConfirmed) return;
                 const tareaId = res.value.tareaId;
                 const estadoSolicitado = res.value.estado;
@@ -171,14 +235,14 @@ function setupEventListeners() {
                 try {
                     const jefeEmail = currentProject.jefe_email || '';
                     if (!jefeEmail) { throw new Error('No se encontró correo del líder'); }
-                    const tarea = tareas.find(t=>String(t.id)===String(tareaId));
+                    const tarea = tareas.find(t => String(t.id) === String(tareaId));
                     const fd = new FormData();
                     fd.append('to_emails', jefeEmail);
-                    const asunto = `Solicitud de estado de tarea: ${(tarea?.titulo||'Tarea')} · ${currentProject.nombre}`;
+                    const asunto = `Solicitud de estado de tarea: ${(tarea?.titulo || 'Tarea')} · ${currentProject.nombre}`;
                     const estadosTxt = estados;
                     const actualTxt = estadosTxt[tarea?.estado] || tarea?.estado || '';
                     const solicitadoTxt = estadosTxt[estadoSolicitado] || estadoSolicitado;
-                    const safeMsg = escapeHtml(msg).replace(/\n/g,'<br/>');
+                    const safeMsg = escapeHtml(msg).replace(/\n/g, '<br/>');
                     const cuerpo = `<div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#f8fafc;">
   <div style="margin-bottom:6px;">
     <span style="background:#eef2ff;border-radius:9999px;padding:6px 12px;color:#3730a3;font-weight:600;font-size:12px;display:inline-block;">Solicitud de estado de tarea</span>
@@ -190,7 +254,7 @@ function setupEventListeners() {
     </tr>
     <tr>
       <td style="width:170px;color:#6b7280;padding:4px 8px;">Tarea</td>
-      <td style="padding:4px 8px;font-weight:600;color:#111827;">${tarea?.titulo||''}</td>
+      <td style="padding:4px 8px;font-weight:600;color:#111827;">${tarea?.titulo || ''}</td>
     </tr>
     <tr>
       <td style="width:170px;color:#6b7280;padding:4px 8px;">Estado actual</td>
@@ -205,19 +269,19 @@ function setupEventListeners() {
       <td style="padding:4px 8px;line-height:1.5;color:#111827;">${safeMsg || '—'}</td>
     </tr>
   </table>
-  <div style="color:#6b7280;font-size:12px;">Solicitado por ${currentUser?.nombre||currentUser?.email||''} · ${new Date().toLocaleString('es-ES')}</div>
+  <div style="color:#6b7280;font-size:12px;">Solicitado por ${currentUser?.nombre || currentUser?.email || ''} · ${new Date().toLocaleString('es-ES')}</div>
 </div>
-[[REQUEST_TASK_STATUS:${currentProject.id}|${tareaId}|${estadoSolicitado}|${currentUser?.email||''}]]`;
+[[REQUEST_TASK_STATUS:${currentProject.id}|${tareaId}|${estadoSolicitado}|${currentUser?.email || ''}]]`;
                     fd.append('asunto', asunto);
                     fd.append('cuerpo', cuerpo);
                     const files = Array.isArray(res.value?.files) ? res.value.files : [];
-                    files.slice(0,10).forEach(f => { try { fd.append('adjuntos', f, f.name); } catch(_){ fd.append('adjuntos', f); } });
+                    files.slice(0, 10).forEach(f => { try { fd.append('adjuntos', f, f.name); } catch (_) { fd.append('adjuntos', f); } });
                     const r = await fetch('/api/correos', { method: 'POST', body: fd });
-                    const d = await r.json().catch(()=>({}));
+                    const d = await r.json().catch(() => ({}));
                     if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }
                     Swal.fire({ icon: 'success', title: 'Solicitud enviada', text: 'El líder recibirá tu solicitud por correo.', timer: 1800, showConfirmButton: false });
                 } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: String(err.message||err) });
+                    Swal.fire({ icon: 'error', title: 'Error', text: String(err.message || err) });
                 }
             });
         }
@@ -226,7 +290,7 @@ function setupEventListeners() {
 
         // Ajuste de offset según barra topbar
         const main = document.querySelector('.main-content');
-        const currentTopbar = document.querySelector('.topbar');
+        const currentTopbar = document.querySelector('.worker-topbar');
         const applyOffset = () => {
             const h = currentTopbar ? currentTopbar.offsetHeight : 64;
             if (main) main.style.paddingTop = (h + 20) + 'px';
@@ -248,13 +312,13 @@ function setupEventListeners() {
         const perfilForm = document.getElementById('perfilForm');
         let selectedAvatarFile = null;
 
-        if (perfilNombre){
-            perfilNombre.addEventListener('input', function(){
+        if (perfilNombre) {
+            perfilNombre.addEventListener('input', function () {
                 const v = this.value || '';
                 const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
                 if (filtered !== v) this.value = filtered;
             });
-            perfilNombre.addEventListener('blur', function(){
+            perfilNombre.addEventListener('blur', function () {
                 const v = this.value || '';
                 const filtered = v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '');
                 if (filtered !== v) this.value = filtered;
@@ -301,7 +365,7 @@ function setupEventListeners() {
         });
 
         if (perfilFotoInput) {
-            perfilFotoInput.addEventListener('change', function() {
+            perfilFotoInput.addEventListener('change', function () {
                 const file = this.files && this.files[0];
                 if (!file) return;
                 selectedAvatarFile = file;
@@ -316,13 +380,13 @@ function setupEventListeners() {
         }
 
         if (perfilForm) {
-            perfilForm.addEventListener('submit', async function(e) {
+            perfilForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 if (!currentUser) return;
-                
+
                 const nombre = perfilNombre ? (perfilNombre.value || '').trim() : '';
                 const email = perfilEmail ? (perfilEmail.value || '').trim() : '';
-                
+
                 try {
                     // 1. Subir avatar si hay uno seleccionado
                     if (selectedAvatarFile) {
@@ -353,7 +417,7 @@ function setupEventListeners() {
                         body: JSON.stringify({ nombre, email, rol: currentUser.rol })
                     });
                     const data = await res.json();
-                    
+
                     if (res.ok) {
                         currentUser.nombre = nombre;
                         currentUser.email = email;
@@ -379,28 +443,28 @@ function setupEventListeners() {
         }
     }
 
-    function updateTopCorreoBadge(){
+    function updateTopCorreoBadge() {
         const el = document.getElementById('topCorreoBadge');
         if (!el) return;
         fetch('/api/correos/unread_count')
-            .then(r=>r.json())
-            .then(d=>{
+            .then(r => r.json())
+            .then(d => {
                 const cnt = Number((d && d.count) || 0);
-                if (cnt > 0){ el.textContent = String(cnt); el.style.display = 'inline-block'; }
+                if (cnt > 0) { el.textContent = String(cnt); el.style.display = 'inline-block'; }
                 else { el.style.display = 'none'; }
             })
-            .catch(()=>{});
+            .catch(() => { });
     }
 
-    function setupDocumentoModalHandlers(){
-        $(document).on('click', '#btnAbrirDocumentoModal', function(){
-            $('#documentoModal').addClass('show').css('display','block');
+    function setupDocumentoModalHandlers() {
+        $(document).on('click', '#btnAbrirDocumentoModal', function () {
+            $('#documentoModal').addClass('show').css('display', 'block');
         });
-        const cerrar = () => { $('#documentoModal').removeClass('show').css('display','none'); };
+        const cerrar = () => { $('#documentoModal').removeClass('show').css('display', 'none'); };
         $(document).on('click', '#closeDocumentoModal', cerrar);
         $(document).on('click', '#cancelarDocumentoModal', cerrar);
         // cerrar al click fuera del contenido
-        $(window).on('click', function(e){
+        $(window).on('click', function (e) {
             const modal = document.getElementById('documentoModal');
             if (e.target === modal) { cerrar(); }
         });
@@ -410,7 +474,7 @@ function setupEventListeners() {
 
     function loadUserInfo() {
         $.get('/api/auth/me')
-            .done(function(response) {
+            .done(function (response) {
                 if (response.success && response.user) {
                     currentUser = response.user;
                     const $avatar = $('#profileAvatar');
@@ -430,7 +494,7 @@ function setupEventListeners() {
                     }
                 }
             })
-            .fail(function() {
+            .fail(function () {
                 console.error('Error al cargar información del usuario');
             });
     }
@@ -452,20 +516,20 @@ function setupEventListeners() {
                 currentProject = projectResponse.proyecto;
                 proyectoId = currentProject.id;
             }
-            
+
             // Obtener los detalles completos del proyecto seleccionado
             const detailResponse = await $.get(`/api/trabajador/proyecto/${proyectoId}`);
-            
+
             if (detailResponse.success) {
                 // Combinar la información
                 currentProject = { ...(currentProject || {}), ...detailResponse.proyecto };
                 currentProject.id = proyectoId;
                 currentProject.equipo = detailResponse.equipo;
                 currentProject.tareas = detailResponse.tareas || [];
-                
+
                 // Cargar en memoria las tareas para la página
                 currentTasks = currentProject.tareas;
-                
+
                 // Render de la UI
                 displayProjectInfo(currentProject);
                 loadTeammates(currentProject.id);
@@ -492,17 +556,17 @@ function setupEventListeners() {
         } else {
             $('#projectDescription').text('').hide();
         }
-        
+
         // Avatar con iniciales del proyecto
         const initials = getInitials(proyecto.nombre || 'PR');
         $('#projectAvatar').text(initials);
-        
+
         // Fechas del proyecto
         const fechaInicio = proyecto.fecha_inicio ? new Date(proyecto.fecha_inicio).toLocaleDateString('es-ES') : '—';
         const fechaFin = proyecto.fecha_fin ? new Date(proyecto.fecha_fin).toLocaleDateString('es-ES') : '—';
         $('#projectStartDate').text(fechaInicio);
         $('#projectEndDate').text(fechaFin);
-        
+
         // Líder y estado del proyecto
         $('#projectLeader').text(proyecto.jefe_nombre || 'Sin asignar');
         $('#projectStatus').text(formatProjectStatus(proyecto.estado));
@@ -517,7 +581,7 @@ function setupEventListeners() {
         if (proyecto.estado && statusClassMap[proyecto.estado]) {
             $statusBadge.addClass(statusClassMap[proyecto.estado]);
         }
-        
+
         // Progreso del proyecto (con respaldo si el backend no lo envía)
         let progress = (proyecto.porcentaje_avance !== undefined && proyecto.porcentaje_avance !== null)
             ? Number(proyecto.porcentaje_avance)
@@ -582,7 +646,7 @@ function setupEventListeners() {
 
         // Contador del porcentaje con efecto de subida
         if ($text.length) {
-            const start = parseInt(($text.text() || '0').replace('%',''), 10) || 0;
+            const start = parseInt(($text.text() || '0').replace('%', ''), 10) || 0;
             window.anime({
                 targets: { val: start },
                 val: Math.round(percentage),
@@ -663,7 +727,7 @@ function setupEventListeners() {
             $('#teammatesContainer').html('<div class="loading-message">No hay compañeros asignados</div>');
             return;
         }
-        
+
         displayTeammates(currentProject.equipo);
     }
 
@@ -677,10 +741,10 @@ function setupEventListeners() {
         teammates.forEach(teammate => {
             const initials = getInitials(teammate.nombre);
             const role = teammate.rol || 'Miembro'; // Default role if not provided
-            
+
             // Random gradient or specific logic for avatar bg if desired, keeping it simple for now
             // or use the existing style.
-            
+
             html += `
                 <div class="teammate-card-new">
                     <div class="tm-avatar">
@@ -692,7 +756,7 @@ function setupEventListeners() {
                         <p class="tm-email">${teammate.email}</p>
                     </div>
                     <div class="tm-actions">
-                        <a href="mailto:${teammate.email}" class="btn-icon-sm" title="Contactar"><i class="fas fa-envelope"></i></a>
+                        <a href="/correo?action=compose&to=${encodeURIComponent(teammate.email)}" class="btn-icon-sm" title="Contactar"><i class="fas fa-envelope"></i></a>
                     </div>
                 </div>
             `;
@@ -702,13 +766,13 @@ function setupEventListeners() {
         // But #teammatesContainer is just a div.
         // We will style .teammates-container as a grid in CSS or here.
         // Let's rely on CSS for the grid layout of #teammatesContainer (which is class .teammates-container in HTML)
-        
+
         $('#teammatesContainer').html(html);
     }
 
     function loadProjectTasks(proyectoId) {
         $.get(`/api/tareas/proyecto/${proyectoId}`)
-            .done(function(response) {
+            .done(function (response) {
                 if (response.success) {
                     currentTasks = response.tareas || [];
                     displayTasks(currentTasks);
@@ -717,7 +781,7 @@ function setupEventListeners() {
                     $('#tasksContainer').html('<div class="loading-message">No hay tareas asignadas</div>');
                 }
             })
-            .fail(function() {
+            .fail(function () {
                 $('#tasksContainer').html('<div class="loading-message">Error al cargar las tareas</div>');
             });
     }
@@ -740,34 +804,51 @@ function setupEventListeners() {
             return pA - pB;
         });
 
-        let html = '';
+        let html = `
+            <div class="tasks-table-wrapper">
+                <table class="docs-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width:50%; text-align:left;">Tarea</th>
+                            <th style="width:25%; text-align:left;">Prioridad</th>
+                            <th style="width:25%; text-align:center;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
         sorted.forEach(task => {
             const statusText = getStatusText(task.estado);
             const priority = task.prioridad || 'media';
             const priorityText = getPriorityText(priority);
-            
+
             html += `
-                <div class="task-item ${task.estado}" data-status="${task.estado}">
-                    <div class="task-header">
-                        <div>
-                            <div class="task-title">${task.titulo}</div>
-                            <div class="task-description">${task.descripcion || 'Sin descripción'}</div>
-                        </div>
-                    </div>
-                    <div class="task-meta">
+                <tr class="task-row ${task.estado}" data-status="${task.estado}" style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 12px; vertical-align: top;">
+                        <div class="task-title" style="font-weight:600; color:#111827; font-size:15px; margin-bottom:4px;">${escapeHtml(task.titulo)}</div>
+                        <div class="task-description" style="color:#6b7280; font-size:13px; line-height:1.4;">${escapeHtml(task.descripcion) || 'Sin descripción'}</div>
+                    </td>
+                    <td style="padding: 12px; vertical-align: middle;">
                         <div class="task-priority ${priority}">${priorityText}</div>
+                    </td>
+                    <td style="padding: 12px; vertical-align: middle; text-align:center;">
                         <span class="task-status ${task.estado}">${statusText}</span>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             `;
         });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
 
         $('#tasksContainer').html(html);
     }
 
     function updateTaskStats() {
         const tasks = Array.isArray(currentTasks) ? currentTasks : [];
-        
+
         const total = tasks.length;
         const pending = tasks.filter(t => t.estado === 'pendiente').length;
         const inProgress = tasks.filter(t => t.estado === 'en_progreso').length;
@@ -781,7 +862,7 @@ function setupEventListeners() {
 
         // Update Stat Cards Bars (percentages relative to total)
         const getPct = val => total > 0 ? Math.round((val / total) * 100) : 0;
-        
+
         $('#barFillPending').css('width', getPct(pending) + '%');
         $('#barFillProgress').css('width', getPct(inProgress) + '%');
         $('#barFillCompleted').css('width', getPct(completed) + '%');
@@ -790,11 +871,11 @@ function setupEventListeners() {
 
     function filterTasks() {
         let filteredTasks = currentTasks;
-        
+
         if (currentFilter !== 'all') {
             filteredTasks = currentTasks.filter(task => task.estado === currentFilter);
         }
-        
+
         displayTasks(filteredTasks);
     }
 
@@ -848,7 +929,7 @@ function setupEventListeners() {
             url: `/api/trabajador/tareas/${taskId}/estado`,
             method: 'PUT',
             data: { estado: newStatus },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     showSuccess('Estado de la tarea actualizado correctamente');
                     // Actualizar la tarea en el array local
@@ -862,7 +943,7 @@ function setupEventListeners() {
                     showError(response.message || 'Error al actualizar el estado de la tarea');
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 console.error('Error al actualizar estado:', xhr);
                 showError('Error al actualizar el estado de la tarea');
             }
@@ -904,17 +985,17 @@ function setupEventListeners() {
     }
 
     // ===== Documentos: UI y acciones =====
-    function setupDocumentosForm(){
+    function setupDocumentosForm() {
         const $form = $('#formSubirDocumento');
         if (!$form.length) return;
-        $form.off('submit').on('submit', async function(e){
+        $form.off('submit').on('submit', async function (e) {
             e.preventDefault();
-            if (!currentProject || !currentProject.id){
+            if (!currentProject || !currentProject.id) {
                 showError('Proyecto no identificado');
                 return;
             }
             const fileInput = document.getElementById('archivoDocumento');
-            if (!fileInput || !fileInput.files || fileInput.files.length === 0){
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
                 showError('Selecciona un archivo');
                 return;
             }
@@ -930,7 +1011,7 @@ function setupEventListeners() {
                     body: formData
                 });
                 const data = await res.json();
-                if (res.ok && data.success){
+                if (res.ok && data.success) {
                     showSuccess('Documento subido');
                     // limpiar
                     $form[0].reset();
@@ -939,44 +1020,44 @@ function setupEventListeners() {
                 } else {
                     throw new Error(data.message || 'No se pudo subir el documento');
                 }
-            } catch(err){
+            } catch (err) {
                 console.error(err);
                 showError(err.message || 'Error al subir documento');
             }
         });
     }
 
-  async function loadDocumentos(){
-      const tbody = document.querySelector('#tablaDocumentos tbody');
-      if (!tbody || !currentProject) return;
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Cargando...</td></tr>';
-      try {
-          const res = await fetch(`/api/proyectos/${currentProject.id}/documentos`);
-          const data = await res.json();
-          if (res.ok && data.success){
-              renderDocumentos(data.documentos || []);
-          } else {
-              tbody.innerHTML = '<tr><td colspan="6" class="text-center">No se pudieron cargar los documentos</td></tr>';
-          }
-      } catch(err){
-          console.error(err);
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center">Error al cargar documentos</td></tr>';
-      }
-  }
+    async function loadDocumentos() {
+        const tbody = document.querySelector('#tablaDocumentos tbody');
+        if (!tbody || !currentProject) return;
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Cargando...</td></tr>';
+        try {
+            const res = await fetch(`/api/proyectos/${currentProject.id}/documentos`);
+            const data = await res.json();
+            if (res.ok && data.success) {
+                renderDocumentos(data.documentos || []);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No se pudieron cargar los documentos</td></tr>';
+            }
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Error al cargar documentos</td></tr>';
+        }
+    }
 
-  function renderDocumentos(docs){
-      const tbody = document.querySelector('#tablaDocumentos tbody');
-      if (!tbody) return;
-      if (!docs || docs.length === 0){
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>';
-          return;
-      }
-      const rows = docs.map(doc => {
-          const fechaSub = doc.fecha_subida ? new Date(doc.fecha_subida).toLocaleString('es-ES') : '—';
-          const venc = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento) : null;
-          const vencHtml = venc ? getDueBadgeHtml(venc) : '<span class="badge">—</span>';
-          const nombre = doc.nombre_archivo || 'archivo';
-          return `
+    function renderDocumentos(docs) {
+        const tbody = document.querySelector('#tablaDocumentos tbody');
+        if (!tbody) return;
+        if (!docs || docs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sin documentos</td></tr>';
+            return;
+        }
+        const rows = docs.map(doc => {
+            const fechaSub = doc.fecha_subida ? new Date(doc.fecha_subida).toLocaleString('es-ES') : '—';
+            const venc = doc.fecha_vencimiento ? new Date(doc.fecha_vencimiento) : null;
+            const vencHtml = venc ? getDueBadgeHtml(venc) : '<span class="badge">—</span>';
+            const nombre = doc.nombre_archivo || 'archivo';
+            return `
                 <tr data-id="${doc.id}">
                     <td style="text-align:center;">
                         <input type="checkbox" data-id="${doc.id}" />
@@ -991,24 +1072,24 @@ function setupEventListeners() {
                     </td>
                 </tr>
           `;
-      }).join('');
-      tbody.innerHTML = rows;
-      $('#tablaDocumentos button[data-doc-id]').off('click').on('click', function(){
-          const id = this.getAttribute('data-doc-id');
-          confirmarEliminarDocumento(id);
-      });
-      
-      const chkSelectAll = document.getElementById('chkDocsSelectAll');
-      if (chkSelectAll){
-        chkSelectAll.checked = false;
-        chkSelectAll.onchange = () => {
-          const checks = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-id]'));
-          checks.forEach(ch => { ch.checked = !!chkSelectAll.checked; });
-        };
-      }
-  }
+        }).join('');
+        tbody.innerHTML = rows;
+        $('#tablaDocumentos button[data-doc-id]').off('click').on('click', function () {
+            const id = this.getAttribute('data-doc-id');
+            confirmarEliminarDocumento(id);
+        });
 
-    function confirmarEliminarDocumento(id){
+        const chkSelectAll = document.getElementById('chkDocsSelectAll');
+        if (chkSelectAll) {
+            chkSelectAll.checked = false;
+            chkSelectAll.onchange = () => {
+                const checks = Array.from(tbody.querySelectorAll('input[type="checkbox"][data-id]'));
+                checks.forEach(ch => { ch.checked = !!chkSelectAll.checked; });
+            };
+        }
+    }
+
+    function confirmarEliminarDocumento(id) {
         Swal.fire({
             title: 'Eliminar documento',
             text: 'Esta acción eliminará el archivo definitivamente. ¿Continuar?',
@@ -1017,33 +1098,33 @@ function setupEventListeners() {
             confirmButtonColor: '#e74a3b',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Sí, eliminar'
-        }).then(async (r)=>{
+        }).then(async (r) => {
             if (!r.isConfirmed) return;
-            try{
+            try {
                 const res = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
                 const data = await res.json();
-                if (res.ok && data.success){
+                if (res.ok && data.success) {
                     showSuccess('Documento eliminado');
                     loadDocumentos();
                 } else {
                     throw new Error(data.message || 'No se pudo eliminar');
                 }
-            } catch(err){
+            } catch (err) {
                 console.error(err);
                 showError(err.message || 'Error al eliminar');
             }
         });
     }
 
-  function getDueBadgeHtml(dateObj){
+    function getDueBadgeHtml(dateObj) {
         const today = new Date();
-        const diffMs = dateObj.setHours(0,0,0,0) - today.setHours(0,0,0,0);
-        const diffDays = Math.ceil(diffMs / (1000*60*60*24));
+        const diffMs = dateObj.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         let cls = 'due-ok';
         let label = dateObj.toLocaleDateString('es-ES');
-        if (diffDays < 0){
+        if (diffDays < 0) {
             cls = 'due-overdue';
-        } else if (diffDays <= 7){
+        } else if (diffDays <= 7) {
             cls = 'due-soon';
         }
         return `<span class="due-badge ${cls}">${label}</span>`;
@@ -1053,34 +1134,34 @@ function setupEventListeners() {
     const btnDescTodos = document.getElementById('btnDescargarTodosDocs');
     const btnDescSel = document.getElementById('btnDescargarSeleccionadosDocs');
 
-    function showInfo(title, text){
-      try{ if (typeof Swal !== 'undefined'){ Swal.fire({ icon:'info', title, text }); } else { alert(text || title); } }
-      catch(_){ alert(text || title); }
+    function showInfo(title, text) {
+        try { if (typeof Swal !== 'undefined') { Swal.fire({ icon: 'info', title, text }); } else { alert(text || title); } }
+        catch (_) { alert(text || title); }
     }
 
-    function triggerDownload(id){
-      const a = document.createElement('a');
-      a.href = `/api/documentos/${id}/download`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>{ document.body.removeChild(a); }, 0);
+    function triggerDownload(id) {
+        const a = document.createElement('a');
+        a.href = `/api/documentos/${id}/download`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { document.body.removeChild(a); }, 0);
     }
 
-    btnDescTodos?.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const tbody = tablaDocumentos?.querySelector('tbody');
-      const ids = Array.from(tbody?.querySelectorAll('tr[data-id]') || []).map(tr => tr.getAttribute('data-id'));
-      if (!ids.length){ return showInfo('Sin documentos', 'No hay archivos para descargar'); }
-      ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+    btnDescTodos?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tbody = tablaDocumentos?.querySelector('tbody');
+        const ids = Array.from(tbody?.querySelectorAll('tr[data-id]') || []).map(tr => tr.getAttribute('data-id'));
+        if (!ids.length) { return showInfo('Sin documentos', 'No hay archivos para descargar'); }
+        ids.forEach((id, idx) => setTimeout(() => triggerDownload(id), idx * 150));
     });
 
-    btnDescSel?.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const tbody = tablaDocumentos?.querySelector('tbody');
-      const ids = Array.from(tbody?.querySelectorAll('input[type="checkbox"][data-id]:checked') || []).map(ch => ch.getAttribute('data-id'));
-      if (!ids.length){ return showInfo('Selecciona documentos', 'Marca uno o varios archivos para descargar'); }
-      ids.forEach((id, idx)=> setTimeout(()=> triggerDownload(id), idx*150));
+    btnDescSel?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tbody = tablaDocumentos?.querySelector('tbody');
+        const ids = Array.from(tbody?.querySelectorAll('input[type="checkbox"][data-id]:checked') || []).map(ch => ch.getAttribute('data-id'));
+        if (!ids.length) { return showInfo('Selecciona documentos', 'Marca uno o varios archivos para descargar'); }
+        ids.forEach((id, idx) => setTimeout(() => triggerDownload(id), idx * 150));
     });
 
     function logout() {
@@ -1122,50 +1203,52 @@ function setupEventListeners() {
         });
     }
 });
-        // Solicitud de estado de proyecto (envía correo al líder)
-        const btnSolicitar = document.getElementById('btnSolicitarEstadoProyecto');
-        if (btnSolicitar) {
-            btnSolicitar.addEventListener('click', async function(){
-                if (!currentProject || !currentProject.id) { return; }
-                const opts = {
-                    'en_ejecucion': 'En ejecución',
-                    'en_pausa': 'En pausa',
-                    'finalizado': 'Finalizado'
-                };
-                const html = `
+// Solicitud de estado de proyecto (envía correo al líder)
+const btnSolicitar = document.getElementById('btnSolicitarEstadoProyecto');
+if (btnSolicitar) {
+    btnSolicitar.addEventListener('click', async function () {
+        if (!currentProject || !currentProject.id) { return; }
+        const opts = {
+            'en_ejecucion': 'En ejecución',
+            'en_pausa': 'En pausa',
+            'finalizado': 'Finalizado'
+        };
+        const html = `
                     <div class="form-group">
                         <label>Selecciona estado solicitado</label>
                         <select id="swEstadoProyecto" class="form-control">
-                            ${Object.entries(opts).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+                            ${Object.entries(opts).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Mensaje (opcional)</label>
                         <textarea id="swMsgEstado" class="form-control" rows="4" placeholder="Ej.: Justificación de la solicitud"></textarea>
                     </div>`;
-                const res = await Swal.fire({ title: 'Solicitud de estado de proyecto', html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', focusConfirm: false, preConfirm: () => {
-                    const sel = document.getElementById('swEstadoProyecto');
-                    if (!sel || !sel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
-                    return { estado: sel.value, mensaje: (document.getElementById('swMsgEstado')?.value||'').trim() };
-                }});
-                if (!res.isConfirmed) return;
-                const estadoSolicitado = res.value.estado;
-                const msg = res.value.mensaje || '';
-                try {
-                    const jefeEmail = currentProject.jefe_email || '';
-                    if (!jefeEmail) { throw new Error('No se encontró correo del líder'); }
-                    const fd = new FormData();
-                    fd.append('to_emails', jefeEmail);
-                    const asunto = `Solicitud de estado de proyecto: ${currentProject.nombre}`;
-                    const cuerpo = `El trabajador ${(currentUser?.nombre||currentUser?.email||'')} solicita cambiar el estado del proyecto "${currentProject.nombre}" a "${opts[estadoSolicitado]}".\n\n${msg}\n\n[[REQUEST_PROJECT_STATUS:${currentProject.id}|${estadoSolicitado}|${currentUser?.email||''}]]`;
-                    fd.append('asunto', asunto);
-                    fd.append('cuerpo', cuerpo);
-                    const r = await fetch('/api/correos', { method: 'POST', body: fd });
-                    const d = await r.json().catch(()=>({}));
-                    if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }
-                    Swal.fire({ icon: 'success', title: 'Solicitud enviada', text: 'El líder recibirá tu solicitud por correo.', timer: 1800, showConfirmButton: false });
-                } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: String(err.message||err) });
-                }
-            });
+        const res = await Swal.fire({
+            title: 'Solicitud de estado de proyecto', html, showCancelButton: true, confirmButtonText: 'Enviar solicitud', cancelButtonText: 'Cancelar', focusConfirm: false, preConfirm: () => {
+                const sel = document.getElementById('swEstadoProyecto');
+                if (!sel || !sel.value) { Swal.showValidationMessage('Debes seleccionar un estado'); return false; }
+                return { estado: sel.value, mensaje: (document.getElementById('swMsgEstado')?.value || '').trim() };
+            }
+        });
+        if (!res.isConfirmed) return;
+        const estadoSolicitado = res.value.estado;
+        const msg = res.value.mensaje || '';
+        try {
+            const jefeEmail = currentProject.jefe_email || '';
+            if (!jefeEmail) { throw new Error('No se encontró correo del líder'); }
+            const fd = new FormData();
+            fd.append('to_emails', jefeEmail);
+            const asunto = `Solicitud de estado de proyecto: ${currentProject.nombre}`;
+            const cuerpo = `El trabajador ${(currentUser?.nombre || currentUser?.email || '')} solicita cambiar el estado del proyecto "${currentProject.nombre}" a "${opts[estadoSolicitado]}".\n\n${msg}\n\n[[REQUEST_PROJECT_STATUS:${currentProject.id}|${estadoSolicitado}|${currentUser?.email || ''}]]`;
+            fd.append('asunto', asunto);
+            fd.append('cuerpo', cuerpo);
+            const r = await fetch('/api/correos', { method: 'POST', body: fd });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok || !d.ok) { throw new Error('No se pudo enviar la solicitud'); }
+            Swal.fire({ icon: 'success', title: 'Solicitud enviada', text: 'El líder recibirá tu solicitud por correo.', timer: 1800, showConfirmButton: false });
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Error', text: String(err.message || err) });
         }
+    });
+}

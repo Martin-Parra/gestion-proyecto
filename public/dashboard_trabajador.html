@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Trabajador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/dashboard_trabajador.css">
+    <link rel="stylesheet" href="/dashboard_trabajador.css?v=20">
     <link rel="icon" href="/assets/circlemartin.png?v=2" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
@@ -25,11 +25,11 @@
                     <li><a href="#dashboard" data-section="dashboard" class="active">Dashboard</a></li>
                     <li><a href="#mi-proyecto" data-section="mi-proyecto">Mi Proyecto</a></li>
                     <li><a href="/correo">Correo <span id="topCorreoBadge" class="menu-bubble" style="display:none">0</span></a></li>
-                    <li class="mobile-only"><a href="#" id="mobileLogoutBtn">Cerrar sesión</a></li>
+                    <li class="mobile-only"><a href="/logout" id="mobileLogoutBtn">Cerrar sesión</a></li>
                 </ul>
             </div>
             <div class="wt-right">
-                <a href="#" id="logoutBtn" class="logout-link">Cerrar sesión</a>
+                <a href="/logout" id="logoutBtn" class="logout-link">Cerrar sesión</a>
                 <button id="profileBtn" class="profile-btn"><span id="profileAvatar" class="avatar-circle">U</span></button>
             </div>
         </div>
